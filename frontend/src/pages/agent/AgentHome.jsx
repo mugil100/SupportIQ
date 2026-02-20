@@ -10,11 +10,11 @@ function AgentHome(){
     const location = useLocation();
     const aname = location.state?.name || "Agent";
     const [stats, setStats] = useState({});
-    useEffect(()=>{
-        axios.get("agent/stats")
-            .then(res=>setStats(res.data))
-            .catch(err=> console.log(err));
-            },[]);
+    // useEffect(()=>{
+    //     axios.get("agent/stats")
+    //         .then(res=>setStats(res.data))
+    //         .catch(err=> console.log(err));
+    //         },[]);
 
     // function getAssigned(){
     //     navigate("agent/ahome/assigned");
@@ -40,7 +40,7 @@ function AgentHome(){
                 <div className="stats-row">
                     <div className="a-card"
                     >
-                        Assigned <br/> <b className="a-num">{stats.assigned ?? 0}</b>
+                        Assigned <br/> <b className="a-num">{stats.assigned ?? <p>not available</p> }</b>
                     </div>
                     <div className="a-card" >
                         In progress <br/> <b className="a-num">{stats.inProgress ??0}</b>

@@ -21,7 +21,7 @@ router.post("/raiseticket", verifyToken, upload.single("image"), async (req, res
             [customer_id, title, category, priority, description, image]
         );
         res.status(201).json({ message: "Ticket raised successfully" });
-
+ 
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Database error" });

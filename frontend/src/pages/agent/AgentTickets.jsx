@@ -1,12 +1,14 @@
-import React, { useEffect } from "react";
+import React, {useState, useEffect } from "react";
 import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
+import { useNavigate } from "react-router-dom";
 
 function AgentTickets(){
 
     const [filter, setFilter] = useState("assigned");
     const [tickets, setTickets] = useState([]);
     const [loading,setLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(()=>{
         axios.get(`/agent/agenttickets?status=${filter}`)
@@ -16,6 +18,11 @@ function AgentTickets(){
         })
         .catch(()=>setLoading(false));
     },[filter]);
+
+    function handleClick(ticket_id){
+        console.log(ticket_id);
+        navigate(`/agent/agenttickets/${ticket_id}`);
+    }
 
     return(
         <>
@@ -32,14 +39,29 @@ function AgentTickets(){
         {loading && <p>Loading Tickets...</p>}
 
             <div className="ticket-table">
-                {tickets.map(t=>(
-                    <div className="ticket-row" ket={t.id}>
-                        <div><b>{t.subject}</b></div>
-                        <div>{t.customerName}</div>
-                        <div>{new Date (t.createdAt).toLocaleString()}</div>
-                        <div className={`Status ${t.status}`}>{t.status}</div>
-                    </div>
-                ))}
+                    <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Created At</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {tickets.map((t)=>(
+                            <tr key={t.ticket_id}
+                            onClick={()=>handleClick(t.ticket_id)}>
+                                <td>{t.ticket_id}</td>
+                                <td>{t.title}</td>
+                                <td>{t.category}</td>
+                                <td>{t.created_at}</td>
+                                <td>{t.status}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </>
     );

@@ -10,11 +10,11 @@ import {Routes,Route} from "react-router-dom";
 import PrivateRoute from './components/PrivateRoute';
 import AgentHome from './pages/agent/AgentHome';
 import AgentTickets from "./pages/agent/AgentTickets";
-// import AgentUnassigned from "./pages/agent/AgentUnassigned";
-// import  AgentNotifications from "./pages/agent/AgentNotifications"
-// import AgentPerf from "./pages/agent/AgentPerf";
-// import Agenthelp from "./pages/agent/Agenthelp";
-
+import AgentUnassigned from "./pages/agent/AgentUnassigned";
+import AgentPerf from "./pages/agent/AgentPerf";
+import Agenthelp from "./pages/agent/Agenthelp";
+import AgentNoti from "./pages/agent/AgentNoti";
+import AgentTicketView from './pages/agent/AgentTicketView';
 
 function App(){
     return (
@@ -23,40 +23,69 @@ function App(){
             <Route path="/agent" element={<LS_Reps/>}/>
             <Route path="/chome" element={
                 <PrivateRoute> 
-                    <Custhome/>
+                    <Custhome/>         // customer home page
                 </PrivateRoute>
                 }/>
             <Route path="/mytickets" element={
                 <PrivateRoute> 
-                    <Mytickets/>
+                    <Mytickets/>        //  customer tickets page
                 </PrivateRoute>
                 }/>
             <Route path="/raiseticket" element={
                 <PrivateRoute> 
-                    <Raiseticket/>
+                    <Raiseticket/>      //  customer raise tickets page
                 </PrivateRoute>
                 }/>
             <Route path="/ticket/:id" element={
                 <PrivateRoute>
-                    <ViewTicket/>
+                    <ViewTicket/>       //  customer view tickets page
                 </PrivateRoute>
             }/>
+
             //agent pages starts here
             <Route path="/agent/ahome" element={
                 <PrivateRoute role='agent'>
-                    <AgentHome/>
+                    <AgentHome/>        //  agent home page
                 </PrivateRoute>
             }/>
-            <Route path='/agent/tickets/:status' element={
+            <Route path='/agent/agenttickets' element={
                 <PrivateRoute>
                     <AgentTickets/>
                 </PrivateRoute>
             }
             />
-            <Route path='/agent/'>
+            <Route path='/agent/unassigned' element={
+                <PrivateRoute>
+                    <AgentUnassigned/>
+                </PrivateRoute>
+            }
+            />
+            <Route path='/agent/notifications' element={
+                <PrivateRoute>
+                    <AgentNoti/>
+                </PrivateRoute>
+            }
+            />
+            <Route path='/agent/performance' element={
+                <PrivateRoute>
+                    <AgentPerf/>
+                </PrivateRoute>
+            }
+            />
+            <Route path='/agent/help' element={
+                <PrivateRoute>
+                    <Agenthelp/>
+                </PrivateRoute>
+            }
+            />
+            <Route path='/agent/agenttickets/:id' element={
+                <PrivateRoute>
+                    <AgentTicketView/>
+                </PrivateRoute>
+
+            }>
 
             </Route>
-
             {/* <Route path="/agent/mhome" element={
                 <PrivateRoute role='manager'>
                     <ManagerHome/>
