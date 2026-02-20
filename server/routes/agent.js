@@ -65,7 +65,6 @@ router.get("/agenttickets/:id", verifyToken,async(req,res)=>{
 }catch(err){
     res.status(500).json("Ticket not fetched");
 }
-
 });
 
 // router.get("/",verifyToken, async(req,res)=>{
