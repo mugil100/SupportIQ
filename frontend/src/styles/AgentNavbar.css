@@ -1,60 +1,129 @@
+/* ─── AgentNavbar — Glassmorphism Sidebar ─── */
+
 .a-navbar {
-  position: fixed;          /* stays in place */
+  position: fixed;
   top: 0;
   left: 0;
+  width: 240px;
+  height: 100vh;
 
-  width: 240px;             /* fixed sidebar width */
-  height: 100vh;            /* full screen height */
+  background: rgba(15, 12, 41, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
 
-  background-color: #1f2937; /* dark dashboard bg */
-  color: #ffffff;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-
-  padding: 16px;
-  box-sizing: border-box;
-}
-.header p:first-child {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.header p:last-child {
-  font-size: 14px;
-  color: #cbd5e1;
-}
-.a-logout button {
-  width: 100%;
-  padding: 10px;
-
-  background-color: #ef4444;
-  border: none;
-  border-radius: 6px;
-
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.a-logout button:hover {
-  background-color: #dc2626;
-}
-
-.a-nav-items{
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
-.a-nav-items p{
-    cursor:pointer;
-    padding:10px;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  z-index: 100;
 }
 
-.active-link{
-    background:#2575fc;
-    color:white;
-    border-radius:6px;
+/* ─── Header ─── */
+.header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+  transition: opacity 0.2s;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.header p:last-child {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+/* ─── Nav Items ─── */
+.a-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  margin: 24px 0;
+}
+
+.a-nav-items p {
+  cursor: pointer;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.a-nav-items p::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px;
+  height: 60%;
+  background: #6366f1;
+  border-radius: 0 3px 3px 0;
+  transition: transform 0.2s;
+}
+
+.a-nav-items p:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  transform: translateX(4px);
+}
+
+.a-nav-items p:hover::before {
+  transform: translateY(-50%) scaleY(1);
+}
+
+/* ─── Active Link ─── */
+.active-link {
+  background: rgba(99, 102, 241, 0.25) !important;
+  color: #a78bfa !important;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25), inset 0 0 8px rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.active-link::before {
+  transform: translateY(-50%) scaleY(1) !important;
+}
+
+/* ─── Logout ─── */
+.a-logout button {
+  width: 100%;
+  padding: 11px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  color: #fca5a5;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.a-logout button:hover {
+  background: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
 }

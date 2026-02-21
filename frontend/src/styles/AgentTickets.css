@@ -1,0 +1,129 @@
+/* ─── AgentTickets — Glassmorphism Ticket List ─── */
+
+.agent-tpage {
+    padding: 36px 32px;
+    margin-left: 240px;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.agent-tpage h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #f1f5f9, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+}
+
+/* ─── Filter Buttons ─── */
+.ticket-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.ticket-filters button,
+.agent-tpage>button {
+    padding: 9px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.ticket-filters button:hover,
+.agent-tpage>button:hover {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #c7d2fe;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+    transform: translateY(-1px);
+}
+
+/* ─── Ticket Table Container ─── */
+.a-ticket-table {
+    background: rgba(30, 20, 70, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(139, 92, 246, 0.1);
+}
+
+.ticket-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* ─── Table Head ─── */
+.ticket-table thead {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.35), rgba(167, 139, 250, 0.2));
+    border-bottom: 1px solid rgba(139, 92, 246, 0.35);
+}
+
+.ticket-table thead th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a78bfa;
+}
+
+/* ─── Table Body ─── */
+.ticket-table tbody tr {
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.ticket-table tbody tr:nth-child(even) {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.ticket-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.ticket-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.18);
+    box-shadow: inset 4px 0 0 #7c3aed;
+}
+
+.ticket-table tbody td {
+    padding: 15px 20px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ─── First column (ID) — accent color ─── */
+.ticket-table tbody td:first-child {
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+.ticket-table tbody tr:hover td {
+    color: #f1f5f9;
+}
+
+/* ─── Status badge-like styling ─── */
+.ticket-table tbody td:last-child {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: capitalize;
+    letter-spacing: 0.4px;
+    color: #34d399;
+}

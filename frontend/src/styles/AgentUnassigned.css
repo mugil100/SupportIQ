@@ -1,0 +1,105 @@
+/* ─── AgentUnassigned — Glassmorphism Unassigned Tickets ─── */
+
+.unassigned-page {
+    padding: 36px 32px;
+    margin-left: 240px;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* ─── Page Heading ─── */
+.unassigned-page h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #f1f5f9, #f59e0b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 28px;
+    letter-spacing: -0.5px;
+}
+
+/* ─── Table Container ─── */
+.unassigned-table {
+    background: rgba(30, 18, 10, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(245, 158, 11, 0.1);
+}
+
+.unassigned-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* ─── Table Head ─── */
+.unassigned-table thead {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.28), rgba(251, 191, 36, 0.14));
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.unassigned-table thead th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fbbf24;
+}
+
+/* ─── Table Body ─── */
+.unassigned-table tbody tr {
+    border-bottom: 1px solid rgba(245, 158, 11, 0.08);
+    transition: background 0.2s, box-shadow 0.2s;
+    cursor: default;
+}
+
+.unassigned-table tbody tr:nth-child(even) {
+    background: rgba(245, 158, 11, 0.04);
+}
+
+.unassigned-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.unassigned-table tbody tr:hover {
+    background: rgba(245, 158, 11, 0.12);
+    box-shadow: inset 4px 0 0 #f59e0b;
+}
+
+.unassigned-table tbody td {
+    padding: 15px 20px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+/* ─── First column (ID) — amber accent ─── */
+.unassigned-table tbody td:first-child {
+    font-weight: 600;
+    color: #fbbf24;
+}
+
+.unassigned-table tbody tr:hover td {
+    color: #f1f5f9;
+}
+
+/* ─── Status column ─── */
+.unassigned-table tbody td:last-child {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: capitalize;
+    letter-spacing: 0.4px;
+    color: #fb923c;
+}
+
+/* ─── Empty State ─── */
+.unassigned-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.95rem;
+}

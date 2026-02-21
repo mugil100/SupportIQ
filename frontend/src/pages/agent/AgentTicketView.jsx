@@ -10,13 +10,13 @@ function AgentTicketView(){
     const {id} = useParams();
     const[ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [reply, setReply] = useState([]);
+    const [reply, setReply] = useState("");
 
     useEffect(()=>{
         axios.get(`/agent/agenttickets/${id}`)
         .then(res=>{
-            setTicket(res.data[0]);
-            setMessages(res.data[0]?.messages || []);
+            setTicket(res.data);
+            setMessages(res.data?.messages || []);
         })
         .catch(err=> console.log(err));
     },[id]);
