@@ -57,7 +57,11 @@ router.get("/agenttickets/:id", verifyToken,async(req,res)=>{
         assigned_agent_id= $2 `,[id,agent_id]
     );
 
-
+    const ticket_details = await pool.query(
+        `select * from ticket_messages 
+        where ticket_id = $1`,[id]
+        
+    );
 
     if(details.rows[0].length===0){
         return res.status(404).json({error:"Ticket details not found"});
