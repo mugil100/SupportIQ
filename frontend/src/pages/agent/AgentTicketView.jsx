@@ -11,7 +11,7 @@ function AgentTicketView(){
     const[ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
-
+    //fetches the ticket data
     useEffect(()=>{
         axios.get(`/agent/agenttickets/${id}`)
         .then(res=>{
@@ -54,7 +54,6 @@ function AgentTicketView(){
                     </div>
                 </div>
             </div>
-            //details
             <div className="ticket-details">
                 <h3>{ticket.title}</h3>
                 <p className="category">Category : {ticket.category}</p>
@@ -65,7 +64,7 @@ function AgentTicketView(){
             </div>
             <div className="ticket-bottom">
                 <div className="chat-section">
-                    <h3>Convversation</h3>
+                    <h3>Conversation</h3>
                     <div className="chat-box">
                         {messages.map((m,i)=>(
                             <div key={i}

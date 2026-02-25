@@ -42,7 +42,7 @@ router.get("/agenttickets", verifyToken, async(req,res)=>{
 //getting the stats of the agent
 router.get("/agenttickets/:id", verifyToken,async(req,res)=>{
     try{
-    const {id} = req.params;
+    const {id} = req.params; // customer id
     const agent_id = req.customer_id;
     console.log("Ticket, Agent Id:",id, agent_id);
 
@@ -56,19 +56,31 @@ router.get("/agenttickets/:id", verifyToken,async(req,res)=>{
         ticket_id = $1 AND
         assigned_agent_id= $2 `,[id,agent_id]
     );
+
+
+
     if(details.rows[0].length===0){
         return res.status(404).json({error:"Ticket details not found"});
     }
     console.log("details: ", details);
-    res.json(details.rows[0]);
+    res.json({ticket : details, messages : ticket_details.rows});
     
 }catch(err){
     res.status(500).json("Ticket not fetched");
 }
 });
 
+router.post("/agenttickets/:id/reply", verifyToken,async(req,res)=>{
+    const {id} = req.params;
+    const {message} = req.body;
+    console.log("reply received");
+    await pool.query(
+        `insert into ticket_messages(ticket_id, sender_type, sender_id,message)
+        values ($1,$2,$3,$4)`,[id,"Agent",req.customer_id,message]
+    );
+    res.status(201).json({message: "Message sent !"});
+});
 // router.get("/",verifyToken, async(req,res)=>{
-
 //     const res = await pool.query(
 //         `select count from tickets where `
 //     );
