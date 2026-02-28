@@ -6,6 +6,8 @@ import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentTicketView.css";
 import io from Socket
 import { Socket } from "socket.io";
+import socket from "../../socket";
+
 function AgentTicketView(){
     
     const {id} = useParams();
@@ -14,29 +16,28 @@ function AgentTicketView(){
     const [reply, setReply] = useState("");
     //fetches the ticket data
     
+    // useEffect(()=>{
+    //     axios.get(`/agent/agenttickets/${id}`)
+    //     .then(res=>{
+    //         setTicket(res.data);
+    //         setMessages(res.data?.messages || []);
+    //     })
+    //     .catch(err=> console.log(err));
+    // },[id]);
     useEffect(()=>{
-        axios.get(`/agent/agenttickets/${id}`)
-        .then(res=>{
-            setTicket(res.data);
-            setMessages(res.data?.messages || []);
-        })
-        .catch(err=> console.log(err));
+        socket.connect();
+        socket.emit("join_ticket",id);
+
+        socket.on("receive_message",(msg)=>{
+            setMessages(prev => [...prev, msg]);
+        });
+        return ()=>{
+            socket.off("receive_message");
+            socket.disconnect();
+        };
     },[id]);
 
-    function sendReply(){
-        if(!reply.trim()) return;
 
-        axios.post(`/agent/agenttickets/${id}/reply`,{
-            message: reply
-        })
-        .then(()=>{
-            setMessages(prev=>[
-                ...prev,
-                {sender_type: "Agent", message: reply}
-            ]);
-            setReply("");
-        });
-    }
 
     if(!ticket) return <p>Loading ticket...</p> ;
 
