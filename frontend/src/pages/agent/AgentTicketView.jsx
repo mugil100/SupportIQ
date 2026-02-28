@@ -24,7 +24,8 @@ function AgentTicketView() {
     // },[id]);
     useEffect(() => {
         axios.get(`agent/agenttickets/${id}`).then(res => {
-            setTicket(res.data);
+            console.log("ticket :", res.data);
+            setTicket(res.data.ticket);
             setMessages(res.data.messages || []);
         });
         socket.auth = { token: localStorage.getItem("token") };
