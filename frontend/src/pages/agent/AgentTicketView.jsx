@@ -4,7 +4,8 @@ import axios from "../../api/axios";
 import { Navigate } from "react-router-dom";
 import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentTicketView.css";
-
+import io from Socket
+import { Socket } from "socket.io";
 function AgentTicketView(){
     
     const {id} = useParams();
@@ -12,6 +13,7 @@ function AgentTicketView(){
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
     //fetches the ticket data
+    
     useEffect(()=>{
         axios.get(`/agent/agenttickets/${id}`)
         .then(res=>{
