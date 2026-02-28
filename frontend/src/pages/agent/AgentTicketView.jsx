@@ -1,21 +1,19 @@
-import React,{useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../api/axios";
 import { Navigate } from "react-router-dom";
 import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentTicketView.css";
-import io from Socket
-import { Socket } from "socket.io";
 import socket from "../../socket";
 
-function AgentTicketView(){
-    
-    const {id} = useParams();
-    const[ticket, setTicket] = useState(null);
+function AgentTicketView() {
+
+    const { id } = useParams();
+    const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
     //fetches the ticket data
-    
+
     // useEffect(()=>{
     //     axios.get(`/agent/agenttickets/${id}`)
     //     .then(res=>{
@@ -24,20 +22,25 @@ function AgentTicketView(){
     //     })
     //     .catch(err=> console.log(err));
     // },[id]);
-    useEffect(()=>{
+    useEffect(() => {
+        axios.get(`agent/agenttickets/${id}`).then(res => {
+            setTicket(res.data);
+            setMessages(res.data.messages || []);
+        });
+        socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
-        socket.emit("join_ticket",id);
+        socket.emit("join_ticket", id);
 
-        socket.on("receive_message",(msg)=>{
+        socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
         });
-        return ()=>{
+        return () => {
             socket.off("receive_message");
             socket.disconnect();
         };
-    },[id]);
+    }, [id]);
 
-    function sendReply(){
+    function sendReply() {
         // if(!reply.trim()) return;
 
         // axios.post(`/agent/agenttickets/${id}/reply`,{
@@ -50,23 +53,22 @@ function AgentTicketView(){
         //     ]);
         //     setReply("");
         // });
-        if (!reply.trim()) return ;
+        if (!reply.trim()) return;
 
-        socket.emit("send_message",{
+        socket.emit("send_message", {
             ticket_id: id,
-            sender : "Customer",
-            senderId : ticket.customer_id,
-            message: text
+            sender: "Agent",
+            message: reply
         });
         setReply("");
     };
 
-    if(!ticket) return <p>Loading ticket...</p> ;
+    if (!ticket) return <p>Loading ticket...</p>;
 
 
-    return(
+    return (
         <>
-            <AgentNavbar/>
+            <AgentNavbar />
             <div className="ticket-view-page">
                 <div className="ticket-header">
                     <div>
@@ -83,7 +85,7 @@ function AgentTicketView(){
                 <h3>{ticket.title}</h3>
                 <p className="category">Category : {ticket.category}</p>
                 <div className="description">{ticket.description}</div>
-                {ticket.image_url &&(
+                {ticket.image_url && (
                     <img src={ticket.image_url} alt="Ticket Attachment" className="ticket-image" />
                 )}
             </div>
@@ -91,17 +93,17 @@ function AgentTicketView(){
                 <div className="chat-section">
                     <h3>Conversation</h3>
                     <div className="chat-box">
-                        {messages.map((m,i)=>(
+                        {messages.map((m, i) => (
                             <div key={i}
-                            className={`chat-msg ${m.sender_type}`}>
+                                className={`chat-msg ${m.sender_type}`}>
                                 {m.message}
                             </div>
                         ))}
                     </div>
                     <div className="reply-box">
                         <textarea value={reply}
-                        onChange={e=>setReply(e.target.value)}
-                        placeholder="Type your reply"/>
+                            onChange={e => setReply(e.target.value)}
+                            placeholder="Type your reply" />
                         <button onClick={sendReply}>Send</button>
                     </div>
                 </div>
@@ -110,7 +112,7 @@ function AgentTicketView(){
                     <p className="ai-placeholder">
                         AI recommendations will appear here
                     </p>
-                        <button disabled>Insert Reply</button>
+                    <button disabled>Insert Reply</button>
                 </div>
             </div>
         </>
