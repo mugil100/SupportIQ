@@ -37,7 +37,29 @@ function AgentTicketView(){
         };
     },[id]);
 
+    function sendReply(){
+        // if(!reply.trim()) return;
 
+        // axios.post(`/agent/agenttickets/${id}/reply`,{
+        //     message: reply
+        // })
+        // .then(()=>{
+        //     setMessages(prev=>[
+        //         ...prev,
+        //         {sender_type: "Agent", message: reply}
+        //     ]);
+        //     setReply("");
+        // });
+        if (!reply.trim()) return ;
+
+        socket.emit("send_message",{
+            ticket_id: id,
+            sender : "Customer",
+            senderId : ticket.customer_id,
+            message: text
+        });
+        setReply("");
+    };
 
     if(!ticket) return <p>Loading ticket...</p> ;
 
