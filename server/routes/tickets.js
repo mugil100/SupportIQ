@@ -69,7 +69,7 @@ router.get("/ticket/:id", verifyToken, async (req, res) => {
 router.get("/ticket/:id/messages", verifyToken, async (req, res) => {
     const { id } = req.params;
     const msgs = await pool.query(
-        `select sender_type, message, created_at,message_id
+        `select sender_type, message, created_at,message_id,seen,delivered
         from ticket_messages
         where ticket_id =$1 and is_deleted=false
         order by created_at ASC`, [id]

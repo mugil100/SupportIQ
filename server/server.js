@@ -67,11 +67,11 @@ io.on("connection", (socket) => { //server wide connections
                 sender_type: sender,
                 message,
                 delivered: true,
-                seen : false
+                seen: false
             });
 
             await pool.query(
-                `update ticket_messages set delivered = true where message_id = $1`,[message_id]
+                `update ticket_messages set delivered = true where message_id = $1`, [message_id]
             );
 
         } catch (error) {
@@ -79,20 +79,43 @@ io.on("connection", (socket) => { //server wide connections
         }
     });
 
-    socket.on("typing_start",({ticket_id,sender})=>{
-        socket.to(ticket_id).emit("typing_start",{
+    socket.on("typing_start", ({ ticket_id, sender }) => {
+        socket.to(ticket_id).emit("typing_start", {
             sender
         });
     });
 
-    socket.on("typing_stop",({ticket_id, sender})=>{
-        socket.to(ticket_id).emit("typing_stop",{
-            sender 
+    socket.on("typing_stop", ({ ticket_id, sender }) => {
+        socket.to(ticket_id).emit("typing_stop", {
+            sender
         });
     });
 
     socket.on("disconnect", () => {
         console.log("Disconnected : ", socket.id);
+    });
+
+    socket.on("mark_seen", async ({ ticket_id }) => {
+        let receiveId;
+        let receiveType;
+
+        if (socket.user.role === "Agent") {
+            receiveType = "Customer",
+                receiveId = socket.user.agent_id;
+        }
+        else {
+            receiveId = socket.user.customer_id;
+            receiveType = "Agent";
+        }
+
+        await pool.query(
+            `update ticket_messages 
+            set seen = true
+            where ticket_id = $1 and sender_type = $2`,
+            [ticket_id, receiveType]
+        );
+
+        socket.to(ticket_id).emit("messages_seen");
     });
 });
 

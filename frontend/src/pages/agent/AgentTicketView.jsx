@@ -32,17 +32,25 @@ function AgentTicketView() {
         socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
         socket.emit("join_ticket", id);
-
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
         });
 
-        socket.on("typing_start",({sender})=>{
+        socket.emit("mark_seen",{
+            ticket_id : id 
+        });
+
+        socket.on("typing_start", ({ sender }) => {
             setTypingUser(sender);
         });
 
-        socket.on("typing_stop",({sender})=>{
+        socket.on("typing_stop", ({ sender }) => {
             setTypingUser(null);
+        });
+        socket.on("messages_seen",()=>{
+            setMessages(prev =>
+                prev.map(m=>({...m, seen: true}))
+            );
         });
 
         return () => {
@@ -110,12 +118,17 @@ function AgentTicketView() {
                             {typingUser} is typing...
                         </div>
                     )}
-
                     <div className="chat-box">
                         {messages.map((m, i) => (
                             <div key={i}
                                 className={`chat-msg ${m.sender_type}`}>
                                 {m.message}
+                                
+                                {m.sender_type === "Customer" && (
+                                    <span className="status">
+                                        {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
+                                    </span>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -124,23 +137,23 @@ function AgentTicketView() {
                             onChange={e => {
                                 setReply(e.target.value);
 
-                                socket.emit("typing_start",{
-                                    ticket_id :id,
-                                    sender : "Agent"
+                                socket.emit("typing_start", { //Server, I (Agent) am typing in ticket #
+                                    ticket_id: id,
+                                    sender: "Agent"
                                 });
 
                                 clearTimeout(window.typingTimer);
-                                window.typingTimer = setTimeout(()=>{
-                                    socket.emit("typing_stop",{
-                                        ticket_id : id,
-                                        sender : "Agent"
+                                window.typingTimer = setTimeout(() => { //window survives re-renders
+                                    socket.emit("typing_stop", {
+                                        ticket_id: id,
+                                        sender: "Agent"
                                     });
-                                },1000);
+                                }, 1000);
 
                             }}
-                            placeholder="Type your reply" 
-                            
-                            />
+                            placeholder="Type your reply"
+
+                        />
 
                         <button onClick={sendReply}>Send</button>
                     </div>
