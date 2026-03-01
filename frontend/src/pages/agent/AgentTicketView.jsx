@@ -105,6 +105,12 @@ function AgentTicketView() {
             <div className="ticket-bottom">
                 <div className="chat-section">
                     <h3>Conversation</h3>
+                    {typingUser && (
+                        <div className="typing-indicator">
+                            {typingUser} is typing...
+                        </div>
+                    )}
+
                     <div className="chat-box">
                         {messages.map((m, i) => (
                             <div key={i}
