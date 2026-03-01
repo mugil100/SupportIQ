@@ -10,15 +10,15 @@ import socket from "../../socket";
 
 
 function ViewTicket() {
-
-    const deleteMsg = async (id) => {
-        await axios.delete(`ticket/message/${id}`);
-        setMessages(messages.filter(m => m.message_id !== id));
-    };
     const { id } = useParams();
-    const [ticket, setTicket] = useState({});
+    const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
+
+    const deleteMsg = async (msgId) => {
+        await axios.delete(`ticket/message/${msgId}`);
+        setMessages(messages.filter(m => m.message_id !== msgId));
+    };
 
     useEffect(() => {
         axios.get(`ticket/${id}`).then(res => setTicket(res.data));
@@ -40,7 +40,6 @@ function ViewTicket() {
 
     const sendMessage = async () => {
         if (!text.trim()) return;
-        console.log("user msg :", text);
 
         socket.emit("send_message", {
             ticket_id: id,
@@ -51,31 +50,63 @@ function ViewTicket() {
         setText("");
     }
 
+    if (!ticket) return (
+        <div className="vt-body">
+            <TicketNavbar />
+            <p className="loading">Loading ticket...</p>
+            <Footer />
+        </div>
+    );
+
     return (
         <div className="vt-body">
             <TicketNavbar className="header" />
-            <div className="ticket-view">
-                <h1 className="t-title">{ticket.title}</h1>
-                <span>Status: {ticket.status} </span>
-                <div className="chatbox">
-                    {messages.map((m) => (
-                        <div key={m.message_id} className={m.sender_type}>
-                            {m.message}
-                            {m.sender_type === "Customer" && (
-                                <button onClick={() => deleteMsg(m.message_id)}>❌</button>
-                            )}
-                        </div>
-                    ))}
+            <div className="customer-ticket-container">
+                <div className="ticket-header">
+                    <div>
+                        <h2>Ticket #{ticket.ticket_id}</h2>
+                        <small>Created: {new Date(ticket.created_at).toLocaleString()}</small>
+                    </div>
+                    <div className="ticket-badges">
+                        {ticket.priority && <span className={`badge ${ticket.priority}`}>{ticket.priority}</span>}
+                        <span className={`badge status-${ticket.status}`}>{ticket.status}</span>
+                    </div>
                 </div>
-                <div className="chat-input">
-                    <input type="text" value={text}
-                        onChange={e => setText(e.target.value)} />
-                    <button onClick={sendMessage}>Send</button>
+
+                <div className="ticket-details">
+                    <h3>{ticket.title}</h3>
+                    <p className="category">Category : {ticket.category}</p>
+                    <div className="description">{ticket.description}</div>
+                    {ticket.image_url && (
+                        <img src={`http://localhost:5000/uploads/${ticket.image_url}`} alt="Ticket Attachment" className="ticket-image" />
+                    )}
+                </div>
+
+                <div className="chat-section">
+                    <h3>Conversation</h3>
+                    <div className="chatbox">
+                        {messages.map((m) => (
+                            <div key={m.message_id} className={`chat-msg ${m.sender_type}`}>
+                                <span>{m.message}</span>
+                                {m.sender_type === "Customer" && (
+                                    <button className="delete-btn" onClick={() => deleteMsg(m.message_id)}>✕</button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="chat-input">
+                        <textarea
+                            value={text}
+                            onChange={e => setText(e.target.value)}
+                            placeholder="Type your message here..."
+                        />
+                        <button onClick={sendMessage}>Send</button>
+                    </div>
                 </div>
             </div>
             <Footer className="footer" />
         </div>
-
     );
 }
+
 export default ViewTicket;

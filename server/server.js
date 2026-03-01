@@ -23,19 +23,23 @@ const io = new Server(server, {
 });
 
 io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+    const token = socket.handshake.auth.token; //Reads JWT from socket handshake
     if (!token) {
-        return next(new Error("Authentication error"));
+        return next(new Error("Invalid or missing token"));
     }
+    //process → Node.js global object
+    //process.env → object that stores environment variables
+
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) return next(new Error("Authentication error"));
-        socket.user = decoded;
+        socket.user = decoded; //decoded - function parameter provided by jwt.verify
         next();
     });
 });
 
 io.on("connection", (socket) => { //server wide connections
     console.log("Client connected : ", socket.id);
+
     socket.on("join_ticket", (ticket_id) => { // listens for events related to a specific client connection
 
         socket.join(ticket_id); //subscribe a specific client socket to an arbitrary channel called a "room"
@@ -61,6 +65,18 @@ io.on("connection", (socket) => { //server wide connections
         } catch (error) {
             console.error("Socket send_message error:", error);
         }
+    });
+
+    socket.on("typing_start",({ticket_id,sender})=>{
+        socket.to(ticket_id).emit("typing_start",{
+            sender
+        });
+    });
+
+    socket.on("typing_stop",({ticket_id, sender})=>{
+        socket.to(ticket_id).emit("typing_stop",{
+            sender 
+        });
     });
 
     socket.on("disconnect", () => {
