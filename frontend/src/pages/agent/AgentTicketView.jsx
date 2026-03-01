@@ -12,6 +12,7 @@ function AgentTicketView() {
     const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
+    const [typingUser, setTypingUser] = useState(null);
     //fetches the ticket data
 
     // useEffect(()=>{
@@ -35,8 +36,19 @@ function AgentTicketView() {
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
         });
+
+        socket.on("typing_start",({sender})=>{
+            setTypingUser(sender);
+        });
+
+        socket.on("typing_stop",({sender})=>{
+            setTypingUser(null);
+        });
+
         return () => {
             socket.off("receive_message");
+            socket.off("typing_start");
+            socket.off("typing_stop");
             socket.disconnect();
         };
     }, [id]);
@@ -103,8 +115,27 @@ function AgentTicketView() {
                     </div>
                     <div className="reply-box">
                         <textarea value={reply}
-                            onChange={e => setReply(e.target.value)}
-                            placeholder="Type your reply" />
+                            onChange={e => {
+                                setReply(e.target.value);
+
+                                socket.emit("typing_start",{
+                                    ticket_id :id,
+                                    sender : "Agent"
+                                });
+
+                                clearTimeout(window.typingTimer);
+                                window.typingTimer = setTimeout(()=>{
+                                    socket.emit("typing_stop",{
+                                        ticket_id : id,
+                                        sender : "Agent"
+                                    });
+                                },1000);
+
+                            }}
+                            placeholder="Type your reply" 
+                            
+                            />
+
                         <button onClick={sendReply}>Send</button>
                     </div>
                 </div>

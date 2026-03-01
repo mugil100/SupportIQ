@@ -14,6 +14,7 @@ function ViewTicket() {
     const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
+    const [typingUser, setTypingUser] = useState(null);
 
     const deleteMsg = async (msgId) => {
         await axios.delete(`ticket/message/${msgId}`);
@@ -32,8 +33,18 @@ function ViewTicket() {
             setMessages(prev => [...prev, msg]);
         });
 
+        socket.on("typing_start",({sender})=>{
+            setTypingUser(sender);
+        });
+
+        socket.on("typing_stop",()=>{
+            setTypingUser(null);
+        });
+
         return () => {
             socket.off("receive_message");
+            socket.off("typing_start");
+            socket.off("typing_stop");
             socket.disconnect();
         };
     }, [id]);
@@ -84,6 +95,11 @@ function ViewTicket() {
 
                 <div className="chat-section">
                     <h3>Conversation</h3>
+                    {typingUser && (
+                        <div className="typing-indicator">
+                            {typingUser} is typing...
+                        </div>
+                    )}
                     <div className="chatbox">
                         {messages.map((m) => (
                             <div key={m.message_id} className={`chat-msg ${m.sender_type}`}>
@@ -97,7 +113,22 @@ function ViewTicket() {
                     <div className="chat-input">
                         <textarea
                             value={text}
-                            onChange={e => setText(e.target.value)}
+                            onChange={e => {
+                                setText(e.target.value);
+
+                                socket.emit("typing_start",{
+                                    ticket_id : id,
+                                    sender : "Customer"
+                                });
+
+                                clearTimeout(window.typingTimer);
+                                window.typingTimer = setTimeout(()=>{
+                                    socket.emit("typing_stop",{
+                                        ticket_id : id,
+                                        sender : "Customer"
+                                    });
+                                },1000);
+                            }}
                             placeholder="Type your message here..."
                         />
                         <button onClick={sendMessage}>Send</button>
