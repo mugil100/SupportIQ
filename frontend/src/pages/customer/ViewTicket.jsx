@@ -28,6 +28,13 @@ function ViewTicket() {
         socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
         socket.emit("join_ticket", id);
+        socket.emit("mark_seen",{ticket_id: id});
+
+        socket.on("messages_seen",()=>{
+            setMessages(prev => {
+                prev.map(m =>({...m, seen : true}));
+            });
+        });
 
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
@@ -104,6 +111,11 @@ function ViewTicket() {
                         {messages.map((m) => (
                             <div key={m.message_id} className={`chat-msg ${m.sender_type}`}>
                                 <span>{m.message}</span>
+                                {m.sender_type === "Customer" && (
+                                    <span className="status">
+                                        {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
+                                    </span>
+                                )}
                                 {m.sender_type === "Customer" && (
                                     <button className="delete-btn" onClick={() => deleteMsg(m.message_id)}>✕</button>
                                 )}
