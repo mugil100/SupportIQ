@@ -306,3 +306,25 @@
     font-weight: 600;
     cursor: not-allowed;
 }
+
+/* ─── Typing Indicator ─── */
+.typing-indicator {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    margin-bottom: 8px;
+    padding-left: 5px;
+    animation: typingPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes typingPulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
