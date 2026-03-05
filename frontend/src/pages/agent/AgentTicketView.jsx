@@ -13,6 +13,7 @@ function AgentTicketView() {
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
     const [typingUser, setTypingUser] = useState(null);
+
     //fetches the ticket data
 
     // useEffect(()=>{
@@ -25,7 +26,7 @@ function AgentTicketView() {
     // },[id]);
     useEffect(() => {
         axios.get(`agent/agenttickets/${id}`).then(res => {
-            console.log("ticket :", res.data);
+            console.log("loaded ticket data : ", res.data);
             setTicket(res.data.ticket);
             setMessages(res.data.messages || []);
         });
@@ -36,8 +37,8 @@ function AgentTicketView() {
             setMessages(prev => [...prev, msg]);
         });
 
-        socket.emit("mark_seen",{
-            ticket_id : id 
+        socket.emit("mark_seen", {
+            ticket_id: id
         });
 
         socket.on("typing_start", ({ sender }) => {
@@ -47,9 +48,9 @@ function AgentTicketView() {
         socket.on("typing_stop", ({ sender }) => {
             setTypingUser(null);
         });
-        socket.on("messages_seen",()=>{
+        socket.on("messages_seen", () => {
             setMessages(prev =>
-                prev.map(m=>({...m, seen: true}))
+                prev.map(m => ({ ...m, seen: true }))
             );
         });
 
@@ -123,8 +124,8 @@ function AgentTicketView() {
                             <div key={i}
                                 className={`chat-msg ${m.sender_type}`}>
                                 {m.message}
-                                
-                                {m.sender_type === "Customer" && (
+
+                                {m.sender_type === "Agent" && (
                                     <span className="status">
                                         {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
                                     </span>

@@ -47,29 +47,28 @@ io.on("connection", (socket) => { //server wide connections
     });
 
     socket.on("send_message", async ({ ticket_id, sender, message }) => {
+        console.log("📩 send_message received:");
 
-        // let sender_id = socket.user.customer_id;
-        const sender_id = sender == "Agent" ? socket.user.agent_id : socket.user.customer_id;
+        // The JWT payload maps the user's ID to \`customer_id\` for both Agents and Customers
+        const sender_id = socket.user.customer_id;
 
         try {
             // save message to db
             const result = await pool.query(
                 `insert into ticket_messages (ticket_id,sender_type,sender_id,message,delivered,seen)
-                values ($1,$2,$3,$4,false,false)`, [ticket_id, sender, sender_id, message]
+                values ($1,$2,$3,$4,false,false) RETURNING message_id`, [ticket_id, sender, sender_id, message]
             );
 
             const message_id = result.rows[0].message_id;
 
-
             // emit to all users in this ticket
-            socket.to(ticket_id).emit("receive_message", {
+            io.to(ticket_id).emit("receive_message", {
                 message_id: message_id,
                 sender_type: sender,
                 message,
                 delivered: true,
                 seen: false
             });
-
             await pool.query(
                 `update ticket_messages set delivered = true where message_id = $1`, [message_id]
             );
