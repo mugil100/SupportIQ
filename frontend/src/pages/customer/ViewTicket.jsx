@@ -8,7 +8,6 @@ import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import socket from "../../socket";
 
-
 function ViewTicket() {
     const { id } = useParams();
     const [ticket, setTicket] = useState(null);

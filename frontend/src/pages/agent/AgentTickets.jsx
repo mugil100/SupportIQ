@@ -31,10 +31,10 @@ function AgentTickets() {
             <div className="agent-tpage">
                 <h2>My Tickets</h2>
                 <div className="ticket-filters">
-                    <button onClick={() => { setFilter("assigned") }}>Assigned</button>
+                    <button onClick={() => { setFilter("assigned") }}>Open</button>
                     <button onClick={() => { setFilter("inprogress") }}>In Progress</button>
-                    <button onClick={() => { setFilter("unreplied") }}>Unreplied</button>
                     <button onClick={() => { setFilter("resolved") }}>Resolved</button>
+                    <button onClick={() => { setFilter("closed") }}>Closed</button>
                 </div>
 
 

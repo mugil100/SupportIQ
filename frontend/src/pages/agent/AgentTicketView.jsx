@@ -15,15 +15,6 @@ function AgentTicketView() {
     const [typingUser, setTypingUser] = useState(null);
 
     //fetches the ticket data
-
-    // useEffect(()=>{
-    //     axios.get(`/agent/agenttickets/${id}`)
-    //     .then(res=>{
-    //         setTicket(res.data);
-    //         setMessages(res.data?.messages || []);
-    //     })
-    //     .catch(err=> console.log(err));
-    // },[id]);
     useEffect(() => {
         axios.get(`agent/agenttickets/${id}`).then(res => {
             console.log("loaded ticket data : ", res.data);
@@ -32,6 +23,7 @@ function AgentTicketView() {
         });
         socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
+        
         socket.emit("join_ticket", id);
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
@@ -122,7 +114,7 @@ function AgentTicketView() {
                     <div className="chat-box">
                         {messages.map((m, i) => (
                             <div key={i}
-                                className={`chat-msg ${m.sender_type}`}>
+                                className={`chat-msg ${m.sender_type}1`}>
                                 {m.message}
 
                                 {m.sender_type === "Agent" && (

@@ -14,7 +14,7 @@ function Mytickets(){
         axios.get("mytickets")
         .then(res=>setTickets(res.data))
         .catch(err=>console.error(err));
-    });
+    }, []);
 
     return(
         <div className="mytick-container">

@@ -197,14 +197,15 @@
     line-height: 1.5;
 }
 
-.chat-msg.Customer {
+.chat-msg.Customer1 {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
     align-self: flex-start;
     border-bottom-left-radius: 4px;
 }
 
-.chat-msg.Agent {
+
+.chat-msg.Agent1 {
     background: rgba(99, 102, 241, 0.2);
     border: 1px solid rgba(99, 102, 241, 0.35);
     align-self: flex-end;

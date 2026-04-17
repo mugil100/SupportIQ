@@ -53,5 +53,10 @@ CREATE TABLE ticket_messages (
 
 
 select * from tickets;
-
 select * from ticket_messages;
+
+ALTER TABLE tickets
+ADD COLUMN last_customer_reply_at TIMESTAMP,
+ADD COLUMN last_agent_reply_at TIMESTAMP,
+ADD COLUMN resolved_at TIMESTAMP,
+ADD COLUMN closed_at TIMESTAMP;

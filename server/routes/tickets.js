@@ -10,15 +10,16 @@ router.post("/raiseticket", verifyToken, upload.single("image"), async (req, res
     const { title, category, priority, description } = req.body;
     const image = req.file?.filename || null;
     const customer_id = req.customer_id;
+    const ticket_time = new Date();
     console.log("File received:", req.file);
     console.log("Headers:", req.headers.authorization);
 
     try {
         await pool.query(
             `insert into tickets
-            (customer_id,title,category,priority,description,image_url)
-            values ($1,$2,$3,$4,$5,$6)`,
-            [customer_id, title, category, priority, description, image]
+            (customer_id,title,category,priority,description,image_url, last_customer_reply_at)
+            values ($1,$2,$3,$4,$5,$6,$7)`,
+            [customer_id, title, category, priority, description, image,ticket_time]
         );
         res.status(201).json({ message: "Ticket raised successfully" });
 
@@ -91,8 +92,8 @@ router.post("/ticket/:id/message", verifyToken, async (req, res) => {
     res.status(201).json({ message: "Message Sent" });
 });
 
-//update ticket status
 
+//update ticket status
 router.put("/ticket/:id/status", verifyToken, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;

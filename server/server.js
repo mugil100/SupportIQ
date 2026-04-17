@@ -51,13 +51,25 @@ io.on("connection", (socket) => { //server wide connections
 
         // The JWT payload maps the user's ID to \`customer_id\` for both Agents and Customers
         const sender_id = socket.user.customer_id;
-
+        const reply_time = new Date();
         try {
             // save message to db
             const result = await pool.query(
                 `insert into ticket_messages (ticket_id,sender_type,sender_id,message,delivered,seen)
                 values ($1,$2,$3,$4,false,false) RETURNING message_id`, [ticket_id, sender, sender_id, message]
             );
+
+            if (sender === "Agent") {
+                await pool.query(
+                    `UPDATE tickets SET last_agent_reply_at = $1 WHERE ticket_id = $2`,
+                    [reply_time, ticket_id]
+                );
+            } else {
+                await pool.query(
+                    `UPDATE tickets SET last_customer_reply_at = $1 WHERE ticket_id = $2`,
+                    [reply_time, ticket_id]
+                );
+            }
 
             const message_id = result.rows[0].message_id;
 

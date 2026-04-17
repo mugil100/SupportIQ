@@ -6,7 +6,6 @@ import axios from "../../api/axios";
 
 function Raiseticket(){
     const token = localStorage.getItem("token");
-    console.log(token);
     const addr = "http://localhost:5000/";
     const [ticket, setTicket] = useState({
         title:"", 
@@ -25,7 +24,6 @@ function Raiseticket(){
  
     const handleSubmit = async(e)=>{
         //avoid reset on browser behavior
-        console.log("JWT sent:", token);
         e.preventDefault();
         const formdata = new FormData();
         // object data model for sending files
@@ -39,7 +37,7 @@ function Raiseticket(){
         }
 
         try{
-            console.log(formdata);
+            //console.log(formdata);
             await axios.post(addr+"raiseticket",formdata,
                 {headers: {
                     "Authorization": `Bearer ${token}`,

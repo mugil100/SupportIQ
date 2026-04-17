@@ -65,31 +65,16 @@ router.get("/agenttickets/:id", verifyToken, async (req, res) => {
 
         );
 
-        if (details.rows[0].length === 0) {
+        if (details.rows.length === 0) {
             return res.status(404).json({ error: "Ticket details not found" });
         }
-        //console.log("details: ", details);
-        res.json({ ticket: details, messages: ticket_details.rows });
+        res.json({ ticket: details.rows[0], messages: ticket_details.rows });
 
     } catch (err) {
         res.status(500).json("Ticket not fetched");
     }
 });
 
-// router.post("/agenttickets/:id/reply", verifyToken,async(req,res)=>{
-//     const {id} = req.params;
-//     const {message} = req.body;
-//     console.log("reply received");
-//     await pool.query(
-//         `insert into ticket_messages(ticket_id, sender_type, sender_id,message)
-//         values ($1,$2,$3,$4)`,[id,"Agent",req.customer_id,message]
-//     );
-//     res.status(201).json({message: "Message sent !"});
-// });
-// router.get("/",verifyToken, async(req,res)=>{
-//     const res = await pool.query(
-//         `select count from tickets where `
-//     );
-// });
+
 
 module.exports = router;
