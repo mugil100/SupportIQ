@@ -69,6 +69,14 @@ io.on("connection", (socket) => { //server wide connections
                     `UPDATE tickets SET last_customer_reply_at = $1 WHERE ticket_id = $2`,
                     [reply_time, ticket_id]
                 );
+                const check_resolve = await pool.query(
+                        `select status from tickets where ticket_id = $1`,[ticket_id]
+                    );
+                    if(check_resolve.rows[0].status === "Resolved"){ 
+                        await pool.query(
+                            `update tickets set status = "Open" where ticket_id = $1`,[ticket_id]
+                        )
+                    }
             }
 
             const message_id = result.rows[0].message_id;

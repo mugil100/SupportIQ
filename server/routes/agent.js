@@ -31,22 +31,53 @@ router.get("/unassigned", verifyToken, async (req, res) => {
 });
 
 router.get("/agenttickets", verifyToken, async (req, res) => {
-    let agentid = req.customer_id;
+    const userId = req.customer_id; // this is users.id from the JWT
+    const status = req.query.status; // e.g. "open", "inprogress", "resolved", "closed"
+
     try {
-        const result = await pool.query(`select * from tickets 
-        where
-        assigned_agent_id = $1`, [agentid]);
+        // First, get the agent_id from the agents table using the users.id
+        const agentLookup = await pool.query(
+            `SELECT id FROM users WHERE id = $1`, [userId]
+        );
+
+        if (agentLookup.rows.length === 0) {
+            return res.status(404).json({ error: "Agent profile not found" });
+        }
+
+        const agentId = agentLookup.rows[0].id;
+
+        // Build status filter — map frontend values to DB values
+        const statusMap = {
+            open: "Open",
+            inprogress: "In Progress",
+            resolved: "Resolved",
+            closed: "Closed"
+        };
+        const dbStatus = statusMap[status];
+
+        let query = `SELECT * FROM tickets WHERE assigned_agent_id = $1`;
+        const params = [agentId];
+
+        if (dbStatus) {
+            query += ` AND status = $2`;
+            params.push(dbStatus);
+        }
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json("Eror fetching the assigned tickets");
+        console.error("Error fetching assigned tickets:", err);
+        res.status(500).json({ error: "Error fetching the assigned tickets" });
     }
 });
-//getting the stats of the agent
-router.get("/agenttickets/:id", verifyToken, async (req, res) => {
+// getting the stats of the agent
+router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
     try {
-        const { id } = req.params; // customer id
+        const { id } = req.params; // ticket id
         const agent_id = req.customer_id;
         console.log("Ticket, Agent Id:", id, agent_id);
+
+        await pool.query(`select * from tickets where ticket_id = $1`, [id]);
 
         if (!id || !agent_id) {
             console.log("insufficient Parameters");
@@ -75,6 +106,18 @@ router.get("/agenttickets/:id", verifyToken, async (req, res) => {
     }
 });
 
+router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
+    try {
+        const id = req.params.id;
+        await pool.query(
+            `update tickets set status = $1, resolved_at = NOW() where ticket_id = $2`, ['Resolved', id]
+        );
+        res.json({ message: "Ticket resolved successfully" });
+    } catch (err) {
+        console.error("Error resolving ticket:", err);
+        res.status(500).json({ error: "Failed to resolve ticket" });
+    }
+});
 
 
 module.exports = router;

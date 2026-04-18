@@ -6,18 +6,24 @@ import "../../styles/AgentTickets.css";
 
 function AgentTickets() {
 
-    const [filter, setFilter] = useState("assigned");
+    const [filter, setFilter] = useState("open");
     const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
+        setLoading(true);
+        setError(null);
         axios.get(`/agent/agenttickets?status=${filter}`)
             .then(res => {
                 setTickets(res.data);
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
+            .catch(err => {
+                setError(err.message || 'Failed to load tickets');
+                setLoading(false);
+            });
     }, [filter]);
 
     function handleClick(ticket_id) {
@@ -31,7 +37,7 @@ function AgentTickets() {
             <div className="agent-tpage">
                 <h2>My Tickets</h2>
                 <div className="ticket-filters">
-                    <button onClick={() => { setFilter("assigned") }}>Open</button>
+                    <button onClick={() => { setFilter("open") }}>Open</button>
                     <button onClick={() => { setFilter("inprogress") }}>In Progress</button>
                     <button onClick={() => { setFilter("resolved") }}>Resolved</button>
                     <button onClick={() => { setFilter("closed") }}>Closed</button>
@@ -39,6 +45,8 @@ function AgentTickets() {
 
 
                 <div className="a-ticket-table">
+                    {loading && <p>Loading tickets...</p>}
+                    {error && <p>Error: {error}</p>}
                     <table>
                         <thead>
                             <tr>

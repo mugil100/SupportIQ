@@ -23,7 +23,7 @@ function AgentTicketView() {
         });
         socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
-        
+
         socket.emit("join_ticket", id);
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
@@ -79,6 +79,17 @@ function AgentTicketView() {
 
     if (!ticket) return <p>Loading ticket...</p>;
 
+    function handleResolve() {
+        if (ticket.status === "Resolved") return;  // guard: already resolved
+        axios.post(`agent/agenttickets/${id}/resolved`)
+            .then(() => {
+                setTicket(prev => ({ ...prev, status: "Resolved" }));
+            })
+            .catch(err => {
+                console.error("Failed to resolve ticket:", err);
+                alert("Could not resolve ticket. Please try again.");
+            });
+    }
 
     return (
         <>
@@ -102,6 +113,13 @@ function AgentTicketView() {
                 {ticket.image_url && (
                     <img src={ticket.image_url} alt="Ticket Attachment" className="ticket-image" />
                 )}
+                <button
+                    className="btn-resolved"
+                    onClick={handleResolve}
+                    disabled={ticket.status === "Resolved"}
+                >
+                    {ticket.status === "Resolved" ? "✔ Resolved" : "Mark as Resolved"}
+                </button>
             </div>
             <div className="ticket-bottom">
                 <div className="chat-section">
