@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./bg_jobs/autoClose.js");
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -70,13 +71,15 @@ io.on("connection", (socket) => { //server wide connections
                     [reply_time, ticket_id]
                 );
                 const check_resolve = await pool.query(
-                        `select status from tickets where ticket_id = $1`,[ticket_id]
+                    `select status from tickets where ticket_id = $1`, [ticket_id]
+                );
+                if (check_resolve.rows[0].status === "Resolved") {
+                    await pool.query(
+                        `update tickets set status = 'Open' where ticket_id = $1`, [ticket_id]
                     );
-                    if(check_resolve.rows[0].status === "Resolved"){ 
-                        await pool.query(
-                            `update tickets set status = "Open" where ticket_id = $1`,[ticket_id]
-                        )
-                    }
+                    // Notify everyone in the room that the ticket is back open
+                    io.to(ticket_id).emit("ticket_reopened");
+                }
             }
 
             const message_id = result.rows[0].message_id;

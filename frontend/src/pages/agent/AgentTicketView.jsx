@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../api/axios";
 import { Navigate } from "react-router-dom";
@@ -13,6 +13,7 @@ function AgentTicketView() {
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
     const [typingUser, setTypingUser] = useState(null);
+    const bottomRef = useRef(null);
 
     //fetches the ticket data
     useEffect(() => {
@@ -23,8 +24,9 @@ function AgentTicketView() {
         });
         socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
-
-        socket.emit("join_ticket", id);
+        socket.on("connect", () => {
+            socket.emit("join_ticket", id);
+        });
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
         });
@@ -46,13 +48,25 @@ function AgentTicketView() {
             );
         });
 
+        socket.on("ticket_reopened", () => {
+            setTicket(prev => ({ ...prev, status: "Open" }));
+        });
+
         return () => {
+            socket.off("connect");
             socket.off("receive_message");
             socket.off("typing_start");
             socket.off("typing_stop");
+            socket.off("messages_seen");
+            socket.off("ticket_reopened");
             socket.disconnect();
         };
     }, [id]);
+
+    // Auto-scroll to latest message
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     function sendReply() {
         // if(!reply.trim()) return;
@@ -77,8 +91,6 @@ function AgentTicketView() {
         setReply("");
     };
 
-    if (!ticket) return <p>Loading ticket...</p>;
-
     function handleResolve() {
         if (ticket.status === "Resolved") return;  // guard: already resolved
         axios.post(`agent/agenttickets/${id}/resolved`)
@@ -90,6 +102,10 @@ function AgentTicketView() {
                 alert("Could not resolve ticket. Please try again.");
             });
     }
+
+
+    if (!ticket) return <p>Loading ticket...</p>;
+
 
     return (
         <>
@@ -113,13 +129,7 @@ function AgentTicketView() {
                 {ticket.image_url && (
                     <img src={ticket.image_url} alt="Ticket Attachment" className="ticket-image" />
                 )}
-                <button
-                    className="btn-resolved"
-                    onClick={handleResolve}
-                    disabled={ticket.status === "Resolved"}
-                >
-                    {ticket.status === "Resolved" ? "✔ Resolved" : "Mark as Resolved"}
-                </button>
+                <button className={"btn-resolved"} onClick={handleResolve}> Mark as Resolved</button>
             </div>
             <div className="ticket-bottom">
                 <div className="chat-section">
@@ -142,6 +152,7 @@ function AgentTicketView() {
                                 )}
                             </div>
                         ))}
+                        <div ref={bottomRef} />
                     </div>
                     <div className="reply-box">
                         <textarea value={reply}
@@ -160,7 +171,12 @@ function AgentTicketView() {
                                         sender: "Agent"
                                     });
                                 }, 1000);
-
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendReply();
+                                }
                             }}
                             placeholder="Type your reply"
 

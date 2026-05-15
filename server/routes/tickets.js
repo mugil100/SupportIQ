@@ -19,7 +19,7 @@ router.post("/raiseticket", verifyToken, upload.single("image"), async (req, res
             `insert into tickets
             (customer_id,title,category,priority,description,image_url, last_customer_reply_at)
             values ($1,$2,$3,$4,$5,$6,$7)`,
-            [customer_id, title, category, priority, description, image,ticket_time]
+            [customer_id, title, category, priority, description, image, ticket_time]
         );
         res.status(201).json({ message: "Ticket raised successfully" });
 
@@ -60,7 +60,7 @@ router.get("/ticket/:id", verifyToken, async (req, res) => {
         [id, customer_id]
     );
 
-    if (ticket.rows[0].length === 0) {
+    if (ticket.rows.length === 0) {
         return res.status(404).json({ error: "Ticket not found" });
     }
     res.json(ticket.rows[0]);
@@ -73,7 +73,7 @@ router.get("/ticket/:id/messages", verifyToken, async (req, res) => {
         `select sender_type, message, created_at,message_id,seen,delivered
         from ticket_messages
         where ticket_id =$1 and is_deleted=false
-        order by created_at ASC`, [id]
+        order by created_at ASC, message_id ASC`, [id]
     );
     res.json(msgs.rows);
 });
@@ -83,7 +83,13 @@ router.get("/ticket/:id/messages", verifyToken, async (req, res) => {
 router.post("/ticket/:id/message", verifyToken, async (req, res) => {
     const { id } = req.params;
     const { message } = req.body;
-
+    const status = await pool.query(`
+        select status from tickets where ticket_id = $1
+        `, [id]);
+    if (status.rows[0].status === "Resolved") {
+        await pool.query(`
+                update tickets set status = 'Open' where ticket_id = $1`, [id]);
+    }
     await pool.query(
         `insert into ticket_messages (ticket_id, sender_type,sender_id,message)
         values ($1,'Customer',$2,$3)

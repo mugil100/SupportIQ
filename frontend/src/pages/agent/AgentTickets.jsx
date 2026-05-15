@@ -6,24 +6,18 @@ import "../../styles/AgentTickets.css";
 
 function AgentTickets() {
 
-    const [filter, setFilter] = useState("open");
+    const [filter, setFilter] = useState("Open");
     const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        setLoading(true);
-        setError(null);
         axios.get(`/agent/agenttickets?status=${filter}`)
             .then(res => {
                 setTickets(res.data);
                 setLoading(false);
             })
-            .catch(err => {
-                setError(err.message || 'Failed to load tickets');
-                setLoading(false);
-            });
+            .catch(() => setLoading(false));
     }, [filter]);
 
     function handleClick(ticket_id) {
@@ -45,8 +39,6 @@ function AgentTickets() {
 
 
                 <div className="a-ticket-table">
-                    {loading && <p>Loading tickets...</p>}
-                    {error && <p>Error: {error}</p>}
                     <table>
                         <thead>
                             <tr>

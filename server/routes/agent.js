@@ -12,7 +12,8 @@ router.get("/ahome", verifyToken, async (req, res) => {
     const result = await pool.query(
         `select ticket_id,title,priority,status,created_at
          from tickets
-        where assigned_agent_id is NOT NULL`
+        where assigned_agent_id is NOT NULL
+        order by created_at DESC`
     );
     res.json(result.rows);
 });
@@ -20,7 +21,7 @@ router.get("/ahome", verifyToken, async (req, res) => {
 router.get("/unassigned", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(
-            `select * from tickets where assigned_agent_id is NULL`
+            `select * from tickets where assigned_agent_id is NULL order by created_at DESC`
         );
         res.json(result.rows);
     }
@@ -63,6 +64,8 @@ router.get("/agenttickets", verifyToken, async (req, res) => {
             params.push(dbStatus);
         }
 
+        query += ` ORDER BY created_at DESC`;
+
         const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
@@ -92,8 +95,8 @@ router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
 
         const ticket_details = await pool.query(
             `select * from ticket_messages 
-        where ticket_id = $1`, [id]
-
+        where ticket_id = $1 and is_deleted = false
+        order by created_at ASC, message_id ASC`, [id]
         );
 
         if (details.rows.length === 0) {

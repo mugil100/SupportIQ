@@ -2,8 +2,7 @@ import React from "react";
 import axios from "../../api/axios";
 import { useParams } from "react-router-dom";
 import "../../styles/ViewTicket.css";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import socket from "../../socket";
@@ -14,6 +13,7 @@ function ViewTicket() {
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
     const [typingUser, setTypingUser] = useState(null);
+    const bottomRef = useRef(null);
 
     const deleteMsg = async (msgId) => {
         await axios.delete(`ticket/message/${msgId}`);
@@ -26,35 +26,48 @@ function ViewTicket() {
 
         socket.auth = { token: localStorage.getItem("token") };
         socket.connect();
-        socket.emit("join_ticket", id);
-        socket.emit("mark_seen",{ticket_id: id});
+        socket.on("connect", () => {
+            socket.emit("join_ticket", id);
+            socket.emit("mark_seen", { ticket_id: id });
+        });
 
-        socket.on("messages_seen",()=>{
-            setMessages(prev => 
-                prev.map(m =>({...m, seen : true})));
-            
-            });
-        
+        socket.on("messages_seen", () => {
+            setMessages(prev =>
+                prev.map(m => ({ ...m, seen: true })));
+        });
+
+        socket.on("ticket_reopened", () => {
+            setTicket(prev => ({ ...prev, status: "Open" }));
+        });
+
 
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
         });
 
-        socket.on("typing_start",({sender})=>{
+        socket.on("typing_start", ({ sender }) => {
             setTypingUser(sender);
         });
 
-        socket.on("typing_stop",()=>{
+        socket.on("typing_stop", () => {
             setTypingUser(null);
         });
 
         return () => {
+            socket.off("connect");
             socket.off("receive_message");
             socket.off("typing_start");
             socket.off("typing_stop");
+            socket.off("messages_seen");
+            socket.off("ticket_reopened");
             socket.disconnect();
         };
     }, [id]);
+
+    // Auto-scroll to latest message
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     const sendMessage = async () => {
         if (!text.trim()) return;
@@ -110,20 +123,21 @@ function ViewTicket() {
                     <div className="chatbox">
                         {messages.map((m) => (
                             <div key={m.message_id} className={`chat-msg ${m.sender_type}`}>
-                                
+
                                 <span>{m.message}</span>
                                 {m.sender_type === "Customer" && (
                                     <span className="status">
                                         {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : "Sent"}
                                     </span>
                                 )}
-                                
+
                                 {m.sender_type === "Customer" && (
                                     <button className="delete-btn" onClick={() => deleteMsg(m.message_id)}>✕</button>
                                 )}
-                                
+
                             </div>
                         ))}
+                        <div ref={bottomRef} />
                     </div>
                     <div className="chat-input">
                         <textarea
@@ -131,18 +145,24 @@ function ViewTicket() {
                             onChange={e => {
                                 setText(e.target.value);
 
-                                socket.emit("typing_start",{
-                                    ticket_id : id,
-                                    sender : "Customer"
+                                socket.emit("typing_start", {
+                                    ticket_id: id,
+                                    sender: "Customer"
                                 });
 
                                 clearTimeout(window.typingTimer);
-                                window.typingTimer = setTimeout(()=>{
-                                    socket.emit("typing_stop",{
-                                        ticket_id : id,
-                                        sender : "Customer"
+                                window.typingTimer = setTimeout(() => {
+                                    socket.emit("typing_stop", {
+                                        ticket_id: id,
+                                        sender: "Customer"
                                     });
-                                },1000);
+                                }, 1000);
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage();
+                                }
                             }}
                             placeholder="Type your message here..."
                         />
