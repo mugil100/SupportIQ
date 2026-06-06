@@ -1,43 +1,48 @@
-/* ─── AgentNavbar — Glassmorphism Sidebar ─── */
+/* ─── AgentNavbar — Linear-style Dark Sidebar ─── */
 
 .a-navbar {
   position: fixed;
   top: 0;
   left: 0;
-  width: 240px;
+  width: 228px;
   height: 100vh;
-
-  background: rgba(15, 12, 41, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
-
+  background: #0d0d12;
+  border-right: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 24px 16px;
+  padding: 20px 12px;
   box-sizing: border-box;
   z-index: 100;
 }
 
-/* ─── Header ─── */
+/* ─── Logo / Header ─── */
 .header {
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 8px;
 }
 
 .logo {
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 700;
+  letter-spacing: -0.4px;
   cursor: pointer;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 4px;
-  letter-spacing: -0.5px;
-  transition: opacity 0.2s;
+  color: #e8eaf6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity var(--transition);
+}
+
+.logo::before {
+  content: '';
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #5e6ad2, #8b5cf6);
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -45,85 +50,100 @@
 }
 
 .header p:last-child {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  color: rgba(255,255,255,0.32);
   font-weight: 400;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  margin-top: 6px;
+  padding-left: 30px;
+}
+
+/* ─── Section Label ─── */
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  padding: 0 8px;
+  margin: 12px 0 4px;
 }
 
 /* ─── Nav Items ─── */
 .a-nav-items {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
-  margin: 24px 0;
+  margin-top: 4px;
 }
 
 .a-nav-items p {
   cursor: pointer;
-  padding: 11px 14px;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 13.5px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
-  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+  color: rgba(232,234,246,0.55);
+  transition: background var(--transition), color var(--transition);
   position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.1px;
 }
 
 .a-nav-items p::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%) scaleY(0);
-  width: 3px;
-  height: 60%;
-  background: #6366f1;
-  border-radius: 0 3px 3px 0;
-  transition: transform 0.2s;
+  display: none; /* removed old left-border trick */
 }
 
 .a-nav-items p:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
-  transform: translateX(4px);
-}
-
-.a-nav-items p:hover::before {
-  transform: translateY(-50%) scaleY(1);
+  background: rgba(255,255,255,0.06);
+  color: rgba(232,234,246,0.9);
 }
 
 /* ─── Active Link ─── */
 .active-link {
-  background: rgba(99, 102, 241, 0.25) !important;
-  color: #a78bfa !important;
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25), inset 0 0 8px rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: rgba(94,106,210,0.18) !important;
+  color: #a5b4fc !important;
+  font-weight: 600 !important;
 }
 
-.active-link::before {
-  transform: translateY(-50%) scaleY(1) !important;
+.active-link::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: #5e6ad2;
+  border-radius: 3px 0 0 3px;
 }
 
 /* ─── Logout ─── */
+.a-logout {
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
 .a-logout button {
   width: 100%;
-  padding: 11px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 10px;
-  color: #fca5a5;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 9px 12px;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 7px;
+  color: rgba(252,165,165,0.7);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
-  letter-spacing: 0.3px;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  text-align: left;
+  letter-spacing: -0.1px;
 }
 
 .a-logout button:hover {
-  background: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
-  transform: translateY(-1px);
+  background: rgba(239,68,68,0.10);
+  color: #fca5a5;
+  border-color: rgba(239,68,68,0.45);
 }

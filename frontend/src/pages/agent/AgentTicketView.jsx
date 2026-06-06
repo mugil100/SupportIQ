@@ -121,76 +121,76 @@ function AgentTicketView() {
                         <span className={`badge status-${ticket.status}`}>{ticket.status}</span>
                     </div>
                 </div>
-            </div>
-            <div className="ticket-details">
-                <h3>{ticket.title}</h3>
-                <p className="category">Category : {ticket.category}</p>
-                <div className="description">{ticket.description}</div>
-                {ticket.image_url && (
-                    <img src={ticket.image_url} alt="Ticket Attachment" className="ticket-image" />
-                )}
-                <button className={"btn-resolved"} onClick={handleResolve}> Mark as Resolved</button>
-            </div>
-            <div className="ticket-bottom">
-                <div className="chat-section">
-                    <h3>Conversation</h3>
-                    {typingUser && (
-                        <div className="typing-indicator">
-                            {typingUser} is typing...
-                        </div>
+                <div className="ticket-details">
+                    <h3>{ticket.title}</h3>
+                    <p className="category">Category : {ticket.category}</p>
+                    <div className="description">{ticket.description}</div>
+                    {ticket.image_url && (
+                        <img src={ticket.image_url} alt="Ticket Attachment" className="ticket-image" />
                     )}
-                    <div className="chat-box">
-                        {messages.map((m, i) => (
-                            <div key={i}
-                                className={`chat-msg ${m.sender_type}1`}>
-                                {m.message}
-
-                                {m.sender_type === "Agent" && (
-                                    <span className="status">
-                                        {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
-                                    </span>
-                                )}
+                    <button className="resolve-btn" onClick={handleResolve}> Mark as Resolved</button>
+                </div>
+                <div className="ticket-bottom">
+                    <div className="chat-section">
+                        <h3>Conversation</h3>
+                        {typingUser && (
+                            <div className="typing-indicator">
+                                {typingUser} is typing...
                             </div>
-                        ))}
-                        <div ref={bottomRef} />
-                    </div>
-                    <div className="reply-box">
-                        <textarea value={reply}
-                            onChange={e => {
-                                setReply(e.target.value);
+                        )}
+                        <div className="chat-box">
+                            {messages.map((m, i) => (
+                                <div key={i}
+                                    className={`chat-msg ${m.sender_type}1`}>
+                                    {m.message}
 
-                                socket.emit("typing_start", { //Server, I (Agent) am typing in ticket #
-                                    ticket_id: id,
-                                    sender: "Agent"
-                                });
+                                    {m.sender_type === "Agent" && (
+                                        <span className="status">
+                                            {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                            <div ref={bottomRef} />
+                        </div>
+                        <div className="reply-box">
+                            <textarea value={reply}
+                                onChange={e => {
+                                    setReply(e.target.value);
 
-                                clearTimeout(window.typingTimer);
-                                window.typingTimer = setTimeout(() => { //window survives re-renders
-                                    socket.emit("typing_stop", {
+                                    socket.emit("typing_start", { //Server, I (Agent) am typing in ticket #
                                         ticket_id: id,
                                         sender: "Agent"
                                     });
-                                }, 1000);
-                            }}
-                            onKeyDown={e => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    sendReply();
-                                }
-                            }}
-                            placeholder="Type your reply"
 
-                        />
+                                    clearTimeout(window.typingTimer);
+                                    window.typingTimer = setTimeout(() => { //window survives re-renders
+                                        socket.emit("typing_stop", {
+                                            ticket_id: id,
+                                            sender: "Agent"
+                                        });
+                                    }, 1000);
+                                }}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        sendReply();
+                                    }
+                                }}
+                                placeholder="Type your reply"
 
-                        <button onClick={sendReply}>Send</button>
+                            />
+
+                            <button onClick={sendReply}>Send</button>
+                        </div>
                     </div>
-                </div>
-                <div className="ai-panel">
-                    <h3>AI Suggested Reply</h3>
-                    <p className="ai-placeholder">
-                        AI recommendations will appear here
-                    </p>
-                    <button disabled>Insert Reply</button>
+                    <div className="ai-panel">
+                        <h3>AI Suggested Reply</h3>
+                        <p className="ai-placeholder">
+                            AI recommendations will appear here
+                        </p>
+                        <button disabled>Insert Reply</button>
+                    </div>
                 </div>
             </div>
         </>

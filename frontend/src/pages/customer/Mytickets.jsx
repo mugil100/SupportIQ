@@ -42,7 +42,7 @@ function Mytickets(){
                                 <td>{t.ticket_id}</td>
                                 <td>{t.title}</td>
                                 <td>{t.category}</td>
-                                <td className="{t.priority}">{t.priority}</td>
+                                <td className={t.priority}>{t.priority}</td>
                                 <td>{t.status}</td>
                                 <td>{new Date(t.created_at).toLocaleDateString()}</td>
                             </tr>

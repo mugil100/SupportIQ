@@ -1,51 +1,102 @@
-.tickets-page{
-  padding: 40px;
-  background: #FFF2C6;
-  color: #2b2b2b;
+/* ─── Tickets (Mytickets) — Intercom-style Table ─── */
+
+.mytick-container {
+  min-height: 100vh;
+  background: var(--bg-page);
+  display: flex;
+  flex-direction: column;
 }
 
-/* Table */
-table{
+.tickets-page {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 36px 28px 60px;
+  box-sizing: border-box;
+}
+
+.tickets-page h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  letter-spacing: -0.4px;
+}
+
+/* ─── Table Container ─── */
+.tickets-page table {
   width: 100%;
   border-collapse: collapse;
-  background: #FFF8DE;
-  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Header */
-th{
-  padding: 14px;
-  background: #8CA9FF;
-  color: #ffffff;
+/* ─── Header ─── */
+.tickets-page th {
+  padding: 12px 18px;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
   text-align: left;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  border-bottom: 1px solid var(--border);
 }
 
-/* Cells */
-td{
-  padding: 12px;
-  border-bottom: 1px solid #AAC4F5;
+/* ─── Cells ─── */
+.tickets-page td {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  color: var(--text-primary);
 }
 
-/* Row hover */
-tr:hover{
-  background: #AAC4F5;
+.tickets-page tbody tr:last-child td { border-bottom: none; }
+
+/* ─── Row hover ─── */
+.tickets-page tr:hover {
+  background: rgba(94,106,210,0.04);
   cursor: pointer;
 }
 
-/* Priority labels */
-.High{
-  color: #e62020;
+.tickets-page tbody tr:hover td { color: var(--text-primary); }
+
+/* ─── Priority labels ─── */
+.tickets-page .High {
+  color: #dc2626;
   font-weight: 600;
+  font-size: 12px;
 }
 
-.Medium{
-  color: #f0f012;
+.tickets-page .Medium {
+  color: #d97706;
   font-weight: 600;
+  font-size: 12px;
 }
 
-.Low{
-  color: #78f534;
+.tickets-page .Low {
+  color: #059669;
   font-weight: 600;
+  font-size: 12px;
+}
+
+/* ─── ID column ─── */
+.tickets-page tbody td:first-child {
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #5e6ad2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Status column ─── */
+.tickets-page tbody td:nth-child(5) {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: #059669;
 }

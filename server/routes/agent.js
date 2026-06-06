@@ -123,4 +123,82 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
 });
 
 
+router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
+    try {
+        const { ticket_id } = req.body;
+        const agentId = req.customer_id;
+
+        if (!ticket_id) {
+            return res.status(400).json({ error: "Ticket ID is required" });
+        }
+
+        const result = await pool.query(
+            `UPDATE tickets 
+            SET assigned_agent_id = $1 
+            WHERE ticket_id = $2 
+            AND assigned_agent_id IS NULL RETURNING *`,
+            [agentId, ticket_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: "Ticket not found or already assigned" });
+        }
+
+        res.json({ message: "Ticket assigned successfully", ticket: result.rows[0] });
+    } catch (err) {
+        console.error("Error assigning ticket:", err);
+        res.status(500).json({ error: "Failed to assign ticket" });
+    }
+});
+
+router.get("/dashboard", verifyToken, async (req, res) => {
+    const agent_id = req.customer_id;
+    try {
+        const result = await pool.query(
+            `
+            SELECT
+                COUNT(*) AS assigned,
+                COUNT(
+                    CASE
+                        WHEN status='In Progress'
+                        THEN 1
+                    END
+                ) AS in_progress,
+
+                COUNT(
+                    CASE
+                        WHEN status='Resolved'
+                        THEN 1
+                    END
+                ) AS resolved,
+
+                COUNT(
+                    CASE
+                        WHEN
+                            last_agent_reply_at IS NULL
+                            OR last_customer_reply_at > last_agent_reply_at
+                        THEN 1
+                    END
+                    ) AS unreplied
+
+                FROM tickets
+
+                WHERE assigned_agent_id = $1;
+            `,
+            [agent_id]
+        );
+        res.json({
+            assigned: parseInt(result.rows[0].assigned) || 0,
+            in_progress: parseInt(result.rows[0].in_progress) || 0,
+            resolved: parseInt(result.rows[0].resolved) || 0,
+            unreplied: parseInt(result.rows[0].unreplied) || 0
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json("Error fetching dashboard details");
+    }
+
+});
+
 module.exports = router;

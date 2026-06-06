@@ -6,7 +6,7 @@ import "../../styles/AgentTickets.css";
 
 function AgentTickets() {
 
-    const [filter, setFilter] = useState("Open");
+    const [filter, setFilter] = useState("open");
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -31,15 +31,15 @@ function AgentTickets() {
             <div className="agent-tpage">
                 <h2>My Tickets</h2>
                 <div className="ticket-filters">
-                    <button onClick={() => { setFilter("open") }}>Open</button>
-                    <button onClick={() => { setFilter("inprogress") }}>In Progress</button>
-                    <button onClick={() => { setFilter("resolved") }}>Resolved</button>
-                    <button onClick={() => { setFilter("closed") }}>Closed</button>
+                    <button className={filter === "open" ? "active-filter" : ""} onClick={() => { setFilter("open") }}>Open</button>
+                    <button className={filter === "inprogress" ? "active-filter" : ""} onClick={() => { setFilter("inprogress") }}>In Progress</button>
+                    <button className={filter === "resolved" ? "active-filter" : ""} onClick={() => { setFilter("resolved") }}>Resolved</button>
+                    <button className={filter === "closed" ? "active-filter" : ""} onClick={() => { setFilter("closed") }}>Closed</button>
                 </div>
 
 
                 <div className="a-ticket-table">
-                    <table>
+                    <table className="ticket-table">
                         <thead>
                             <tr>
                                 <th>Ticket ID</th>

@@ -1,57 +1,40 @@
-import React,{ useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import "../../styles/AgentHome.css";
 import AgentNavbar from "./AgentNavbar";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import AgentStats from "../../components/AgentStats";
 
-function AgentHome(){
+function AgentHome() {
     const navigate = useNavigate();
     const location = useLocation();
     const aname = location.state?.name || "Agent";
-    const [stats, setStats] = useState({});
-    // useEffect(()=>{
-    //     axios.get("agent/stats")
-    //         .then(res=>setStats(res.data))
-    //         .catch(err=> console.log(err));
-    //         },[]);
+    const [stats, setStats] = useState({
+        assigned: 0,
+        in_progress: 0,
+        resolved: 0,
+        unreplied: 0
+    });
 
-    // function getAssigned(){
-    //     navigate("agent/ahome/assigned");
-        
-    // }
-    // function getInprogress(){
-    //     navigate("agent/ahome/inprogress");
-        
-    // }
-    // function getResolved(){
-    //     navigate("agent/ahome/resolved");
-        
-    // }
-    // function getUnreplied(){
-    //     navigate("agent/ahome/unreplied");
-        
-    // }
-    return(
-        <> 
-            <AgentNavbar/>
+    useEffect(() => {
+        const fetchStats = () => {
+            axios.get("agent/dashboard")
+                .then(res => setStats(res.data))
+                .catch(err => console.error("Error fetching stats:", err));
+        };
+
+        fetchStats();
+        const interval = setInterval(fetchStats, 30000); // 30s polling
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <>
+            <AgentNavbar />
             <div className="ahome">
                 <h1>Welcome Back, {aname} </h1>
-                <div className="stats-row">
-                    <div className="a-card"
-                    >
-                        Assigned <br/> <b className="a-num">{stats.assigned ?? <p>not available</p> }</b>
-                    </div>
-                    <div className="a-card" >
-                        In progress <br/> <b className="a-num">{stats.inProgress ??0}</b>
-                    </div>
-                    <div className="a-card" >
-                        Unreplied <br/> <b className="a-num">{stats.unreplied ?? 0}</b>
-                    </div>
-                    <div className="a-card" >
-                        Resolved <br/> <b className="a-num">{stats.resolved ?? 0}</b>
-                    </div>
-                </div>
+                <AgentStats stats={stats} />
 
                 <div className="recent-activity">
                     <h1>Recent Activity</h1>
@@ -60,7 +43,7 @@ function AgentHome(){
                     <div className="r-items"> Recent 3</div>
                     <div className="r-items"> Recent 4</div>
                     <div className="r-items"> Recent 5</div>
-                    
+
                 </div>
             </div>
         </>

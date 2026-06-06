@@ -12,6 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const pool = require("../server/config/database");
 
+
 app.use(express.json());
 app.use(cors());
 // Health check
@@ -62,7 +63,7 @@ io.on("connection", (socket) => { //server wide connections
 
             if (sender === "Agent") {
                 await pool.query(
-                    `UPDATE tickets SET last_agent_reply_at = $1 WHERE ticket_id = $2`,
+                    `UPDATE tickets SET last_agent_reply_at = $1, status = CASE WHEN status = 'Open' THEN 'In Progress' ELSE status END WHERE ticket_id = $2`,
                     [reply_time, ticket_id]
                 );
             } else {
