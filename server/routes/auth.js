@@ -131,7 +131,7 @@ router.post("/forgot-pwd", async (req, res) => {
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: "15s" 
+                expiresIn: "15m" 
             }
         );
         const reset_link = `${process.env.FRONTEND_URL}/reset-pwd/${reset}`;

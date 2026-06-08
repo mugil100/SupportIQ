@@ -263,6 +263,35 @@
 
 .toggle:hover { color: rgba(232,234,246,0.7); }
 
+/* ─── Extra Helper Styles for Forgot/Reset Pwd ─── */
+.auth-subtitle {
+  font-size: 13.5px;
+  color: rgba(232, 234, 246, 0.45);
+  margin-top: -12px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.auth-footer {
+  margin-top: 24px;
+  font-size: 13.5px;
+  color: rgba(232, 234, 246, 0.38);
+  text-align: center;
+}
+
+.auth-footer span {
+  color: #7c86e0;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.auth-footer span:hover {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 460px) {
   .container, .al-container { padding: 28px 20px; }
