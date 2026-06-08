@@ -6,7 +6,8 @@ import axios from "../../api/axios";
 
 function Raiseticket(){
     const token = localStorage.getItem("token");
-    const addr = "http://localhost:5000/";
+    const baseAddr = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const addr = baseAddr.endsWith('/') ? baseAddr : `${baseAddr}/`;
     const [ticket, setTicket] = useState({
         title:"", 
         category:"",

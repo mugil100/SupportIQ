@@ -7,6 +7,9 @@ import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import socket from "../../socket";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const cleanApiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+
 function ViewTicket() {
     const { id } = useParams();
     const [ticket, setTicket] = useState(null);
@@ -109,7 +112,7 @@ function ViewTicket() {
                     <p className="category">Category : {ticket.category}</p>
                     <div className="description">{ticket.description}</div>
                     {ticket.image_url && (
-                        <img src={`http://localhost:5000/uploads/${ticket.image_url}`} alt="Ticket Attachment" className="ticket-image" />
+                        <img src={`${cleanApiUrl}/uploads/${ticket.image_url}`} alt="Ticket Attachment" className="ticket-image" />
                     )}
                 </div>
 

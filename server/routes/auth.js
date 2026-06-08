@@ -2,8 +2,10 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/database");
-
+const { verifyToken } = require("../middleware/auth");
+const {Resend}  =require("resend");
 const router = express.Router();
+const  {SendEmail} = require("../services/emailService"); 
 
 // User registration
 router.post("/signup", async (req, res) => {
@@ -106,6 +108,80 @@ router.post("/login", async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "Server error" });
     }
+});
+
+router.post("/forgot-pwd", async (req, res) => {
+    try{
+        const { email } = req.body;
+        console.log(email);
+        const user = await pool.query(
+            `
+            select id, role from users
+            where 
+            email = $1`, [email]
+        );
+        if(user.rows.length ===0){
+            return res.status(404).json({error:"Error : Email not found"});
+        }
+        const reset = jwt.sign(
+            {
+                userid: user.rows[0].id,
+                role: user.rows[0].role
+
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "15s" 
+            }
+        );
+        const reset_link = `${process.env.FRONTEND_URL}/reset-pwd/${reset}`;
+
+        //email sending logic
+
+        await SendEmail(email, reset_link);
+
+        res.json({
+            message: "Reset link generated successfully. (Check your backend logs or this response for the link)",
+            reset_link
+        });
+
+    }catch(error){
+        console.error(error);
+        res.status(400).json({
+            error: "Error : Invalid Email"
+        });
+        return;
+    }
+});
+
+router.post("/reset-pwd", async(req,res)=>{
+
+    try{
+        const {password, token}  = req.body;
+        const hashed = await bcrypt.hash(password,10);
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+        
+        const id = decoded['userid'];
+
+        await pool.query(`
+            update users set password = $1 where id = $2
+            `,[hashed, id]);
+        res.status(200).json({
+            message : "Password reset successful ,Login to continue..."
+        });
+        return;
+
+    }catch(error){
+        res.status(404).json({
+            error:"Error :Invalid token"
+        });
+        return;
+
+    }
+
 });
 
 module.exports = router;
