@@ -9,7 +9,7 @@ import AgentStats from "../../components/AgentStats";
 function AgentHome() {
     const navigate = useNavigate();
     const location = useLocation();
-    const aname = location.state?.name || "Agent";
+    const aname = localStorage.getItem("name") || "Agent";
     const [stats, setStats] = useState({
         assigned: 0,
         in_progress: 0,

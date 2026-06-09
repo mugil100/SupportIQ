@@ -11,7 +11,10 @@ function AgentNavbar(){
     }
 
     function logout(){
-        localStorage.removeItem("token","user_id","role");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("role");
+        localStorage.removeItem("name");
         navigate("/");
     }
 
@@ -25,7 +28,9 @@ function AgentNavbar(){
             <div className="a-nav-items">
 
                 <p className={isActive("/agent/home")}
-                onClick={()=>{navigate("/agent/ahome")}}>Home</p>
+                onClick={()=>{
+                    
+                    navigate("/agent/ahome")}}>Home</p>
 
                 <p className={isActive("/agent/agenttickets")}
                 onClick={()=>{navigate("/agent/agenttickets")}} >My Tickets</p>

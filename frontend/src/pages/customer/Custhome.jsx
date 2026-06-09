@@ -7,7 +7,7 @@ import Footer from "../../components/Footer";
 function Custhome(){
     const navigate = useNavigate();
     const location = useLocation();
-    const name = location.state?.name|| "User";
+    const name = localStorage.getItem("name") || "User";
     console.log(name);
 
     return (

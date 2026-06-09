@@ -11,7 +11,7 @@ import TabSelect from "../../components/TabSelect";
 import usericon from "../../assets/person.png";
 import emailicon from "../../assets/email.png";
 import pwdicon from "../../assets/password.png";
-import Footer from "../../components/Footer";
+import Footer from "..  /../components/Footer";
 
 const baseAddr = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const addr = baseAddr.endsWith('/') ? baseAddr : `${baseAddr}/`;
@@ -104,6 +104,7 @@ function LS_cust() {
                     localStorage.setItem("token", response.data.token);
                     localStorage.setItem("role", response.data.role);
                     localStorage.setItem("user_id", response.data.id);
+                    localStorage.setItem("name", response.data.name);
                     axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
                 }
                 // persist user's name so it survives navigation/refresh
@@ -127,6 +128,7 @@ function LS_cust() {
                     localStorage.setItem("token", response.data.token);
                     localStorage.setItem("role", response.data.role);
                     localStorage.setItem("user_id", response.data.id);
+                    localStorage.setItem("name", response.data.name);
                     axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
                 }
                 if (response.data?.name) {
