@@ -3,6 +3,7 @@ const express = require("express");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
 const router = express.Router();
+const {getNoti} = require("../services/getNoti");
 
 // get all tickets assigned to the agent
 router.get("/ahome", verifyToken, async (req, res) => {
@@ -179,11 +180,19 @@ router.get("/dashboard", verifyToken, async (req, res) => {
                             OR last_customer_reply_at > last_agent_reply_at
                         THEN 1
                     END
-                    ) AS unreplied
+                    ) AS unreplied 
 
                 FROM tickets
-
                 WHERE assigned_agent_id = $1;
+            `,
+            [agent_id]
+        );
+
+        const unread = await pool.query(
+            `
+                select count(*) as unread
+                from Notifications 
+                where is_read = false and user_id = $1
             `,
             [agent_id]
         );
@@ -191,7 +200,8 @@ router.get("/dashboard", verifyToken, async (req, res) => {
             assigned: parseInt(result.rows[0].assigned) || 0,
             in_progress: parseInt(result.rows[0].in_progress) || 0,
             resolved: parseInt(result.rows[0].resolved) || 0,
-            unreplied: parseInt(result.rows[0].unreplied) || 0
+            unreplied: parseInt(result.rows[0].unreplied) || 0,
+            unread: parseInt(unread.rows[0].unread) || 0
         });
     }
     catch (err) {
@@ -199,6 +209,17 @@ router.get("/dashboard", verifyToken, async (req, res) => {
         res.status(500).json("Error fetching dashboard details");
     }
 
+});
+
+//fetch notifications for the agent
+router.get("/noti", verifyToken, async(req,res)=>{
+    try{
+        getNoti(req,res);
+        console.log("Notifications fetched successfully");
+    }
+    catch(error){
+        res.status(404).json(error);
+    }
 });
 
 module.exports = router;

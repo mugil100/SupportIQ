@@ -14,9 +14,9 @@ function AgentHome() {
         assigned: 0,
         in_progress: 0,
         resolved: 0,
-        unreplied: 0
+        unreplied: 0,
+        unread: 0
     });
-
     useEffect(() => {
         const fetchStats = () => {
             axios.get("agent/dashboard")

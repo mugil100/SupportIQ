@@ -12,6 +12,7 @@ function AgentNavbar(){
 
     function logout(){
         localStorage.removeItem("token","user_id","role");
+        navigate("/");
     }
 
     return (
@@ -32,8 +33,8 @@ function AgentNavbar(){
                 <p className={isActive("/agent/unassigned")}
                 onClick={()=>{navigate("/agent/unassigned")}}>Unassigned</p>
                 
-                <p className={isActive("/agent/notifications")}
-                onClick={()=>{navigate("/agent/notifications")}}>Notifications</p>
+                <p className={isActive("/agent/noti")}
+                onClick={()=>{navigate("/agent/noti")}}>Notifications</p>
                 
                 <p className={isActive("/agent/performance")}
                 onClick={()=>{navigate("/agent/performance")}}>Performance</p>

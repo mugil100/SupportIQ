@@ -62,7 +62,7 @@ function App() {
                 </PrivateRoute>
             }
             />
-            <Route path='/agent/notifications' element={
+            <Route path='/agent/noti' element={
                 <PrivateRoute>
                     <AgentNoti />
                 </PrivateRoute>

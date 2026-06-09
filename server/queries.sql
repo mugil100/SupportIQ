@@ -60,3 +60,16 @@ ADD COLUMN last_customer_reply_at TIMESTAMP,
 ADD COLUMN last_agent_reply_at TIMESTAMP,
 ADD COLUMN resolved_at TIMESTAMP,
 ADD COLUMN closed_at TIMESTAMP;
+
+CREATE TABLE Notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    ticket_id INT,
+    notification_type VARCHAR(30) NOT NULL,
+    message_content VARCHAR(500) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (ticket_id) REFERENCES Tickets(ticket_id)
+);

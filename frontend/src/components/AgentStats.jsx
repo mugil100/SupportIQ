@@ -19,6 +19,10 @@ function AgentStats({ stats }) {
                 <span className="a-card-label">Resolved</span>
                 <b className="a-num">{stats.resolved ?? 0}</b>
             </div>
+            <div className="a-card">
+                <span className="a-card-label">Unread Notifications</span>
+                <b className="a-num">{stats.unread ?? 0}</b>
+            </div>
         </div>
     );
 }

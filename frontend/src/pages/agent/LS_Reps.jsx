@@ -129,9 +129,6 @@ function LS_Reps() {
 
     return (
         <div className="al-container">
-            {/* <Routes>
-                <Route path="/tickets" element={<Mytickets/>}/>
-            </Routes> */}
             <div className="role">
                 <button
                     className={role === "agent" ? "active" : ""}
