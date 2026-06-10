@@ -115,6 +115,26 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
         await pool.query(
             `update tickets set status = $1, resolved_at = NOW() where ticket_id = $2`, ['Resolved', id]
         );
+
+        // TICKET_RESOLVED: notify the customer who owns this ticket
+        const custResult = await pool.query(
+            `SELECT customer_id FROM tickets WHERE ticket_id = $1`, [id]
+        );
+        const customerId = custResult.rows[0]?.customer_id;
+        if (customerId) {
+            const notiResult = await pool.query(
+                `INSERT INTO Notifications
+                (user_id, ticket_id, notification_type, message_content)
+                VALUES($1,$2,'TICKET_RESOLVED', $3) RETURNING *`,
+                [customerId, id, `Your Ticket #${id} has been resolved`]
+            );
+            const io = req.app.get("io");
+            if (io) {
+                io.to(`user_${customerId}`).emit("new_notification", notiResult.rows[0]);
+                io.to(id).emit("ticket_resolved");
+            }
+        }
+
         res.json({ message: "Ticket resolved successfully" });
     } catch (err) {
         console.error("Error resolving ticket:", err);

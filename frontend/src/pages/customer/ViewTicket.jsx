@@ -43,6 +43,10 @@ function ViewTicket() {
             setTicket(prev => ({ ...prev, status: "Open" }));
         });
 
+        socket.on("ticket_resolved", () => {
+            setTicket(prev => ({ ...prev, status: "Resolved" }));
+        });
+
 
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
@@ -63,6 +67,7 @@ function ViewTicket() {
             socket.off("typing_stop");
             socket.off("messages_seen");
             socket.off("ticket_reopened");
+            socket.off("ticket_resolved");
             socket.disconnect();
         };
     }, [id]);

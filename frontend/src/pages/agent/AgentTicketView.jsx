@@ -26,13 +26,10 @@ function AgentTicketView() {
         socket.connect();
         socket.on("connect", () => {
             socket.emit("join_ticket", id);
+            socket.emit("mark_seen", { ticket_id: id });
         });
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
-        });
-
-        socket.emit("mark_seen", {
-            ticket_id: id
         });
 
         socket.on("typing_start", ({ sender }) => {
@@ -52,6 +49,10 @@ function AgentTicketView() {
             setTicket(prev => ({ ...prev, status: "Open" }));
         });
 
+        socket.on("ticket_resolved", () => {
+            setTicket(prev => ({ ...prev, status: "Resolved" }));
+        });
+
         return () => {
             socket.off("connect");
             socket.off("receive_message");
@@ -59,6 +60,7 @@ function AgentTicketView() {
             socket.off("typing_stop");
             socket.off("messages_seen");
             socket.off("ticket_reopened");
+            socket.off("ticket_resolved");
             socket.disconnect();
         };
     }, [id]);

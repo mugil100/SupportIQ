@@ -6,6 +6,7 @@ import Mytickets from "./pages/customer/Mytickets";
 import Custhome from "./pages/customer/Custhome";
 import Raiseticket from "./pages/customer/Raiseticket";
 import ViewTicket from "./pages/customer/ViewTicket";
+import CustNoti from "./pages/customer/CustNoti";
 import { Routes, Route } from "react-router-dom";
 import PrivateRoute from './components/PrivateRoute';
 import AgentHome from './pages/agent/AgentHome';
@@ -41,6 +42,11 @@ function App() {
             <Route path="/ticket/:id" element={
                 <PrivateRoute>
                     <ViewTicket />       //  customer view tickets page
+                </PrivateRoute>
+            } />
+            <Route path="/cnoti" element={
+                <PrivateRoute>
+                    <CustNoti />
                 </PrivateRoute>
             } />
 

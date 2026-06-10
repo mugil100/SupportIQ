@@ -42,6 +42,11 @@ io.use((socket, next) => {
 io.on("connection", (socket) => { //server wide connections
     console.log("Client connected : ", socket.id);
 
+    // Join a personal room so we can push notifications regardless of page
+    const userId = socket.user.customer_id;
+    socket.join(`user_${userId}`);
+    console.log(`User ${userId} joined personal room user_${userId}`);
+
     socket.on("join_ticket", (ticket_id) => { // listens for events related to a specific client connection
 
         socket.join(ticket_id); //subscribe a specific client socket to an arbitrary channel called a "room"
@@ -66,11 +71,45 @@ io.on("connection", (socket) => { //server wide connections
                     `UPDATE tickets SET last_agent_reply_at = $1, status = CASE WHEN status = 'Open' THEN 'In Progress' ELSE status END WHERE ticket_id = $2`,
                     [reply_time, ticket_id]
                 );
+
+                // AGENT_REPLY: notify the customer who owns this ticket
+                const custResult = await pool.query(
+                    `SELECT customer_id FROM tickets WHERE ticket_id = $1`, [ticket_id]
+                );
+                const customerId = custResult.rows[0]?.customer_id;
+                if (customerId) {
+                    const notiResult = await pool.query(
+                        `INSERT INTO Notifications
+                        (user_id, ticket_id, notification_type, message_content)
+                        VALUES($1,$2,'AGENT_REPLY', $3) RETURNING *`,
+                        [customerId, ticket_id, `Agent replied to your Ticket #${ticket_id}`]
+                    );
+                    io.to(`user_${customerId}`).emit("new_notification", notiResult.rows[0]);
+                }
             } else {
                 await pool.query(
                     `UPDATE tickets SET last_customer_reply_at = $1 WHERE ticket_id = $2`,
                     [reply_time, ticket_id]
                 );
+                // Look up the assigned agent for this ticket
+                const agentResult = await pool.query(
+                    `SELECT assigned_agent_id FROM tickets WHERE ticket_id = $1`, [ticket_id]
+                );
+                const agentId = agentResult.rows[0]?.assigned_agent_id;
+
+                // Only insert notification if there is an assigned agent
+                if (agentId) {
+                    const notiResult = await pool.query(
+                        `INSERT INTO Notifications
+                        (user_id, ticket_id, notification_type, message_content)
+                        VALUES($1,$2,'CUSTOMER_REPLY', $3) RETURNING *`,
+                        [agentId, ticket_id, `Customer messaged to Ticket #${ticket_id}`]
+                    );
+                    // Push real-time notification to the agent's personal room
+                    io.to(`user_${agentId}`).emit("new_notification", notiResult.rows[0]);
+                }
+
+                // Check if ticket is resolved and should be reopened
                 const check_resolve = await pool.query(
                     `select status from tickets where ticket_id = $1`, [ticket_id]
                 );
@@ -80,6 +119,17 @@ io.on("connection", (socket) => { //server wide connections
                     );
                     // Notify everyone in the room that the ticket is back open
                     io.to(ticket_id).emit("ticket_reopened");
+
+                    // TICKET_REOPENED: notify the assigned agent
+                    if (agentId) {
+                        const reopenNoti = await pool.query(
+                            `INSERT INTO Notifications
+                            (user_id, ticket_id, notification_type, message_content)
+                            VALUES($1,$2,'TICKET_REOPENED', $3) RETURNING *`,
+                            [agentId, ticket_id, `Ticket #${ticket_id} has been reopened by the customer`]
+                        );
+                        io.to(`user_${agentId}`).emit("new_notification", reopenNoti.rows[0]);
+                    }
                 }
             }
 
@@ -146,9 +196,13 @@ app.get("/", (req, res) => {
     res.send("SupportIQ backend running...");
 });
 
+// Make io accessible to route handlers
+app.set("io", io);
+
 // Mount routes 
 app.use("/", authRoutes);
 app.use("/", ticketRoutes);
+app.use("/", notiRoutes); // Customer-facing notification routes
 app.use("/agent", agentRoutes);
 app.use("/agent", notiRoutes);
 
