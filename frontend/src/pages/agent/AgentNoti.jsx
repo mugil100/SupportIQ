@@ -43,6 +43,17 @@ export default function AgentNoti() {
         }
     }
 
+    async function handleAllRead(e){
+        e.preventDefault();
+        try{
+            await axios.post("/agent/noti/allread");
+            setNoti([]);
+            console.log("All notifications marked as read");
+        }catch(error){
+            console.error("Error marking all as read", error);
+        }
+    }
+
     return (
         <div>
             <AgentNavbar />
@@ -63,6 +74,10 @@ export default function AgentNoti() {
                         name="read"
                     >
                         Read
+                    </button>
+
+                    <button onClick={handleAllRead}>
+                        Mark all as Read
                     </button>
                 </div>
 

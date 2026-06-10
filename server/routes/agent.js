@@ -3,7 +3,7 @@ const express = require("express");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
 const router = express.Router();
-const {getNoti, mark_noti_read,filterNoti} = require("../services/getNoti");
+const {getNoti, mark_noti_read,filterNoti, mark_all_as_read} = require("../services/NotiService");
 
 // get all tickets assigned to the agent
 router.get("/ahome", verifyToken, async (req, res) => {
@@ -141,6 +141,15 @@ router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
             [agentId, ticket_id]
         );
 
+        await pool.query(
+            `
+            INSERT INTO Notifications
+            (user_id, ticket_id, notification_type, message_content)
+            VALUES($1,$2,'TICKET_ASSIGNED', 'You have been assigned this ticket ' || $3)
+            `,
+            [agentId, ticket_id, ticket_id]
+        );
+
         if (result.rows.length === 0) {
             return res.status(400).json({ error: "Ticket not found or already assigned" });
         }
@@ -233,6 +242,16 @@ router.post("/noti/filter", verifyToken, async(req,res)=>{
     }
 });
 
+router.post("/noti/allread", verifyToken, async(req,res)=>{
+    try{
+        await mark_all_as_read(req,res);
+        console.log("All notifications marked as read");
+    }
+    catch(error){
+        res.status(404).json(error);
+    }
+});
+
 //marking notification as read
 router.post("/noti/:id", verifyToken, async(req,res)=>{
     try{
@@ -243,5 +262,8 @@ router.post("/noti/:id", verifyToken, async(req,res)=>{
         res.status(404).json(error);
     }
 });
+
+
+
 
 module.exports = router;

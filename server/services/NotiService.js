@@ -73,4 +73,23 @@ async function filterNoti(req,res){
     }
 }
 
-module.exports = {getNoti, mark_noti_read, filterNoti};
+async function mark_all_as_read(req,res){
+
+    const agent_id = req.customer_id;
+
+    try{
+        await pool.query(
+            `
+            update Notifications 
+            set is_read = true 
+            where user_id=$1
+            `,[agent_id]);
+        res.json({message: "All notifications marked as read"});
+
+    }catch(error){
+        console.error("Error marking all as read:", error);
+        res.status(500).json({ error: "Error marking all the notifications as read" });
+    }
+}
+
+module.exports = {getNoti, mark_noti_read, filterNoti, mark_all_as_read};

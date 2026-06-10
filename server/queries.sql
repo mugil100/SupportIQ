@@ -73,3 +73,5 @@ CREATE TABLE Notifications (
     FOREIGN KEY (user_id) REFERENCES Users(id),
     FOREIGN KEY (ticket_id) REFERENCES Tickets(ticket_id)
 );
+
+select * from Notifications;
