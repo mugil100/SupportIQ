@@ -10,9 +10,10 @@ export default function AgentNoti() {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const res = await axios.get("/agent/noti");
+                // Fetch unread notifications initially
+                const res = await axios.post("/agent/noti/filter", { state: "unread" });
                 setNoti(res.data);
-                console.log("All notifications:", res.data);
+                console.log("Unread notifications:", res.data);
             } catch (error) {
                 console.error("Error fetching notifications", error);
             }
@@ -34,11 +35,11 @@ export default function AgentNoti() {
         e.preventDefault();
         const {name} = e.target;
         setView(name);
-        if(name === "unread"){
-            await axios.post("/agent/noti/filter", {"state": "unread"});
-        }
-        else{
-            await axios.post("/agent/noti/filter", {"state": "read"});
+        try {
+            const res = await axios.post("/agent/noti/filter", { "state": name });
+            setNoti(res.data);
+        } catch (error) {
+            console.error("Error filtering notifications", error);
         }
     }
 
@@ -49,17 +50,25 @@ export default function AgentNoti() {
                 <h1>Notifications</h1>
 
                 <div className="noti-sort">
-                    <button className="noti-filter-btn" onClick = {handleClick} name ="unread">
+                    <button 
+                        className={`noti-filter-btn ${view === "unread" ? "active" : ""}`} 
+                        onClick={handleClick} 
+                        name="unread"
+                    >
                         Unread
                     </button>
-                    <button className="noti-filter-btn" onClick = {handleClick} name ="read">
+                    <button 
+                        className={`noti-filter-btn ${view === "read" ? "active" : ""}`} 
+                        onClick={handleClick} 
+                        name="read"
+                    >
                         Read
                     </button>
                 </div>
 
                 {noti.length === 0 ? (
                     <div className="noti-empty">
-                        <p>No new notifications 🎉</p>
+                        <p>No {view} notifications 🎉</p>
                     </div>
                 ) : (
                     <ul className="noti-list">
@@ -80,9 +89,11 @@ export default function AgentNoti() {
                                             {new Date(item.created_at).toLocaleString()}
                                         </span>
                                     </div>
-                                    <div className="mark">
-                                        <button onClick = {() => handleRead(item.notification_id)} >Mark as Read</button>
-                                    </div>
+                                    {view === "unread" && (
+                                        <div className="mark">
+                                            <button onClick={() => handleRead(item.notification_id)}>Mark as Read</button>
+                                        </div>
+                                    )}
                                 </li>
                             );
                         })}

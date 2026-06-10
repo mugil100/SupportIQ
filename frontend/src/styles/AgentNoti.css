@@ -108,15 +108,54 @@
   font-size: 14.5px;
 }
 
-.noti-filter-btn{
+.noti-sort {
   display: flex;
-  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.noti-filter-btn {
+  display: flex;
   justify-content: center;
   align-items: center;
-  color: black;
-  background-color: #a5b4fc;
-  height: 60px;
-  width: 150px;
-  margin-left: 26px;
-  border-radius: 12px;
+  color: #e8eaf6;
+  background-color: #1c1c27;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  height: 40px;
+  padding: 0 20px;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.noti-filter-btn:hover {
+  background-color: #252535;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.noti-filter-btn.active {
+  background-color: #5e6ad2;
+  color: #ffffff;
+  border-color: #5e6ad2;
+  box-shadow: 0 0 12px rgba(94, 106, 210, 0.4);
+}
+
+.mark button {
+  background: transparent;
+  color: #a5b4fc;
+  border: 1px solid rgba(94, 106, 210, 0.4);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mark button:hover {
+  background: #5e6ad2;
+  color: #fff;
+  border-color: #5e6ad2;
 }
