@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const authRoutes = require("./routes/auth");
 const ticketRoutes = require("./routes/tickets");
 const agentRoutes = require("./routes/agent");
+const notiRoutes = require("./routes/noti");
 const app = express();
 const server = http.createServer(app);
 const pool = require("../server/config/database");
@@ -149,6 +150,7 @@ app.get("/", (req, res) => {
 app.use("/", authRoutes);
 app.use("/", ticketRoutes);
 app.use("/agent", agentRoutes);
+app.use("/agent", notiRoutes);
 
 const port = process.env.PORT || 5000;
 
