@@ -11,7 +11,7 @@ import TabSelect from "../../components/TabSelect";
 import usericon from "../../assets/person.png";
 import emailicon from "../../assets/email.png";
 import pwdicon from "../../assets/password.png";
-import Footer from "..  /../components/Footer";
+import Footer from "../../components/Footer";
 
 const baseAddr = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const addr = baseAddr.endsWith('/') ? baseAddr : `${baseAddr}/`;
@@ -39,9 +39,6 @@ function LS_cust() {
     //username format to be checked
     const validateForm = () => {
         if (action === "Sign Up") {
-            // if(!formData.username &&!formData.email &&!formData.password){
-            //     return "All fields are required for Sign Up";
-            // }
             if (!formData.name.trim())
                 return "Name is required";
             if (!formData.username.trim())
@@ -62,27 +59,9 @@ function LS_cust() {
             if (!formData.password.trim())
                 return "Password is required";
         }
-        // }else{
-        //     if(!formData.username ||!formData.password){
-        //         return"Email and Password are required for Login"
-        //     }
-        // }
+
         return null;
     }
-    // const handleSubmit=()=>{
-    //     const error = validateForm();
-    //     if (error){
-    //         alert(error);
-    //         return;
-    //     }
-
-    //     if(action ==="Login"){
-    //         console.log("Logging in with:", formData);
-    //     }else{
-    //         console.log("Signing up in with:", formData);
-    //     }
-    //     setFormData({username:"", email:"",password:""});
-    // };
     const handleSubmit = async () => {
         const error = validateForm();
         if (error) {

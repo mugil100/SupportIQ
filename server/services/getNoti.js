@@ -1,5 +1,5 @@
 const pool = require("../config/database");
-
+const express = require("express");
 
 async function getNoti(req,res){
     try{
@@ -17,4 +17,60 @@ async function getNoti(req,res){
     }
 }
 
-module.exports = {getNoti};
+async function mark_noti_read(req,res){
+    const noti_id = req.params.id;
+    const agent_id = req.customer_id;
+    console.log("Notification ID:", noti_id);
+    console.log("Agent ID:", agent_id);
+    try{
+        //check if the noti is available and correcly associated
+        const exists = await pool.query(
+            `select * from Notifications 
+            where notification_id = $1 and user_id = $2`,[noti_id,agent_id] 
+        );
+
+        if(exists.rows.length == 0){
+            return res.status(404).json({ error: "No notification found" });
+        }
+        //mark notification as read
+        await pool.query(
+            `update Notifications 
+            set is_read = true where notification_id = $1 and user_id = $2`,
+            [noti_id, agent_id]
+        )
+        res.json({message: "Notification marked as read"});
+    }
+    catch(error){
+        console.error("Error marking notification as read:", error);
+        res.status(500).json({ error: "Error marking the notification as read" });
+    }
+}
+
+async function filterNoti(req,res){
+    const {state} = req.body;
+    const agent_id = req.customer_id;
+    try{
+        if(state === "unread"){
+            const noti = await pool.query(
+                `select * from Notifications 
+                where user_id = $1 and is_read = false order by created_at desc`,
+                [agent_id]
+            )
+            res.json(noti.rows);
+        }
+        else{
+            const noti = await pool.query(
+                `select * from Notifications 
+                where user_id = $1 and is_read = true order by created_at desc`,
+                [agent_id]
+            )
+            res.json(noti.rows);
+        }
+    }
+    catch(error){
+        console.error("Error filtering notifications:", error);
+        res.status(500).json({ error: "Error filtering the notifications" });
+    }
+}
+
+module.exports = {getNoti, mark_noti_read, filterNoti};

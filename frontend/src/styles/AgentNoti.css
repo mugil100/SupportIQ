@@ -107,3 +107,16 @@
   color: rgba(232, 234, 246, 0.4);
   font-size: 14.5px;
 }
+
+.noti-filter-btn{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: black;
+  background-color: #a5b4fc;
+  height: 60px;
+  width: 150px;
+  margin-left: 26px;
+  border-radius: 12px;
+}
