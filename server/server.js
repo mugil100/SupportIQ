@@ -171,27 +171,35 @@ io.on("connection", (socket) => { //server wide connections
         console.log("Disconnected : ", socket.id);
     });
 
-    socket.on("mark_seen", async ({ ticket_id }) => {
-        let receiveId;
-        let receiveType;
+    socket.on("mark_seen", async (payload) => {
+        try {
+            if (!payload) return;
+            const { ticket_id } = payload;
+            if (!ticket_id) return;
 
-        if (socket.user.role === "Agent") {
-            receiveType = "Customer",
-                receiveId = socket.user.agent_id;
+            let receiveId;
+            let receiveType;
+
+            if (socket.user?.role === "Agent") {
+                receiveType = "Customer";
+                receiveId = socket.user?.customer_id;
+            }
+            else {
+                receiveId = socket.user?.customer_id;
+                receiveType = "Agent";
+            }
+
+            await pool.query(
+                `update ticket_messages 
+                set seen = true
+                where ticket_id = $1 and sender_type = $2`,
+                [ticket_id, receiveType]
+            );
+
+            socket.to(ticket_id).emit("messages_seen");
+        } catch (error) {
+            console.error("Socket mark_seen error:", error);
         }
-        else {
-            receiveId = socket.user.customer_id;
-            receiveType = "Agent";
-        }
-
-        await pool.query(
-            `update ticket_messages 
-            set seen = true
-            where ticket_id = $1 and sender_type = $2`,
-            [ticket_id, receiveType]
-        );
-
-        socket.to(ticket_id).emit("messages_seen");
     });
 });
 
