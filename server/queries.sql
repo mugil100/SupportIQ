@@ -75,3 +75,16 @@ CREATE TABLE Notifications (
 );
 
 select * from Notifications;
+
+-- Ticket feedback / CSAT ratings
+CREATE TABLE ticket_feedback (
+    feedback_id SERIAL PRIMARY KEY,
+    ticket_id INT NOT NULL UNIQUE,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    feedback_text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE
+);
+
+select * from ticket_feedback;

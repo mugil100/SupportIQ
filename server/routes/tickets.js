@@ -126,4 +126,66 @@ router.delete("/ticket/message/:id/", verifyToken, async (req, res) => {
     res.json({ message: "Message deleted" });
 });
 
+// close ticket and submit rating
+router.post("/ticket/:id/close", verifyToken, async (req, res) => {
+    const { id } = req.params;
+    const { rating, feedback_text } = req.body;
+    const customer_id = req.customer_id;
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Rating must be between 1 and 5" });
+    }
+
+    try {
+        // Verify ticket belongs to this customer and is Resolved
+        const ticket = await pool.query(
+            `SELECT * FROM tickets WHERE ticket_id = $1 AND customer_id = $2`,
+            [id, customer_id]
+        );
+
+        if (ticket.rows.length === 0) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
+
+        if (ticket.rows[0].status !== "Resolved") {
+            return res.status(400).json({ error: "Ticket must be resolved before closing" });
+        }
+
+        // Update ticket status to Closed
+        await pool.query(
+            `UPDATE tickets SET status = 'Closed', closed_at = NOW() WHERE ticket_id = $1`,
+            [id]
+        );
+
+        // Insert feedback
+        await pool.query(
+            `INSERT INTO ticket_feedback (ticket_id, rating, feedback_text)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (ticket_id) DO UPDATE SET rating = $2, feedback_text = $3`,
+            [id, rating, feedback_text || null]
+        );
+
+        // Notify the assigned agent
+        const agentId = ticket.rows[0].assigned_agent_id;
+        if (agentId) {
+            const notiResult = await pool.query(
+                `INSERT INTO Notifications
+                (user_id, ticket_id, notification_type, message_content)
+                VALUES($1,$2,'TICKET_CLOSED', $3) RETURNING *`,
+                [agentId, id, `Ticket #${id} has been closed by the customer with a ${rating}-star rating`]
+            );
+            const io = req.app.get("io");
+            if (io) {
+                io.to(`user_${agentId}`).emit("new_notification", notiResult.rows[0]);
+                io.to(id).emit("ticket_closed");
+            }
+        }
+
+        res.json({ message: "Ticket closed successfully" });
+    } catch (err) {
+        console.error("Error closing ticket:", err);
+        res.status(500).json({ error: "Failed to close ticket" });
+    }
+});
+
 module.exports = router;

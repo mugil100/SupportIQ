@@ -239,4 +239,91 @@ router.get("/dashboard", verifyToken, async (req, res) => {
 
 });
 
+// Agent performance metrics
+router.get("/performance", verifyToken, async (req, res) => {
+    const agent_id = req.customer_id;
+    try {
+        // Total resolved
+        const resolvedResult = await pool.query(
+            `SELECT COUNT(*) AS total_resolved
+            FROM tickets
+            WHERE assigned_agent_id = $1
+            AND (status = 'Resolved' OR status = 'Closed')`,
+            [agent_id]
+        );
+
+        // Average resolution time in hours
+        const avgTimeResult = await pool.query(
+            `SELECT
+                ROUND(AVG(EXTRACT(EPOCH FROM (resolved_at - created_at)) / 3600)::numeric, 1) AS avg_resolution_hours
+            FROM tickets
+            WHERE assigned_agent_id = $1
+            AND resolved_at IS NOT NULL`,
+            [agent_id]
+        );
+
+        // Average CSAT (customer satisfaction score)
+        const csatResult = await pool.query(
+            `SELECT
+                ROUND(AVG(tf.rating)::numeric, 1) AS avg_csat,
+                COUNT(tf.rating) AS total_ratings
+            FROM ticket_feedback tf
+            JOIN tickets t ON tf.ticket_id = t.ticket_id
+            WHERE t.assigned_agent_id = $1`,
+            [agent_id]
+        );
+
+        // Tickets resolved per day (last 30 days)
+        const timeSeriesResult = await pool.query(
+            `SELECT
+                DATE(resolved_at) AS date,
+                COUNT(*) AS count
+            FROM tickets
+            WHERE assigned_agent_id = $1
+            AND resolved_at IS NOT NULL
+            AND resolved_at >= NOW() - INTERVAL '30 days'
+            GROUP BY DATE(resolved_at)
+            ORDER BY date ASC`,
+            [agent_id]
+        );
+
+        // Rating distribution (1-5 stars)
+        const ratingDistResult = await pool.query(
+            `SELECT tf.rating, COUNT(*) AS count
+            FROM ticket_feedback tf
+            JOIN tickets t ON tf.ticket_id = t.ticket_id
+            WHERE t.assigned_agent_id = $1
+            GROUP BY tf.rating
+            ORDER BY tf.rating ASC`,
+            [agent_id]
+        );
+
+        // Total open / in-progress tickets (current workload)
+        const workloadResult = await pool.query(
+            `SELECT
+                COUNT(CASE WHEN status = 'Open' THEN 1 END) AS open_count,
+                COUNT(CASE WHEN status = 'In Progress' THEN 1 END) AS in_progress_count,
+                COUNT(CASE WHEN status = 'Closed' THEN 1 END) AS closed_count
+            FROM tickets
+            WHERE assigned_agent_id = $1`,
+            [agent_id]
+        );
+
+        res.json({
+            total_resolved: parseInt(resolvedResult.rows[0].total_resolved) || 0,
+            avg_resolution_hours: parseFloat(avgTimeResult.rows[0].avg_resolution_hours) || 0,
+            avg_csat: parseFloat(csatResult.rows[0].avg_csat) || 0,
+            total_ratings: parseInt(csatResult.rows[0].total_ratings) || 0,
+            daily_resolved: timeSeriesResult.rows,
+            rating_distribution: ratingDistResult.rows,
+            open_count: parseInt(workloadResult.rows[0].open_count) || 0,
+            in_progress_count: parseInt(workloadResult.rows[0].in_progress_count) || 0,
+            closed_count: parseInt(workloadResult.rows[0].closed_count) || 0
+        });
+    } catch (err) {
+        console.error("Error fetching performance:", err);
+        res.status(500).json({ error: "Failed to fetch performance metrics" });
+    }
+});
+
 module.exports = router;

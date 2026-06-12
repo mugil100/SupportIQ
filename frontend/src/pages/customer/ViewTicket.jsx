@@ -18,6 +18,13 @@ function ViewTicket() {
     const [typingUser, setTypingUser] = useState(null);
     const bottomRef = useRef(null);
 
+    // Close & Rate modal state
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [feedbackText, setFeedbackText] = useState("");
+    const [closing, setClosing] = useState(false);
+
     const deleteMsg = async (msgId) => {
         await axios.delete(`ticket/message/${msgId}`);
         setMessages(messages.filter(m => m.message_id !== msgId));
@@ -47,6 +54,9 @@ function ViewTicket() {
             setTicket(prev => ({ ...prev, status: "Resolved" }));
         });
 
+        socket.on("ticket_closed", () => {
+            setTicket(prev => ({ ...prev, status: "Closed" }));
+        });
 
         socket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
@@ -68,6 +78,7 @@ function ViewTicket() {
             socket.off("messages_seen");
             socket.off("ticket_reopened");
             socket.off("ticket_resolved");
+            socket.off("ticket_closed");
             socket.disconnect();
         };
     }, [id]);
@@ -88,6 +99,27 @@ function ViewTicket() {
 
         setText("");
     }
+
+    const handleCloseTicket = async () => {
+        if (rating === 0) return;
+        setClosing(true);
+        try {
+            await axios.post(`ticket/${id}/close`, {
+                rating,
+                feedback_text: feedbackText || null
+            });
+            setTicket(prev => ({ ...prev, status: "Closed" }));
+            setShowRatingModal(false);
+        } catch (err) {
+            console.error("Error closing ticket:", err);
+            alert("Failed to close ticket. Please try again.");
+        } finally {
+            setClosing(false);
+        }
+    };
+
+    const isClosed = ticket?.status === "Closed";
+    const isResolved = ticket?.status === "Resolved";
 
     if (!ticket) return (
         <div className="vt-body">
@@ -121,6 +153,30 @@ function ViewTicket() {
                     )}
                 </div>
 
+                {/* Accept Resolution & Close Banner */}
+                {isResolved && (
+                    <div className="resolve-banner">
+                        <div className="resolve-banner-content">
+                            <span className="resolve-icon">✓</span>
+                            <div>
+                                <p className="resolve-title">This ticket has been marked as resolved</p>
+                                <p className="resolve-subtitle">Are you satisfied with the resolution? You can close this ticket or continue the conversation.</p>
+                            </div>
+                        </div>
+                        <button className="close-ticket-btn" onClick={() => setShowRatingModal(true)}>
+                            Accept &amp; Close Ticket
+                        </button>
+                    </div>
+                )}
+
+                {/* Closed banner */}
+                {isClosed && (
+                    <div className="closed-banner">
+                        <span className="closed-icon">🔒</span>
+                        <p>This ticket has been closed. No further messages can be sent.</p>
+                    </div>
+                )}
+
                 <div className="chat-section">
                     <h3>Conversation</h3>
                     {typingUser && (
@@ -139,7 +195,7 @@ function ViewTicket() {
                                     </span>
                                 )}
 
-                                {m.sender_type === "Customer" && (
+                                {m.sender_type === "Customer" && !isClosed && (
                                     <button className="delete-btn" onClick={() => deleteMsg(m.message_id)}>✕</button>
                                 )}
 
@@ -147,37 +203,94 @@ function ViewTicket() {
                         ))}
                         <div ref={bottomRef} />
                     </div>
-                    <div className="chat-input">
-                        <textarea
-                            value={text}
-                            onChange={e => {
-                                setText(e.target.value);
+                    {!isClosed ? (
+                        <div className="chat-input">
+                            <textarea
+                                value={text}
+                                onChange={e => {
+                                    setText(e.target.value);
 
-                                socket.emit("typing_start", {
-                                    ticket_id: id,
-                                    sender: "Customer"
-                                });
-
-                                clearTimeout(window.typingTimer);
-                                window.typingTimer = setTimeout(() => {
-                                    socket.emit("typing_stop", {
+                                    socket.emit("typing_start", {
                                         ticket_id: id,
                                         sender: "Customer"
                                     });
-                                }, 1000);
-                            }}
-                            onKeyDown={e => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    sendMessage();
-                                }
-                            }}
-                            placeholder="Type your message here..."
-                        />
-                        <button onClick={sendMessage}>Send</button>
-                    </div>
+
+                                    clearTimeout(window.typingTimer);
+                                    window.typingTimer = setTimeout(() => {
+                                        socket.emit("typing_stop", {
+                                            ticket_id: id,
+                                            sender: "Customer"
+                                        });
+                                    }, 1000);
+                                }}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        sendMessage();
+                                    }
+                                }}
+                                placeholder="Type your message here..."
+                            />
+                            <button onClick={sendMessage}>Send</button>
+                        </div>
+                    ) : (
+                        <div className="chat-closed-msg">
+                            Conversation closed — Thank you for your feedback!
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Rating Modal */}
+            {showRatingModal && (
+                <div className="rating-overlay" onClick={() => setShowRatingModal(false)}>
+                    <div className="rating-modal" onClick={e => e.stopPropagation()}>
+                        <button className="modal-close-btn" onClick={() => setShowRatingModal(false)}>✕</button>
+                        <div className="rating-modal-header">
+                            <h2>Rate Your Experience</h2>
+                            <p>How was the support you received for this ticket?</p>
+                        </div>
+
+                        <div className="star-rating">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <span
+                                    key={star}
+                                    className={`star ${star <= (hoverRating || rating) ? "filled" : ""}`}
+                                    onClick={() => setRating(star)}
+                                    onMouseEnter={() => setHoverRating(star)}
+                                    onMouseLeave={() => setHoverRating(0)}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <p className="rating-label">
+                            {rating === 1 && "Poor"}
+                            {rating === 2 && "Fair"}
+                            {rating === 3 && "Good"}
+                            {rating === 4 && "Very Good"}
+                            {rating === 5 && "Excellent"}
+                        </p>
+
+                        <textarea
+                            className="feedback-textarea"
+                            placeholder="Any additional feedback? (optional)"
+                            value={feedbackText}
+                            onChange={e => setFeedbackText(e.target.value)}
+                            rows={3}
+                        />
+
+                        <button
+                            className="submit-rating-btn"
+                            onClick={handleCloseTicket}
+                            disabled={rating === 0 || closing}
+                        >
+                            {closing ? "Submitting..." : "Submit & Close Ticket"}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <Footer className="footer" />
         </div>
     );

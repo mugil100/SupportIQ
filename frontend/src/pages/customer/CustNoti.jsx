@@ -3,8 +3,9 @@ import axios from "../../api/axios";
 import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import "../../styles/CustNoti.css";
-
+import { useNavigate } from "react-router-dom";
 export default function CustNoti() {
+    const navigate = useNavigate();
     const [noti, setNoti] = useState([]);
     const [view, setView] = useState("unread");
 
@@ -51,6 +52,16 @@ export default function CustNoti() {
         }
     }
 
+    async function handleNotiClick(noti_id,ticket_id){
+        try{
+            navigate(`/ticket/${ticket_id}`);
+            await handleRead(noti_id);
+        }
+        catch(error){
+            console.error("Error clicking the notification", error);
+        }
+    }
+
     const ICON_MAP = {
         AGENT_REPLY: "🗣️",
         TICKET_RESOLVED: "✅",
@@ -93,7 +104,11 @@ export default function CustNoti() {
                 ) : (
                     <ul className="cust-noti-list">
                         {noti.map((item) => (
-                            <li key={item.notification_id} className="cust-noti-item">
+                            <li
+                                key={item.notification_id}
+                                className="cust-noti-item"
+                                onClick={() => handleNotiClick(item.notification_id, item.ticket_id)}
+                            >
                                 <div className="cust-noti-icon-wrap">
                                     <span className={`cust-noti-icon ${item.notification_type || ""}`}>
                                         {ICON_MAP[item.notification_type] || "🔔"}
@@ -110,7 +125,12 @@ export default function CustNoti() {
                                 </div>
                                 {view === "unread" && (
                                     <div className="cust-noti-action">
-                                        <button onClick={() => handleRead(item.notification_id)}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRead(item.notification_id);
+                                            }}
+                                        >
                                             Mark as Read
                                         </button>
                                     </div>
