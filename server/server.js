@@ -53,13 +53,16 @@ io.on("connection", (socket) => { //server wide connections
         console.log(`Joined ticket room ${ticket_id}`);
     });
 
-    socket.on("send_message", async ({ ticket_id, sender, message }) => {
-        console.log("📩 send_message received:");
-
-        // The JWT payload maps the user's ID to \`customer_id\` for both Agents and Customers
-        const sender_id = socket.user.customer_id;
-        const reply_time = new Date();
+    socket.on("send_message", async (payload) => {
         try {
+            if (!payload) return;
+            const { ticket_id, sender, message } = payload;
+            console.log("📩 send_message received:", ticket_id, sender);
+
+            // The JWT payload maps the user's ID to `customer_id` for both Agents and Customers
+            const sender_id = socket.user?.customer_id;
+            const reply_time = new Date();
+
             // save message to db
             const result = await pool.query(
                 `insert into ticket_messages (ticket_id,sender_type,sender_id,message,delivered,seen)
@@ -113,7 +116,7 @@ io.on("connection", (socket) => { //server wide connections
                 const check_resolve = await pool.query(
                     `select status from tickets where ticket_id = $1`, [ticket_id]
                 );
-                if (check_resolve.rows[0].status === "Resolved") {
+                if (check_resolve.rows[0]?.status === "Resolved") {
                     await pool.query(
                         `update tickets set status = 'Open' where ticket_id = $1`, [ticket_id]
                     );
