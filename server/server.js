@@ -68,6 +68,16 @@ io.on("connection", (socket) => { //server wide connections
             const sender_id = socket.user?.customer_id;
             const reply_time = new Date();
 
+            // Check if ticket is closed before saving message
+            const statusCheck = await pool.query(
+                `SELECT status FROM tickets WHERE ticket_id = $1`, [ticket_id]
+            );
+            if (statusCheck.rows.length === 0) return;
+            if (statusCheck.rows[0].status === "Closed") {
+                socket.emit("error_message", { error: "Cannot send messages to a closed ticket" });
+                return;
+            }
+
             // save message to db
             const result = await pool.query(
                 `insert into ticket_messages (ticket_id,sender_type,sender_id,message,delivered,seen)

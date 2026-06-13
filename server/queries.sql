@@ -99,3 +99,5 @@ CREATE TABLE ticket_feedback (
 
     FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE
 );
+
+ALTER TABLE tickets ADD CONSTRAINT check_ticket_status CHECK (status IN ('Open', 'In Progress', 'Resolved', 'Closed'));

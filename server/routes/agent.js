@@ -124,6 +124,17 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
     }
     try {
         const id = req.params.id;
+
+        const statusCheck = await pool.query(
+            `SELECT status FROM tickets WHERE ticket_id = $1`, [id]
+        );
+        if (statusCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
+        if (statusCheck.rows[0].status === "Closed") {
+            return res.status(400).json({ error: "Cannot resolve a closed ticket" });
+        }
+
         await pool.query(
             `update tickets set status = $1, resolved_at = NOW() where ticket_id = $2`, ['Resolved', id]
         );

@@ -24,7 +24,7 @@ export default function CustNoti() {
     async function handleRead(id) {
         try {
             await axios.post(`/noti/${id}`);
-            setNoti(prevNoti => prevNoti.filter(item => item.notification_id !== id));
+            setNoti(prevNoti => prevNoti.filter(item => item.notification_id !== id)); // point to be noted
         } catch (error) {
             console.error("Error marking the notification as read", error);
         }
