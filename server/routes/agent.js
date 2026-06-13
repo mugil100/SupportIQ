@@ -19,6 +19,9 @@ router.get("/ahome", verifyToken, async (req, res) => {
 });
 
 router.get("/unassigned", verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     try {
         const result = await pool.query(
             `select * from tickets where assigned_agent_id is NULL order by created_at DESC`
@@ -32,6 +35,9 @@ router.get("/unassigned", verifyToken, async (req, res) => {
 });
 
 router.get("/agenttickets", verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     const userId = req.customer_id; // this is users.id from the JWT
     const status = req.query.status; // e.g. "open", "inprogress", "resolved", "closed"
 
@@ -75,6 +81,9 @@ router.get("/agenttickets", verifyToken, async (req, res) => {
 });
 // getting the stats of the agent
 router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     try {
         const { id } = req.params; // ticket id
         const agent_id = req.customer_id;
@@ -110,6 +119,9 @@ router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
 });
 
 router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     try {
         const id = req.params.id;
         await pool.query(
@@ -144,6 +156,9 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
 
 
 router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     try {
         const { ticket_id } = req.body;
         const agentId = req.customer_id;
@@ -181,6 +196,9 @@ router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
 });
 
 router.get("/dashboard", verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     const agent_id = req.customer_id;
     try {
         const result = await pool.query(
@@ -241,6 +259,9 @@ router.get("/dashboard", verifyToken, async (req, res) => {
 
 // Agent performance metrics
 router.get("/performance", verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
     const agent_id = req.customer_id;
     try {
         // Total resolved
