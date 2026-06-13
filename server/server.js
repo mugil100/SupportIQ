@@ -56,7 +56,12 @@ io.on("connection", (socket) => { //server wide connections
     socket.on("send_message", async (payload) => {
         try {
             if (!payload) return;
-            const { ticket_id, sender, message } = payload;
+            const { ticket_id, message } = payload;
+            
+            // Derive sender from JWT to prevent spoofing
+            const userRole = socket.user?.role?.toLowerCase();
+            const sender = (userRole === "agent" || userRole === "manager") ? "Agent" : "Customer";
+            
             console.log("📩 send_message received:", ticket_id, sender);
 
             // The JWT payload maps the user's ID to `customer_id` for both Agents and Customers
@@ -180,7 +185,8 @@ io.on("connection", (socket) => { //server wide connections
             let receiveId;
             let receiveType;
 
-            if (socket.user?.role === "Agent") {
+            const userRole = socket.user?.role?.toLowerCase();
+            if (userRole === "agent" || userRole === "manager") {
                 receiveType = "Customer";
                 receiveId = socket.user?.customer_id;
             }

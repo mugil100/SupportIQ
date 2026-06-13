@@ -32,7 +32,7 @@ router.post("/signup", async (req, res) => {
 
         const insertRes = await pool.query(
             "insert into users (username,email,password,role,name) values ($1,$2,$3,$4,$5) RETURNING id, username, name,role",
-            [username, email, hashPwd, role, name]
+            [username, email, hashPwd, "customer", name]
         );
 
         const newUser = insertRes.rows[0];
@@ -141,8 +141,7 @@ router.post("/forgot-pwd", async (req, res) => {
         await SendEmail(email, reset_link);
 
         res.json({
-            message: "Reset link generated successfully. (Check your backend logs or this response for the link)",
-            reset_link
+            message: "Reset link generated successfully."
         });
 
     }catch(error){

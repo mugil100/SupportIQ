@@ -75,6 +75,20 @@ router.get("/ticket/:id", verifyToken, async (req, res) => {
 router.get("/ticket/:id/messages", verifyToken, async (req, res) => {
     const { id } = req.params;
     try {
+        const ticketCheck = await pool.query(
+            `select customer_id, assigned_agent_id from tickets where ticket_id = $1`,
+            [id]
+        );
+
+        if (ticketCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
+
+        const ticket = ticketCheck.rows[0];
+        if (ticket.customer_id !== req.customer_id && ticket.assigned_agent_id !== req.customer_id) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+
         const msgs = await pool.query(
             `select sender_type, message, created_at,message_id,seen,delivered
             from ticket_messages
