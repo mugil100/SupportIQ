@@ -89,7 +89,6 @@ router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
         const agent_id = req.customer_id;
         console.log("Ticket, Agent Id:", id, agent_id);
 
-        await pool.query(`select * from tickets where ticket_id = $1`, [id]);
 
         if (!id || !agent_id) {
             console.log("insufficient Parameters");
@@ -135,9 +134,16 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
             return res.status(400).json({ error: "Cannot resolve a closed ticket" });
         }
 
-        await pool.query(
-            `update tickets set status = $1, resolved_at = NOW() where ticket_id = $2`, ['Resolved', id]
+        const agentId = req.customer_id;
+
+        const updateResult = await pool.query(
+            `update tickets set status = $1, resolved_at = NOW() where ticket_id = $2 AND assigned_agent_id = $3 RETURNING *`, 
+            ['Resolved', id, agentId]
         );
+
+        if (updateResult.rows.length === 0) {
+             return res.status(403).json({ error: "Cannot resolve ticket. It may belong to another agent or not exist." });
+        }
 
         // TICKET_RESOLVED: notify the customer who owns this ticket
         const custResult = await pool.query(

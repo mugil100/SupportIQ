@@ -8,13 +8,17 @@ const authRoutes = require("./routes/auth");
 const ticketRoutes = require("./routes/tickets");
 const agentRoutes = require("./routes/agent");
 const notiRoutes = require("./routes/noti");
+require("./bg_jobs/autoClose");
 const app = express();
 const server = http.createServer(app);
 const pool = require("../server/config/database");
 
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true
+}));
 // Health check
 
 const io = new Server(server, {

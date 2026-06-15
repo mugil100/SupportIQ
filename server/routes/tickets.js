@@ -6,7 +6,15 @@ const upload = require("../middleware/upload");
 const router = express.Router();
 
 // Raise a ticket
-router.post("/raiseticket", verifyToken, upload.single("image"), async (req, res) => {
+router.post("/raiseticket", verifyToken, (req, res, next) => {
+    const uploadSingle = upload.single("image");
+    uploadSingle(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
     const { title, category, priority, description } = req.body;
     const image = req.file?.filename || null;
     const customer_id = req.customer_id;
