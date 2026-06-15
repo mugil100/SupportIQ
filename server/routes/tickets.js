@@ -103,35 +103,6 @@ router.get("/ticket/:id/messages", verifyToken, async (req, res) => {
 });
 
 
-// send new message
-router.post("/ticket/:id/message", verifyToken, async (req, res) => {
-    const { id } = req.params;
-    const { message } = req.body;
-    try {
-        const status = await pool.query(`
-            select status from tickets where ticket_id = $1
-            `, [id]);
-        if (status.rows.length === 0) {
-            return res.status(404).json({ error: "Ticket not found" });
-        }
-        if (status.rows[0].status === "Closed") {
-            return res.status(400).json({ error: "Cannot send messages to a closed ticket" });
-        }
-        if (status.rows[0].status === "Resolved") {
-            await pool.query(`
-                    update tickets set status = 'Open' , last_customer_reply_at=NOW() where ticket_id = $1`, [id]);
-        }
-        await pool.query(
-            `insert into ticket_messages (ticket_id, sender_type,sender_id,message)
-            values ($1,'Customer',$2,$3)
-            `, [id, req.customer_id, message]
-        );
-        res.status(201).json({ message: "Message Sent" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal server error" });
-    }
-});
 
 
 // update ticket status
