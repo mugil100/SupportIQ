@@ -186,6 +186,10 @@ router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
             [agentId, ticket_id]
         );
 
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: "Ticket not found or already assigned" });
+        }
+
         await pool.query(
             `
             INSERT INTO Notifications
@@ -194,10 +198,6 @@ router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
             `,
             [agentId, ticket_id, ticket_id]
         );
-
-        if (result.rows.length === 0) {
-            return res.status(400).json({ error: "Ticket not found or already assigned" });
-        }
 
         res.json({ message: "Ticket assigned successfully", ticket: result.rows[0] });
     } catch (err) {

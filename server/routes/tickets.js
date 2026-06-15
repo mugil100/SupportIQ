@@ -134,6 +134,43 @@ router.post("/ticket/:id/message", verifyToken, async (req, res) => {
 });
 
 
+// update ticket status
+router.put("/ticket/:id/status", verifyToken, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    try {
+        const ticketCheck = await pool.query(
+            `SELECT status FROM tickets WHERE ticket_id = $1`, [id]
+        );
+        if (ticketCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
+        
+        const currentStatus = ticketCheck.rows[0].status;
+        const allowedTransitions = {
+            'Open': ['Assigned'],
+            'Assigned': ['In Progress'],
+            'In Progress': ['Resolved'],
+            'Resolved': ['Open', 'Closed'],
+            'Closed': []
+        };
+
+        if (!allowedTransitions[currentStatus] || !allowedTransitions[currentStatus].includes(status)) {
+            return res.status(400).json({ error: `Invalid transition from ${currentStatus} to ${status}` });
+        }
+
+        await pool.query(
+            `update tickets set status = $1 where ticket_id = $2`,
+            [status, id]
+        );
+        res.json({ message: "Status Updated" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 // delete message
 
 router.delete("/ticket/message/:id/", verifyToken, async (req, res) => {
