@@ -5,13 +5,14 @@ import "../../styles/ViewTicket.css";
 import { useState, useEffect, useRef } from "react";
 import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
-import socket from "../../socket";
+import { useSocket } from "../../context/SocketContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const cleanApiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
 
 function ViewTicket() {
     const { id } = useParams();
+    const socket = useSocket();
     const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
@@ -34,12 +35,16 @@ function ViewTicket() {
         axios.get(`ticket/${id}`).then(res => setTicket(res.data));
         axios.get(`ticket/${id}/messages`).then(res => setMessages(res.data));
 
-        socket.auth = { token: localStorage.getItem("token") };
-        socket.connect();
-        socket.on("connect", () => {
+        // Join ticket room (socket is already connected via SocketProvider)
+        if (socket.connected) {
             socket.emit("join_ticket", id);
             socket.emit("mark_seen", { ticket_id: id });
-        });
+        } else {
+            socket.on("connect", () => {
+                socket.emit("join_ticket", id);
+                socket.emit("mark_seen", { ticket_id: id });
+            });
+        }
 
         socket.on("messages_seen", () => {
             setMessages(prev =>
@@ -79,9 +84,9 @@ function ViewTicket() {
             socket.off("ticket_reopened");
             socket.off("ticket_resolved");
             socket.off("ticket_closed");
-            socket.disconnect();
+            socket.emit("leave_ticket", id);
         };
-    }, [id]);
+    }, [id, socket]);
 
     // Auto-scroll to latest message
     useEffect(() => {

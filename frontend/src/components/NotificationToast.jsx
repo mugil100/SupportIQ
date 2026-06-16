@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import socket from "../socket";
+import { useSocket } from "../context/SocketContext";
 import "../styles/NotificationToast.css";
 
 const ICON_MAP = {
@@ -33,6 +33,7 @@ export function requestNotificationPermission() {
 export default function NotificationToast({ onUnreadChange }) {
     const [toasts, setToasts] = useState([]);
     const navigate = useNavigate();
+    const socket = useSocket();
 
     // ---- helpers ----
     const dismiss = useCallback((id) => {
@@ -97,18 +98,13 @@ export default function NotificationToast({ onUnreadChange }) {
             }
         }
 
-        // Connect if not already
-        if (!socket.connected) {
-            socket.auth = { token: localStorage.getItem("token") };
-            socket.connect();
-        }
-
+        // Socket is already connected via SocketProvider — just listen
         socket.on("new_notification", onNewNotification);
 
         return () => {
             socket.off("new_notification", onNewNotification);
         };
-    }, [navigate, onUnreadChange]);
+    }, [navigate, onUnreadChange, socket]);
 
     // ---- auto-dismiss timers ----
     useEffect(() => {

@@ -57,6 +57,11 @@ io.on("connection", (socket) => { //server wide connections
         console.log(`Joined ticket room ${ticket_id}`);
     });
 
+    socket.on("leave_ticket", (ticket_id) => {
+        socket.leave(ticket_id);
+        console.log(`Left ticket room ${ticket_id}`);
+    });
+
     socket.on("send_message", async (payload) => {
         try {
             if (!payload) return;
