@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth");
 const ticketRoutes = require("./routes/tickets");
 const agentRoutes = require("./routes/agent");
 const notiRoutes = require("./routes/noti");
+const aiRoutes = require("./routes/ai");
 require("./bg_jobs/autoClose");
 const app = express();
 const server = http.createServer(app);
@@ -241,6 +242,7 @@ app.use("/", ticketRoutes);
 app.use("/", notiRoutes); // Customer-facing notification routes
 app.use("/agent", agentRoutes);
 app.use("/agent", notiRoutes);
+app.use("/agent", aiRoutes);
 
 const port = process.env.PORT || 5000;
 

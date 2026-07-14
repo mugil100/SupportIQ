@@ -57,37 +57,37 @@ function App() {
                 </PrivateRoute>
             } />
             <Route path='/agent/agenttickets' element={
-                <PrivateRoute>
+                <PrivateRoute role='agent'>
                     <AgentTickets />
                 </PrivateRoute>
             }
             />
             <Route path='/agent/unassigned' element={
-                <PrivateRoute>
+                <PrivateRoute role='agent'>
                     <AgentUnassigned />
                 </PrivateRoute>
             }
             />
             <Route path='/agent/noti' element={
-                <PrivateRoute>
+                <PrivateRoute role='agent'>
                     <AgentNoti />
                 </PrivateRoute>
             }
             />
             <Route path='/agent/performance' element={
-                <PrivateRoute>
+                <PrivateRoute role='agent'>
                     <AgentPerf />
                 </PrivateRoute>
             }
             />
             <Route path='/agent/help' element={
-                <PrivateRoute>
+                <PrivateRoute role='agent'>
                     <Agenthelp />
                 </PrivateRoute>
             }
             />
             <Route path='/agent/agenttickets/:id' element={
-                <PrivateRoute>
+                <PrivateRoute role='agent'>
                     <AgentTicketView />
                 </PrivateRoute>
             } />

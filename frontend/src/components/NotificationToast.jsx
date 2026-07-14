@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
 import "../styles/NotificationToast.css";
@@ -34,6 +34,7 @@ export default function NotificationToast({ onUnreadChange }) {
     const [toasts, setToasts] = useState([]);
     const navigate = useNavigate();
     const socket = useSocket();
+    const timerMap = useRef(new Map());
 
     // ---- helpers ----
     const dismiss = useCallback((id) => {
@@ -108,12 +109,32 @@ export default function NotificationToast({ onUnreadChange }) {
 
     // ---- auto-dismiss timers ----
     useEffect(() => {
-        const timers = toasts
-            .filter((t) => !t.exiting)
-            .map((t) =>
-                setTimeout(() => dismiss(t.id), AUTO_DISMISS_MS)
-            );
-        return () => timers.forEach(clearTimeout);
+        const activeIds = new Set(toasts.map((t) => t.id));
+
+        // Start timers only for new toasts that aren't already tracked
+        toasts.forEach((t) => {
+            if (!t.exiting && !timerMap.current.has(t.id)) {
+                const timerId = setTimeout(() => {
+                    timerMap.current.delete(t.id);
+                    dismiss(t.id);
+                }, AUTO_DISMISS_MS);
+                timerMap.current.set(t.id, timerId);
+            }
+        });
+
+        // Clean up timers for toasts that have been removed from the array
+        timerMap.current.forEach((timerId, id) => {
+            if (!activeIds.has(id)) {
+                clearTimeout(timerId);
+                timerMap.current.delete(id);
+            }
+        });
+
+        // On unmount, clear all remaining timers
+        return () => {
+            timerMap.current.forEach(clearTimeout);
+            timerMap.current.clear();
+        };
     }, [toasts, dismiss]);
 
     // ---- render ----

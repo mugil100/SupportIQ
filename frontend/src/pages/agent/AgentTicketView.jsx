@@ -1,29 +1,44 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../api/axios";
-import { Navigate } from "react-router-dom";
 import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentTicketView.css";
 import { useSocket } from "../../context/SocketContext";
 
-function AgentTicketView() {
+const VARIANTS = ["professional", "empathetic", "concise"];
+const VARIANT_LABELS = {
+    professional: "💼 Professional",
+    empathetic: "💙 Empathetic",
+    concise: "⚡ Concise"
+};
 
+function AgentTicketView() {
     const { id } = useParams();
     const socket = useSocket();
+
+    // ── Ticket / chat state ──────────────────────────────────────────────────
     const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [reply, setReply] = useState("");
     const [typingUser, setTypingUser] = useState(null);
     const bottomRef = useRef(null);
+    const typingTimer = useRef(null);
 
-    //fetches the ticket data
+    // ── AI Panel state ───────────────────────────────────────────────────────
+    const [showAiPanel, setShowAiPanel] = useState(true);
+    const [activeVariant, setActiveVariant] = useState("professional");
+    const [suggestions, setSuggestions] = useState({}); // { professional: "...", empathetic: "..." }
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [streamedText, setStreamedText] = useState("");
+    const abortRef = useRef(null); // AbortController for in-flight fetches
+
+    // ── Socket & ticket loading ──────────────────────────────────────────────
     useEffect(() => {
         axios.get(`agent/agenttickets/${id}`).then(res => {
-            console.log("loaded ticket data : ", res.data);
             setTicket(res.data.ticket);
             setMessages(res.data.messages || []);
         });
-        // Join ticket room (socket is already connected via SocketProvider)
+
         if (socket.connected) {
             socket.emit("join_ticket", id);
             socket.emit("mark_seen", { ticket_id: id });
@@ -33,30 +48,19 @@ function AgentTicketView() {
                 socket.emit("mark_seen", { ticket_id: id });
             });
         }
-        socket.on("receive_message", (msg) => {
-            setMessages(prev => [...prev, msg]);
-        });
 
-        socket.on("typing_start", ({ sender }) => {
-            setTypingUser(sender);
-        });
-
-        socket.on("typing_stop", ({ sender }) => {
-            setTypingUser(null);
-        });
-        socket.on("messages_seen", () => {
-            setMessages(prev =>
-                prev.map(m => ({ ...m, seen: true }))
-            );
-        });
-
-        socket.on("ticket_reopened", () => {
-            setTicket(prev => ({ ...prev, status: "Open" }));
-        });
-
-        socket.on("ticket_resolved", () => {
-            setTicket(prev => ({ ...prev, status: "Resolved" }));
-        });
+        socket.on("receive_message", (msg) => setMessages(prev => [...prev, msg]));
+        socket.on("typing_start", ({ sender }) => setTypingUser(sender));
+        socket.on("typing_stop", () => setTypingUser(null));
+        socket.on("messages_seen", () =>
+            setMessages(prev => prev.map(m => ({ ...m, seen: true })))
+        );
+        socket.on("ticket_reopened", () =>
+            setTicket(prev => ({ ...prev, status: "Open" }))
+        );
+        socket.on("ticket_resolved", () =>
+            setTicket(prev => ({ ...prev, status: "Resolved" }))
+        );
 
         return () => {
             socket.off("connect");
@@ -67,67 +71,183 @@ function AgentTicketView() {
             socket.off("ticket_reopened");
             socket.off("ticket_resolved");
             socket.emit("leave_ticket", id);
+            if (typingTimer.current) clearTimeout(typingTimer.current);
         };
     }, [id, socket]);
 
-    // Auto-scroll to latest message
+    // Auto-scroll
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    function sendReply() {
-        // if(!reply.trim()) return;
+    // ── AI generation ────────────────────────────────────────────────────────
+    const generateSuggestion = useCallback(async (variantName) => {
+        // Abort any in-flight stream
+        if (abortRef.current) abortRef.current.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
 
-        // axios.post(`/agent/agenttickets/${id}/reply`,{
-        //     message: reply
-        // })
-        // .then(()=>{
-        //     setMessages(prev=>[
-        //         ...prev,
-        //         {sender_type: "Agent", message: reply}
-        //     ]);
-        //     setReply("");
-        // });
-        if (!reply.trim()) return;
+        setActiveVariant(variantName);
+        setIsGenerating(true);
+        setStreamedText("");
 
-        socket.emit("send_message", {
-            ticket_id: id,
-            sender: "Agent",
-            message: reply
+        try {
+            const token = localStorage.getItem("token");
+            const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
+            const res = await fetch(
+                `${apiBase}/agent/ai-suggest`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ ticket_id: id, variant: variantName }),
+                    signal: controller.signal
+                }
+            );
+
+            if (!res.ok) throw new Error("Request failed");
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            let accumulated = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.startsWith("data: ")) continue;
+                    const data = line.slice(6).trim();
+                    if (data === "[DONE]") break;
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.text) {
+                            accumulated += parsed.text;
+                            setStreamedText(accumulated);
+                        }
+                    } catch (_) { /* skip */ }
+                }
+            }
+
+            // Commit to suggestions map
+            setSuggestions(prev => ({ ...prev, [variantName]: accumulated }));
+            setStreamedText("");
+        } catch (err) {
+            if (err.name !== "AbortError") {
+                console.error("AI suggestion error:", err);
+            }
+        } finally {
+            setIsGenerating(false);
+        }
+    }, [id]);
+
+    // Auto-trigger for default variant when panel opens and ticket is loaded
+    const hasPanelTriggered = useRef(false);
+    useEffect(() => {
+        if (showAiPanel && ticket && !hasPanelTriggered.current) {
+            hasPanelTriggered.current = true;
+            generateSuggestion("professional");
+        }
+    }, [showAiPanel, ticket, generateSuggestion]);
+
+    // ── Variant chip click logic ─────────────────────────────────────────────
+    function handleVariantClick(variantName) {
+        if (isGenerating && variantName !== activeVariant) return; // block mid-stream switch
+        if (variantName === activeVariant && !isGenerating) {
+            // Clicking active (completed) chip → insert into reply box
+            insertSuggestion();
+            return;
+        }
+        if (suggestions[variantName]) {
+            // Already generated — just switch to it
+            setActiveVariant(variantName);
+            setStreamedText("");
+        } else {
+            // Generate new
+            generateSuggestion(variantName);
+        }
+    }
+
+    function handleRegenerate() {
+        setSuggestions(prev => {
+            const updated = { ...prev };
+            delete updated[activeVariant];
+            return updated;
         });
+        generateSuggestion(activeVariant);
+    }
+
+    function insertSuggestion() {
+        const text = suggestions[activeVariant] || streamedText;
+        if (text) setReply(text);
+    }
+
+    // ── Display text (streamed or committed) ─────────────────────────────────
+    const displayText = isGenerating && activeVariant
+        ? streamedText
+        : (suggestions[activeVariant] || "");
+
+    // ── Chat actions ─────────────────────────────────────────────────────────
+    function sendReply() {
+        if (!reply.trim()) return;
+        socket.emit("send_message", { ticket_id: id, sender: "Agent", message: reply });
         setReply("");
-    };
+    }
 
     function handleResolve() {
-        if (ticket.status === "Resolved") return;  // guard: already resolved
+        if (ticket.status === "Resolved") return;
         axios.post(`agent/agenttickets/${id}/resolved`)
-            .then(() => {
-                setTicket(prev => ({ ...prev, status: "Resolved" }));
-            })
+            .then(() => setTicket(prev => ({ ...prev, status: "Resolved" })))
             .catch(err => {
                 console.error("Failed to resolve ticket:", err);
                 alert("Could not resolve ticket. Please try again.");
             });
     }
 
-
-    if (!ticket) return <p>Loading ticket...</p>;
-
+    if (!ticket) return (
+        <div className="ticket-loading">
+            <div className="ticket-loading-spinner" />
+            <span>Loading ticket...</span>
+        </div>
+    );
 
     return (
         <>
             <AgentNavbar />
             <div className="ticket-view-page">
+
+                {/* ─── Header ─────────────────────────────────────────────── */}
                 <div className="ticket-header">
                     <div>
                         <h2>Ticket #{ticket.ticket_id}</h2>
                         <small>Created: {new Date(ticket.created_at).toLocaleString()}</small>
                     </div>
-                    <div className="ticket-badges">
-                        <span className={`badge ${ticket.priority}`}>{ticket.priority}</span>
-                        <span className={`badge status-${ticket.status}`}>{ticket.status}</span>
+                    <div className="ticket-header-right">
+                        <div className="ticket-badges">
+                            <span className={`badge ${ticket.priority}`}>{ticket.priority}</span>
+                            <span className={`badge status-${ticket.status?.replace(" ", "").toLowerCase()}`}>
+                                {ticket.status}
+                            </span>
+                        </div>
+                        {/* AI Copilot toggle */}
+                        <button
+                            className={`ai-toggle-btn ${showAiPanel ? "ai-toggle-active" : ""}`}
+                            onClick={() => setShowAiPanel(p => !p)}
+                            title={showAiPanel ? "Hide AI Copilot" : "Show AI Copilot"}
+                        >
+                            ✨ AI Copilot
+                        </button>
                     </div>
                 </div>
+
+                {/* ─── Details ────────────────────────────────────────────── */}
                 <div className="ticket-details">
                     <h3>{ticket.title}</h3>
                     <p className="category">Category : {ticket.category}</p>
@@ -135,9 +255,15 @@ function AgentTicketView() {
                     {ticket.image_url && (
                         <img src={ticket.image_url} alt="Ticket Attachment" className="ticket-image" />
                     )}
-                    <button className="resolve-btn" onClick={handleResolve}> Mark as Resolved</button>
+                    <button className="resolve-btn" onClick={handleResolve}>
+                        Mark as Resolved
+                    </button>
                 </div>
-                <div className="ticket-bottom">
+
+                {/* ─── Bottom Grid ────────────────────────────────────────── */}
+                <div className={`ticket-bottom ${showAiPanel ? "with-ai" : "without-ai"}`}>
+
+                    {/* ─ Chat Section ─ */}
                     <div className="chat-section">
                         <h3>Conversation</h3>
                         {typingUser && (
@@ -147,10 +273,8 @@ function AgentTicketView() {
                         )}
                         <div className="chat-box">
                             {messages.map((m, i) => (
-                                <div key={i}
-                                    className={`chat-msg ${m.sender_type}1`}>
+                                <div key={i} className={`chat-msg ${m.sender_type}1`}>
                                     {m.message}
-
                                     {m.sender_type === "Agent" && (
                                         <span className="status">
                                             {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
@@ -161,21 +285,14 @@ function AgentTicketView() {
                             <div ref={bottomRef} />
                         </div>
                         <div className="reply-box">
-                            <textarea value={reply}
+                            <textarea
+                                value={reply}
                                 onChange={e => {
                                     setReply(e.target.value);
-
-                                    socket.emit("typing_start", { //Server, I (Agent) am typing in ticket #
-                                        ticket_id: id,
-                                        sender: "Agent"
-                                    });
-
-                                    clearTimeout(window.typingTimer);
-                                    window.typingTimer = setTimeout(() => { //window survives re-renders
-                                        socket.emit("typing_stop", {
-                                            ticket_id: id,
-                                            sender: "Agent"
-                                        });
+                                    socket.emit("typing_start", { ticket_id: id, sender: "Agent" });
+                                    if (typingTimer.current) clearTimeout(typingTimer.current);
+                                    typingTimer.current = setTimeout(() => {
+                                        socket.emit("typing_stop", { ticket_id: id, sender: "Agent" });
                                     }, 1000);
                                 }}
                                 onKeyDown={e => {
@@ -184,20 +301,78 @@ function AgentTicketView() {
                                         sendReply();
                                     }
                                 }}
-                                placeholder="Type your reply"
-
+                                placeholder="Type your reply…"
                             />
-
                             <button onClick={sendReply}>Send</button>
                         </div>
                     </div>
-                    <div className="ai-panel">
-                        <h3>AI Suggested Reply</h3>
-                        <p className="ai-placeholder">
-                            AI recommendations will appear here
-                        </p>
-                        <button disabled>Insert Reply</button>
+
+                    {/* ─ AI Panel ─ */}
+                    <div className={`ai-panel ${showAiPanel ? "ai-panel-open" : "ai-panel-closed"}`}>
+                        <div className="ai-panel-inner">
+
+                            {/* Header row */}
+                            <div className="ai-panel-header">
+                                <div className="ai-panel-title">
+                                    <span className="ai-sparkle">✨</span>
+                                    <h3>AI Copilot</h3>
+                                </div>
+                                <button
+                                    className="ai-regen-btn"
+                                    onClick={handleRegenerate}
+                                    disabled={isGenerating}
+                                    title="Regenerate suggestion"
+                                >
+                                    {isGenerating ? (
+                                        <span className="ai-spin">⟳</span>
+                                    ) : "↺ Regenerate"}
+                                </button>
+                            </div>
+
+                            {/* Variant chips */}
+                            <div className="ai-chips">
+                                {VARIANTS.map(v => (
+                                    <button
+                                        key={v}
+                                        className={`ai-chip ${activeVariant === v ? "ai-chip-active" : ""} ${suggestions[v] && activeVariant !== v ? "ai-chip-done" : ""}`}
+                                        onClick={() => handleVariantClick(v)}
+                                        title={activeVariant === v && suggestions[v] ? "Click to insert this reply" : `Generate ${v} reply`}
+                                    >
+                                        {VARIANT_LABELS[v]}
+                                        {suggestions[v] && activeVariant !== v && (
+                                            <span className="ai-chip-check">✓</span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Suggestion text box */}
+                            <div className="ai-suggestion-box">
+                                {displayText ? (
+                                    <p className="ai-suggestion-text">
+                                        {displayText}
+                                        {isGenerating && <span className="ai-cursor">|</span>}
+                                    </p>
+                                ) : (
+                                    <p className="ai-placeholder">
+                                        {isGenerating
+                                            ? "Generating suggestion…"
+                                            : "Select a tone above to generate an AI-suggested reply."}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Insert Reply button */}
+                            <button
+                                className={`ai-insert-btn ${displayText && !isGenerating ? "ai-insert-ready" : ""}`}
+                                onClick={insertSuggestion}
+                                disabled={!displayText || isGenerating}
+                            >
+                                ↓ Insert Reply
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </>

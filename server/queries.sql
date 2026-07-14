@@ -47,8 +47,36 @@ CREATE TABLE ticket_messages (
     message TEXT NOT NULL,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT false,
+    delivered BOOLEAN NOT NULL DEFAULT false,
+    seen BOOLEAN NOT NULL DEFAULT false,
     
-    FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE
+    FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE,
+    CONSTRAINT check_sender_id CHECK (
+        (sender_type = 'System') OR 
+        (sender_type IN ('Customer','Agent') AND sender_id IS NOT NULL)
+    )
+);
+
+CREATE TABLE ticket_messages (
+    message_id SERIAL PRIMARY KEY,
+    
+    ticket_id INT NOT NULL,
+    sender_type VARCHAR(10) CHECK (sender_type IN ('Customer','Agent','System')),
+    sender_id INT,
+    
+    message TEXT NOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT false,
+    delivered BOOLEAN NOT NULL DEFAULT false,
+    seen BOOLEAN NOT NULL DEFAULT false,
+    
+    FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE,
+    CONSTRAINT check_sender_id CHECK (
+        (sender_type = 'System') OR 
+        (sender_type IN ('Customer','Agent') AND sender_id IS NOT NULL)
+    )
 );
 
 
@@ -62,7 +90,7 @@ ADD COLUMN resolved_at TIMESTAMP,
 ADD COLUMN closed_at TIMESTAMP;
 
 CREATE TABLE Notifications (
-    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    notification_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     ticket_id INT,
     notification_type VARCHAR(30) NOT NULL,
@@ -70,8 +98,8 @@ CREATE TABLE Notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES Users(id),
-    FOREIGN KEY (ticket_id) REFERENCES Tickets(ticket_id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id)
 );
 
 select * from Notifications;
@@ -101,3 +129,4 @@ CREATE TABLE ticket_feedback (
 );
 
 ALTER TABLE tickets ADD CONSTRAINT check_ticket_status CHECK (status IN ('Open', 'In Progress', 'Resolved', 'Closed'));
+

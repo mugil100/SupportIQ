@@ -18,6 +18,7 @@ function ViewTicket() {
     const [text, setText] = useState("");
     const [typingUser, setTypingUser] = useState(null);
     const bottomRef = useRef(null);
+    const typingTimer = useRef(null);
 
     // Close & Rate modal state
     const [showRatingModal, setShowRatingModal] = useState(false);
@@ -85,6 +86,7 @@ function ViewTicket() {
             socket.off("ticket_resolved");
             socket.off("ticket_closed");
             socket.emit("leave_ticket", id);
+            if (typingTimer.current) clearTimeout(typingTimer.current);
         };
     }, [id, socket]);
 
@@ -220,8 +222,8 @@ function ViewTicket() {
                                         sender: "Customer"
                                     });
 
-                                    clearTimeout(window.typingTimer);
-                                    window.typingTimer = setTimeout(() => {
+                                    if (typingTimer.current) clearTimeout(typingTimer.current);
+                                    typingTimer.current = setTimeout(() => {
                                         socket.emit("typing_stop", {
                                             ticket_id: id,
                                             sender: "Customer"

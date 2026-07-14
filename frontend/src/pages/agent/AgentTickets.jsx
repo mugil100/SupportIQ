@@ -8,10 +8,11 @@ function AgentTickets() {
 
     const [filter, setFilter] = useState("open");
     const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
+        setLoading(true);
         axios.get(`/agent/agenttickets?status=${filter}`)
             .then(res => {
                 setTickets(res.data);
