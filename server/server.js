@@ -243,6 +243,7 @@ app.use("/", notiRoutes); // Customer-facing notification routes
 app.use("/agent", agentRoutes);
 app.use("/agent", notiRoutes);
 app.use("/agent", aiRoutes);
+app.use("/ai", aiRoutes);
 
 const port = process.env.PORT || 5000;
 
