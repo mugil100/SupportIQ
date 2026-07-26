@@ -46,6 +46,21 @@
   box-shadow: var(--shadow-md);
 }
 
+/* ─── Form Groups ─── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.form-group__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  min-height: 18px;
+}
+
 /* ─── Field Labels ─── */
 .raise-form label {
   font-size: 12.5px;
@@ -57,13 +72,20 @@
   letter-spacing: 0.5px;
 }
 
+.label-optional {
+  font-weight: 400;
+  text-transform: none;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  letter-spacing: 0;
+}
+
 /* ─── Inputs ─── */
 .raise-form input[type="text"],
 .raise-form select,
 .raise-form textarea,
 .raise-form input[type="file"] {
   width: 100%;
-  margin-bottom: 20px;
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -109,8 +131,106 @@
   font-size: 13px;
 }
 
+/* ─── Error States ─── */
+.input--error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px var(--danger-bg) !important;
+}
+
+.input--error:focus {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--danger);
+  margin-top: 4px;
+  font-weight: 500;
+  animation: fadeSlideIn 0.2s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Character Counter ─── */
+.char-count {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── File Name Display ─── */
+.file-name {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ─── Form Banners (Success / Error) ─── */
+.form-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 580px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  animation: fadeSlideIn 0.25s ease;
+}
+
+.form-banner--success {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+}
+
+.form-banner--error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+}
+
+.form-banner span {
+  flex: 1;
+}
+
+.form-banner__dismiss {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+
+.form-banner__dismiss:hover {
+  opacity: 1;
+  background: none;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ─── Submit Button ─── */
-.raise-form button {
+.raise-form button[type="submit"] {
   width: 100%;
   padding: 12px;
   border: none;
@@ -122,15 +242,47 @@
   cursor: pointer;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   letter-spacing: -0.1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-.raise-form button:hover {
+.raise-form button[type="submit"]:hover:not(:disabled) {
   background: #4855c4;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(94,106,210,0.35);
 }
 
-.raise-form button:active { transform: translateY(0); }
+.raise-form button[type="submit"]:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.raise-form button[type="submit"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn--loading {
+  pointer-events: none;
+}
+
+/* ─── Spinner ─── */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ─── Footer in page ─── */
 footer {
