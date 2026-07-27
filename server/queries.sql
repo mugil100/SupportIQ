@@ -130,3 +130,6 @@ CREATE TABLE ticket_feedback (
 
 ALTER TABLE tickets ADD CONSTRAINT check_ticket_status CHECK (status IN ('Open', 'In Progress', 'Resolved', 'Closed'));
 
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+
+

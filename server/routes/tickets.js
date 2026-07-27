@@ -15,23 +15,44 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
         next();
     });
 }, async (req, res) => {
-    const { title, category, priority, description } = req.body;
+    const { title, category, priority, description, metadata } = req.body;
     const image = req.file?.filename || null;
     const customer_id = req.customer_id;
     const ticket_time = new Date();
-    console.log("File received:", req.file);
-    console.log("Headers:", req.headers.authorization);
+
+    let parsedMetadata = '{}';
+    if (metadata) {
+        try {
+            parsedMetadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+        } catch (e) {
+            parsedMetadata = '{}';
+        }
+    }
 
     try {
         await pool.query(
             `insert into tickets
-            (customer_id,title,category,priority,description,image_url, last_customer_reply_at)
-            values ($1,$2,$3,$4,$5,$6,$7)`,
-            [customer_id, title, category, priority, description, image, ticket_time]
+            (customer_id, title, category, priority, description, image_url, metadata, last_customer_reply_at)
+            values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [customer_id, title, category, priority || 'Medium', description, image, parsedMetadata, ticket_time]
         );
         res.status(201).json({ message: "Ticket raised successfully" });
-
     } catch (err) {
+        // Fallback in case metadata column is not created yet
+        if (err.code === '42703') {
+            try {
+                await pool.query(
+                    `insert into tickets
+                    (customer_id, title, category, priority, description, image_url, last_customer_reply_at)
+                    values ($1, $2, $3, $4, $5, $6, $7)`,
+                    [customer_id, title, category, priority || 'Medium', description, image, ticket_time]
+                );
+                return res.status(201).json({ message: "Ticket raised successfully" });
+            } catch (fallbackErr) {
+                console.error(fallbackErr);
+                return res.status(500).json({ error: "Database error" });
+            }
+        }
         console.error(err);
         res.status(500).json({ error: "Database error" });
     }

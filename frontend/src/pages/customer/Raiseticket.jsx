@@ -12,22 +12,60 @@ const CATEGORIES = [
     "Account & Compliance"
 ];
 
+// Conditional contextual fields per category
+const CATEGORY_FIELDS = {
+    "API & Integration": [
+        { name: "api_endpoint", label: "API Endpoint", type: "text", placeholder: "e.g. /v1/payments/capture" },
+        { name: "error_code", label: "Error Code / HTTP Status", type: "text", placeholder: "e.g. 502, INVALID_KEY" },
+        {
+            name: "sdk_type", label: "SDK / Integration Type", type: "select",
+            options: ["REST API", "Node.js SDK", "Python SDK", "PHP SDK", "Java SDK", "Webhooks", "Other"]
+        },
+    ],
+    "Transaction Disputes": [
+        { name: "transaction_id", label: "Transaction ID", type: "text", placeholder: "e.g. txn_abc123xyz" },
+        { name: "dispute_amount", label: "Disputed Amount (₹)", type: "number", placeholder: "e.g. 5000" },
+        { name: "transaction_date", label: "Transaction Date", type: "date" },
+    ],
+    "Billing & Invoicing": [
+        { name: "invoice_number", label: "Invoice Number", type: "text", placeholder: "e.g. INV-2025-001" },
+        { name: "billing_amount", label: "Amount in Question (₹)", type: "number", placeholder: "e.g. 12000" },
+    ],
+    "Onboarding & KYC": [
+        {
+            name: "document_type", label: "Document Type", type: "select",
+            options: ["PAN Card", "GST Certificate", "Bank Statement", "Address Proof", "Other"]
+        },
+        {
+            name: "kyc_status", label: "Current KYC Status", type: "select",
+            options: ["Not Started", "Documents Submitted", "Under Review", "Rejected", "Needs Resubmission"]
+        },
+    ],
+    "Account & Compliance": [
+        {
+            name: "account_action", label: "Issue Type", type: "select",
+            options: ["Account Suspended", "Limit Breach", "Policy Violation Notice", "Compliance Question", "Other"]
+        },
+    ],
+};
+
 function Raiseticket() {
     const [ticket, setTicket] = useState({
         title: "",
         category: "",
         description: "",
-        image: null
+        image: null,
+        metadata: {}
     });
 
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setTicket(prev => ({ ...prev, [name]: value }));
-        // Clear field error on change
         if (errors[name]) {
             setErrors(prev => {
                 const next = { ...prev };
@@ -35,6 +73,32 @@ function Raiseticket() {
                 return next;
             });
         }
+    };
+
+    const handleCategoryChange = (e) => {
+        const newCategory = e.target.value;
+        setTicket(prev => ({
+            ...prev,
+            category: newCategory,
+            metadata: {} // Reset metadata when category changes
+        }));
+        if (errors.category) {
+            setErrors(prev => {
+                const next = { ...prev };
+                delete next.category;
+                return next;
+            });
+        }
+    };
+
+    const handleMetadataChange = (name, value) => {
+        setTicket(prev => ({
+            ...prev,
+            metadata: {
+                ...prev.metadata,
+                [name]: value
+            }
+        }));
     };
 
     const handleImg = (e) => {
@@ -90,6 +154,7 @@ function Raiseticket() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitError("");
+        setSuccessMsg("");
 
         if (!validate()) return;
 
@@ -104,19 +169,29 @@ function Raiseticket() {
             formdata.append("image", ticket.image);
         }
 
+        // Clean & attach metadata if present
+        if (ticket.metadata && Object.keys(ticket.metadata).length > 0) {
+            const cleanedMeta = {};
+            Object.entries(ticket.metadata).forEach(([k, v]) => {
+                if (v !== "" && v !== null && v !== undefined) {
+                    cleanedMeta[k] = v;
+                }
+            });
+            if (Object.keys(cleanedMeta).length > 0) {
+                formdata.append("metadata", JSON.stringify(cleanedMeta));
+            }
+        }
+
         try {
             await axios.post("raiseticket", formdata, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
-            setTicket({ title: "", category: "", description: "", image: null });
+            setTicket({ title: "", category: "", description: "", image: null, metadata: {} });
             setErrors({});
             setSubmitError("");
-            // Success feedback — inline banner (replaces alert)
-            setSubmitError(""); // clear any previous error
             setSubmitting(false);
-            // Show success state
-            setSuccessMsg("Your ticket has been submitted. Our team will get back to you shortly.");
+            setSuccessMsg("Your ticket has been submitted successfully. Our support team will review it shortly.");
         } catch (err) {
             const serverMsg = err.response?.data?.error || "Something went wrong. Please try again.";
             setSubmitError(serverMsg);
@@ -124,14 +199,12 @@ function Raiseticket() {
         }
     };
 
-    const [successMsg, setSuccessMsg] = useState("");
-
     return (
         <div className="ticket-container">
             <TicketNavbar />
             <div className="ticket-body">
                 <h1>Raise a Support Ticket</h1>
-                <p>Describe your issue and we'll route it to the right team.</p>
+                <p>Describe your issue and we'll route it to the right engineering or support team.</p>
 
                 {/* Success Banner */}
                 {successMsg && (
@@ -185,7 +258,7 @@ function Raiseticket() {
                             id="rt-category"
                             name="category"
                             value={ticket.category}
-                            onChange={handleChange}
+                            onChange={handleCategoryChange}
                             className={errors.category ? "input--error" : ""}
                         >
                             <option value="">Select category</option>
@@ -195,6 +268,49 @@ function Raiseticket() {
                         </select>
                         {errors.category && <span className="field-error">{errors.category}</span>}
                     </div>
+
+                    {/* Contextual Dynamic Fields per Category */}
+                    {ticket.category && CATEGORY_FIELDS[ticket.category] && (
+                        <div className="contextual-fields-container">
+                            <div className="contextual-fields-header">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                                <span>Contextual details for {ticket.category}</span>
+                            </div>
+                            <div className="contextual-fields-grid">
+                                {CATEGORY_FIELDS[ticket.category].map(field => (
+                                    <div className="form-group contextual-field-group" key={field.name}>
+                                        <label htmlFor={`meta-${field.name}`}>
+                                            {field.label} <span className="label-optional">(optional)</span>
+                                        </label>
+                                        {field.type === "select" ? (
+                                            <select
+                                                id={`meta-${field.name}`}
+                                                value={ticket.metadata?.[field.name] || ""}
+                                                onChange={(e) => handleMetadataChange(field.name, e.target.value)}
+                                            >
+                                                <option value="">Select option</option>
+                                                {field.options.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                id={`meta-${field.name}`}
+                                                type={field.type}
+                                                placeholder={field.placeholder || ""}
+                                                value={ticket.metadata?.[field.name] || ""}
+                                                onChange={(e) => handleMetadataChange(field.name, e.target.value)}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Description */}
                     <div className="form-group">
