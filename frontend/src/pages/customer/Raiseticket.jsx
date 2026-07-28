@@ -12,6 +12,8 @@ const CATEGORIES = [
     "Account & Compliance"
 ];
 
+const AFFECTED_AREAS = ["Dashboard", "API / SDK", "Webhooks", "Settlements", "Reports"];
+
 // Conditional contextual fields per category
 const CATEGORY_FIELDS = {
     "API & Integration": [
@@ -53,6 +55,7 @@ function Raiseticket() {
     const [ticket, setTicket] = useState({
         title: "",
         category: "",
+        affected_area: "",
         description: "",
         image: null,
         metadata: {}
@@ -62,6 +65,8 @@ function Raiseticket() {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [dragActive, setDragActive] = useState(false);
+    const [filePreview, setFilePreview] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -101,13 +106,17 @@ function Raiseticket() {
         }));
     };
 
-    const handleImg = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const validateAndSetFile = (file) => {
+        setErrors(prev => {
+            const next = { ...prev };
+            delete next.image;
+            return next;
+        });
+        setFilePreview(null);
 
-        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-        if (!allowedTypes.includes(file.type)) {
-            setErrors(prev => ({ ...prev, image: "Only JPEG, PNG, and WebP files are allowed." }));
+        const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            setErrors(prev => ({ ...prev, image: "Only JPEG, PNG, WebP, and PDF files are allowed." }));
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
@@ -119,11 +128,23 @@ function Raiseticket() {
         }
 
         setTicket(prev => ({ ...prev, image: file }));
-        setErrors(prev => {
-            const next = { ...prev };
-            delete next.image;
-            return next;
-        });
+
+        // Generate preview
+        if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (e) => setFilePreview({ type: "image", src: e.target.result });
+            reader.readAsDataURL(file);
+        } else {
+            setFilePreview({ type: "pdf", name: file.name, size: (file.size / 1024).toFixed(0) + " KB" });
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragActive(false);
+        if (e.dataTransfer.files?.[0]) {
+            validateAndSetFile(e.dataTransfer.files[0]);
+        }
     };
 
     const validate = () => {
@@ -165,6 +186,9 @@ function Raiseticket() {
         formdata.append("category", ticket.category);
         formdata.append("priority", "Medium"); // Priority is set by AI in later phases, defaults to Medium
         formdata.append("description", ticket.description.trim());
+        if (ticket.affected_area) {
+            formdata.append("affected_area", ticket.affected_area);
+        }
         if (ticket.image) {
             formdata.append("image", ticket.image);
         }
@@ -187,8 +211,9 @@ function Raiseticket() {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
-            setTicket({ title: "", category: "", description: "", image: null, metadata: {} });
+            setTicket({ title: "", category: "", affected_area: "", description: "", image: null, metadata: {} });
             setErrors({});
+            setFilePreview(null);
             setSubmitError("");
             setSubmitting(false);
             setSuccessMsg("Your ticket has been submitted successfully. Our support team will review it shortly.");
@@ -269,6 +294,22 @@ function Raiseticket() {
                         {errors.category && <span className="field-error">{errors.category}</span>}
                     </div>
 
+                    {/* Affected Area */}
+                    <div className="form-group">
+                        <label htmlFor="rt-affected-area">Affected Area</label>
+                        <select
+                            id="rt-affected-area"
+                            name="affected_area"
+                            value={ticket.affected_area}
+                            onChange={handleChange}
+                        >
+                            <option value="">Select affected area</option>
+                            {AFFECTED_AREAS.map(area => (
+                                <option key={area} value={area}>{area}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     {/* Contextual Dynamic Fields per Category */}
                     {ticket.category && CATEGORY_FIELDS[ticket.category] && (
                         <div className="contextual-fields-container">
@@ -328,20 +369,46 @@ function Raiseticket() {
 
                     {/* File Upload */}
                     <div className="form-group">
-                        <label htmlFor="rt-image">Attachment <span className="label-optional">(optional)</span></label>
-                        <input
-                            id="rt-image"
-                            type="file"
-                            name="image"
-                            accept=".jpg,.jpeg,.png,.webp"
-                            onChange={handleImg}
-                            className={errors.image ? "input--error" : ""}
-                        />
-                        {ticket.image && !errors.image && (
-                            <span className="file-name">
-                                {ticket.image.name} ({(ticket.image.size / 1024).toFixed(0)} KB)
-                            </span>
-                        )}
+                        <label>Attachment <span className="label-optional">(optional)</span></label>
+                        <div
+                            className={`drop-zone ${dragActive ? "drop-zone--active" : ""} ${errors.image ? "input--error" : ""}`}
+                            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                            onDragLeave={() => setDragActive(false)}
+                            onDrop={handleDrop}
+                            onClick={() => document.getElementById("file-input").click()}
+                        >
+                            {filePreview ? (
+                                <div className="drop-zone__preview">
+                                    {filePreview.type === "image" ? (
+                                        <img src={filePreview.src} alt="Preview" />
+                                    ) : (
+                                        <div className="drop-zone__pdf">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14 2 14 8 20 8"/>
+                                            </svg>
+                                            <span>{filePreview.name} ({filePreview.size})</span>
+                                        </div>
+                                    )}
+                                    <button type="button" className="drop-zone__remove" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTicket(prev => ({ ...prev, image: null }));
+                                        setFilePreview(null);
+                                    }}>✕</button>
+                                </div>
+                            ) : (
+                                <div className="drop-zone__empty">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                    <span>Drop a file here or <em>click to browse</em></span>
+                                    <span className="drop-zone__hint">JPEG, PNG, WebP, or PDF — max 5MB</span>
+                                </div>
+                            )}
+                        </div>
+                        <input id="file-input" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" onChange={(e) => {
+                            if (e.target.files?.[0]) validateAndSetFile(e.target.files[0]);
+                        }} hidden />
                         {errors.image && <span className="field-error">{errors.image}</span>}
                     </div>
 

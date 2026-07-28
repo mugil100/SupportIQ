@@ -15,7 +15,7 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
         next();
     });
 }, async (req, res) => {
-    const { title, category, priority, description, metadata } = req.body;
+    const { title, category, priority, description, metadata, affected_area } = req.body;
     const image = req.file?.filename || null;
     const customer_id = req.customer_id;
     const ticket_time = new Date();
@@ -32,13 +32,13 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
     try {
         await pool.query(
             `insert into tickets
-            (customer_id, title, category, priority, description, image_url, metadata, last_customer_reply_at)
-            values ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [customer_id, title, category, priority || 'Medium', description, image, parsedMetadata, ticket_time]
+            (customer_id, title, category, priority, description, image_url, metadata, affected_area, last_customer_reply_at)
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [customer_id, title, category, priority || 'Medium', description, image, parsedMetadata, affected_area || null, ticket_time]
         );
         res.status(201).json({ message: "Ticket raised successfully" });
     } catch (err) {
-        // Fallback in case metadata column is not created yet
+        // Fallback in case metadata or affected_area column is not created yet
         if (err.code === '42703') {
             try {
                 await pool.query(

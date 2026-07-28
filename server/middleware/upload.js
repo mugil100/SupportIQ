@@ -1,16 +1,21 @@
 const multer = require("multer");
+const path = require("path");
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, "uploads/"),
-    filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
+    filename: (req, file, cb) => {
+        // Sanitise original filename — strip path traversal chars
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        cb(null, Date.now() + "-" + safeName);
+    }
 });
 
 const fileFilter = (req, file, cb) => {
-    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error("Invalid file type. Only JPEG, PNG, and WebP are allowed."));
+        cb(new Error("Invalid file type. Only JPEG, PNG, WebP, and PDF are allowed."));
     }
 };
 

@@ -132,4 +132,4 @@ ALTER TABLE tickets ADD CONSTRAINT check_ticket_status CHECK (status IN ('Open',
 
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
 
-
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS affected_area VARCHAR(30) CHECK (affected_area IN ('Dashboard', 'API / SDK', 'Webhooks', 'Settlements', 'Reports'));
