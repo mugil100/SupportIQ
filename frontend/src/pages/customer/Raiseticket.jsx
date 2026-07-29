@@ -256,7 +256,7 @@ function Raiseticket() {
                         <p className="success-screen__id">Ticket #{createdTicketId}</p>
                         <p>Our team will review your request and get back to you shortly.</p>
                         <div className="success-screen__actions">
-                            <button className="btn-primary" onClick={() => navigate(`/viewticket/${createdTicketId}`)}>View Ticket</button>
+                            <button className="btn-primary" onClick={() => navigate(`/ticket/${createdTicketId}`)}>View Ticket</button>
                             <button className="btn-secondary" onClick={() => {
                                 setSubmitted(false);
                                 setTicket({ title: "", category: "", priority: "", description: "", image: null, affected_area: "", metadata: {} });
