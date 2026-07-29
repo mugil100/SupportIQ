@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../styles/Raiseticket.css";
 import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
@@ -64,9 +65,11 @@ function Raiseticket() {
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
+    const [submitted, setSubmitted] = useState(false);
+    const [createdTicketId, setCreatedTicketId] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const [filePreview, setFilePreview] = useState(null);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -175,7 +178,7 @@ function Raiseticket() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitError("");
-        setSuccessMsg("");
+        setSubmitted(false);
 
         if (!validate()) return;
 
@@ -207,16 +210,13 @@ function Raiseticket() {
         }
 
         try {
-            await axios.post("raiseticket", formdata, {
+            const res = await axios.post("raiseticket", formdata, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
-            setTicket({ title: "", category: "", affected_area: "", description: "", image: null, metadata: {} });
-            setErrors({});
-            setFilePreview(null);
-            setSubmitError("");
+            setCreatedTicketId(res.data.ticket_id);
+            setSubmitted(true);
             setSubmitting(false);
-            setSuccessMsg("Your ticket has been submitted successfully. Our support team will review it shortly.");
         } catch (err) {
             const serverMsg = err.response?.data?.error || "Something went wrong. Please try again.";
             setSubmitError(serverMsg);
@@ -231,18 +231,6 @@ function Raiseticket() {
                 <h1>Raise a Support Ticket</h1>
                 <p>Describe your issue and we'll route it to the right engineering or support team.</p>
 
-                {/* Success Banner */}
-                {successMsg && (
-                    <div className="form-banner form-banner--success">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
-                        </svg>
-                        <span>{successMsg}</span>
-                        <button type="button" className="form-banner__dismiss" onClick={() => setSuccessMsg("")}>✕</button>
-                    </div>
-                )}
-
                 {/* Error Banner */}
                 {submitError && (
                     <div className="form-banner form-banner--error">
@@ -256,7 +244,28 @@ function Raiseticket() {
                     </div>
                 )}
 
-                <form className="raise-form" onSubmit={handleSubmit} noValidate>
+                {submitted ? (
+                    <div className="success-screen">
+                        <div className="success-screen__icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success, #10b981)" strokeWidth="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                        <h2>Ticket Created Successfully</h2>
+                        <p className="success-screen__id">Ticket #{createdTicketId}</p>
+                        <p>Our team will review your request and get back to you shortly.</p>
+                        <div className="success-screen__actions">
+                            <button className="btn-primary" onClick={() => navigate(`/viewticket/${createdTicketId}`)}>View Ticket</button>
+                            <button className="btn-secondary" onClick={() => {
+                                setSubmitted(false);
+                                setTicket({ title: "", category: "", priority: "", description: "", image: null, affected_area: "", metadata: {} });
+                                setFilePreview(null);
+                            }}>Create Another</button>
+                        </div>
+                    </div>
+                ) : (
+                    <form className="raise-form" onSubmit={handleSubmit} noValidate>
                     {/* Title */}
                     <div className="form-group">
                         <label htmlFor="rt-title">Subject</label>
@@ -427,7 +436,8 @@ function Raiseticket() {
                             "Submit Ticket"
                         )}
                     </button>
-                </form>
+                    </form>
+                )}
             </div>
             <Footer />
         </div>

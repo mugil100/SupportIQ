@@ -30,24 +30,34 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
     }
 
     try {
-        await pool.query(
+        const result = await pool.query(
             `insert into tickets
             (customer_id, title, category, priority, description, image_url, metadata, affected_area, last_customer_reply_at)
-            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING ticket_id, created_at`,
             [customer_id, title, category, priority || 'Medium', description, image, parsedMetadata, affected_area || null, ticket_time]
         );
-        res.status(201).json({ message: "Ticket raised successfully" });
+        res.status(201).json({ 
+            message: "Ticket raised successfully",
+            ticket_id: result.rows[0].ticket_id,
+            created_at: result.rows[0].created_at
+        });
     } catch (err) {
         // Fallback in case metadata or affected_area column is not created yet
         if (err.code === '42703') {
             try {
-                await pool.query(
+                const fallbackResult = await pool.query(
                     `insert into tickets
                     (customer_id, title, category, priority, description, image_url, last_customer_reply_at)
-                    values ($1, $2, $3, $4, $5, $6, $7)`,
+                    values ($1, $2, $3, $4, $5, $6, $7)
+                    RETURNING ticket_id, created_at`,
                     [customer_id, title, category, priority || 'Medium', description, image, ticket_time]
                 );
-                return res.status(201).json({ message: "Ticket raised successfully" });
+                return res.status(201).json({ 
+                    message: "Ticket raised successfully",
+                    ticket_id: fallbackResult.rows[0].ticket_id,
+                    created_at: fallbackResult.rows[0].created_at
+                });
             } catch (fallbackErr) {
                 console.error(fallbackErr);
                 return res.status(500).json({ error: "Database error" });

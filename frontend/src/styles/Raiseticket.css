@@ -406,6 +406,80 @@
   }
 }
 
+/* ─── Success Screen ─── */
+.success-screen {
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeSlideIn 0.4s ease;
+}
+
+.success-screen__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--success-bg, #ecfdf5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.success-screen h2 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.success-screen__id {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.success-screen p {
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  margin-bottom: 32px;
+}
+
+.success-screen__actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.success-screen__actions button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #4855c4;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(94, 106, 210, 0.35);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-subtle);
+}
+
 /* ─── Footer in page ─── */
 footer {
   background: var(--bg-surface);
