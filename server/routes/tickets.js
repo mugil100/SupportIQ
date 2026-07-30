@@ -5,68 +5,202 @@ const upload = require("../middleware/upload");
 
 const router = express.Router();
 
+
 // Raise a ticket
+// router.post("/raiseticket", verifyToken, (req, res, next) => {
+//     const uploadSingle = upload.single("image");
+//     uploadSingle(req, res, (err) => {
+//         if (err) {
+//             if (err.code === "LIMIT_FILE_SIZE") {
+//                 return res.status(400).json({ error: "File too large. Maximum size is 5MB." });
+//             }
+//             return res.status(400).json({ error: err.message });
+//         }
+//         next();
+//     });
+// }, async (req, res) => {
+//     const { title, category, priority, description, metadata, affected_area } = req.body;
+//     const image = req.file?.filename || null;
+//     const customer_id = req.customer_id;
+//     const ticket_time = new Date();
+
+//     let parsedMetadata = '{}';
+//     if (metadata) {
+//         try {
+//             parsedMetadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+//         } catch (e) {
+//             parsedMetadata = '{}';
+//         }
+//     }
+
+//     try {
+//         const result = await pool.query(
+//             `insert into tickets
+//             (customer_id, title, category, priority, description, image_url, metadata, affected_area, last_customer_reply_at)
+//             values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+//             RETURNING ticket_id, created_at`,
+//             [customer_id, title, category, priority || 'Medium', description, image, parsedMetadata, affected_area || null, ticket_time]
+//         );
+//         res.status(201).json({ 
+//             message: "Ticket raised successfully",
+//             ticket_id: result.rows[0].ticket_id,
+//             created_at: result.rows[0].created_at
+//         });
+//     } catch (err) {
+//         // Fallback in case metadata or affected_area column is not created yet
+//         if (err.code === '42703') {
+//             try {
+//                 const fallbackResult = await pool.query(
+//                     `insert into tickets
+//                     (customer_id, title, category, priority, description, image_url, last_customer_reply_at)
+//                     values ($1, $2, $3, $4, $5, $6, $7)
+//                     RETURNING ticket_id, created_at`,
+//                     [customer_id, title, category, priority || 'Medium', description, image, ticket_time]
+//                 );
+//                 return res.status(201).json({ 
+//                     message: "Ticket raised successfully",
+//                     ticket_id: fallbackResult.rows[0].ticket_id,
+//                     created_at: fallbackResult.rows[0].created_at
+//                 });
+//             } catch (fallbackErr) {
+//                 console.error(fallbackErr);
+//                 return res.status(500).json({ error: "Database error" });
+//             }
+//         }
+//         console.error(err);
+//         res.status(500).json({ error: "Database error" });
+//     }
+// });
+// Add at top of file
+const VALID_CATEGORIES = [
+    "Billing & Invoicing",
+    "API & Integration",
+    "Onboarding & KYC",
+    "Transaction Disputes",
+    "Account & Compliance"
+];
+
+const VALID_PRIORITIES = ["Low", "Medium", "High"];
+
+const VALID_AFFECTED_AREAS = ["Dashboard", "API / SDK", "Webhooks", "Settlements", "Reports"];
+
+// Raise a ticket — hardened
 router.post("/raiseticket", verifyToken, (req, res, next) => {
     const uploadSingle = upload.single("image");
     uploadSingle(req, res, (err) => {
         if (err) {
+            if (err.code === "LIMIT_FILE_SIZE") {
+                return res.status(400).json({ error: "File too large. Maximum size is 5MB." });
+            }
             return res.status(400).json({ error: err.message });
         }
         next();
     });
 }, async (req, res) => {
-    const { title, category, priority, description, metadata, affected_area } = req.body;
-    const image = req.file?.filename || null;
-    const customer_id = req.customer_id;
-    const ticket_time = new Date();
-
-    let parsedMetadata = '{}';
-    if (metadata) {
-        try {
-            parsedMetadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
-        } catch (e) {
-            parsedMetadata = '{}';
-        }
-    }
-
     try {
-        const result = await pool.query(
-            `insert into tickets
-            (customer_id, title, category, priority, description, image_url, metadata, affected_area, last_customer_reply_at)
-            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            RETURNING ticket_id, created_at`,
-            [customer_id, title, category, priority || 'Medium', description, image, parsedMetadata, affected_area || null, ticket_time]
-        );
-        res.status(201).json({ 
-            message: "Ticket raised successfully",
-            ticket_id: result.rows[0].ticket_id,
-            created_at: result.rows[0].created_at
-        });
-    } catch (err) {
-        // Fallback in case metadata or affected_area column is not created yet
-        if (err.code === '42703') {
+        const { title, category, priority, description, affected_area, metadata } = req.body;
+        const image = req.file?.filename || null;
+        const customer_id = req.customer_id;
+
+        // ── Title validation ──
+        const cleanTitle = title?.trim();
+        if (!cleanTitle || cleanTitle.length < 5) {
+            return res.status(400).json({
+                error: "Title must be at least 5 characters",
+                field: "title"
+            });
+        }
+        if (cleanTitle.length > 150) {
+            return res.status(400).json({
+                error: "Title must be under 150 characters",
+                field: "title"
+            });
+        }
+
+        // ── Category whitelist ──
+        if (!category || !VALID_CATEGORIES.includes(category)) {
+            return res.status(400).json({
+                error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", ")}`,
+                field: "category"
+            });
+        }
+
+        // ── Priority whitelist ──
+        const safePriority = VALID_PRIORITIES.includes(priority) ? priority : "Medium";
+
+        // ── Description validation ──
+        const cleanDesc = description?.trim();
+        if (!cleanDesc || cleanDesc.length < 20) {
+            return res.status(400).json({
+                error: "Description must be at least 20 characters",
+                field: "description"
+            });
+        }
+        if (cleanDesc.length > 5000) {
+            return res.status(400).json({
+                error: "Description must be under 5000 characters",
+                field: "description"
+            });
+        }
+
+        // ── Affected area whitelist (optional) ──
+        const safeArea = affected_area && VALID_AFFECTED_AREAS.includes(affected_area)
+            ? affected_area : null;
+
+        // ── Metadata sanitisation ──
+        let parsedMetadata = null;
+        if (metadata) {
             try {
-                const fallbackResult = await pool.query(
-                    `insert into tickets
-                    (customer_id, title, category, priority, description, image_url, last_customer_reply_at)
-                    values ($1, $2, $3, $4, $5, $6, $7)
-                    RETURNING ticket_id, created_at`,
-                    [customer_id, title, category, priority || 'Medium', description, image, ticket_time]
-                );
-                return res.status(201).json({ 
-                    message: "Ticket raised successfully",
-                    ticket_id: fallbackResult.rows[0].ticket_id,
-                    created_at: fallbackResult.rows[0].created_at
-                });
-            } catch (fallbackErr) {
-                console.error(fallbackErr);
-                return res.status(500).json({ error: "Database error" });
+                parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+                // Strip any keys with values longer than 500 chars (prevent abuse)
+                for (const key of Object.keys(parsedMetadata)) {
+                    if (typeof parsedMetadata[key] === "string" && parsedMetadata[key].length > 500) {
+                        parsedMetadata[key] = parsedMetadata[key].substring(0, 500);
+                    }
+                }
+            } catch {
+                parsedMetadata = null;
             }
         }
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+
+        // ── Rate limiting check (prevent spam: max 10 tickets per hour per user) ──
+        const recentCount = await pool.query(
+            `SELECT COUNT(*) FROM tickets
+             WHERE customer_id = $1 AND created_at > NOW() - INTERVAL '1 hour'`,
+            [customer_id]
+        );
+        if (parseInt(recentCount.rows[0].count) >= 10) {
+            return res.status(429).json({
+                error: "Too many tickets. Please wait before creating another."
+            });
+        }
+
+        // ── Insert ──
+        const result = await pool.query(
+            `INSERT INTO tickets
+            (customer_id, title, category, priority, description, image_url,
+             affected_area, metadata, last_customer_reply_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING ticket_id, created_at`,
+            [customer_id, cleanTitle, category, safePriority, cleanDesc, image,
+             safeArea, parsedMetadata ? JSON.stringify(parsedMetadata) : null, new Date()]
+        );
+
+        const newTicket = result.rows[0];
+
+        res.status(201).json({
+            message: "Ticket raised successfully",
+            ticket_id: newTicket.ticket_id,
+            created_at: newTicket.created_at
+        });
+
+    } catch (err) {
+        console.error("Error raising ticket:", err);
+        res.status(500).json({ error: "Failed to create ticket. Please try again." });
     }
 });
+
+
 
 // Get user's tickets
 router.get("/mytickets", verifyToken, async (req, res) => {
@@ -201,6 +335,8 @@ router.delete("/ticket/message/:id/", verifyToken, async (req, res) => {
 });
 
 // close ticket and submit rating
+
+
 router.post("/ticket/:id/close", verifyToken, async (req, res) => {
     const { id } = req.params;
     const { rating, feedback_text } = req.body;

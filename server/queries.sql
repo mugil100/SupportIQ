@@ -133,3 +133,41 @@ ALTER TABLE tickets ADD CONSTRAINT check_ticket_status CHECK (status IN ('Open',
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
 
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS affected_area VARCHAR(30) CHECK (affected_area IN ('Dashboard', 'API / SDK', 'Webhooks', 'Settlements', 'Reports'));
+
+
+-- 1. Affected area — which product surface the issue relates to
+-- Why: Enables routing tickets to the right team and filtering in the agent dashboard
+ALTER TABLE tickets
+ADD COLUMN affected_area VARCHAR(30)
+CHECK (affected_area IN ('Dashboard', 'API / SDK', 'Webhooks', 'Settlements', 'Reports'));
+
+-- 3. AI classification confidence — records how confident the AI was
+-- Why: Lets you build analytics on AI accuracy over time. If a ticket was miscategorised,
+-- you can correlate with low confidence scores.
+ALTER TABLE tickets
+ADD COLUMN ai_confidence NUMERIC(3,2) CHECK (ai_confidence >= 0 AND ai_confidence <= 1);
+
+-- 4. Source channel — where the ticket was created from
+-- Why: Future-proofs for when you add email/API/Slack ticket creation.
+-- For now, all tickets will be 'web'.
+ALTER TABLE tickets
+ADD COLUMN source VARCHAR(20) DEFAULT 'web'
+CHECK (source IN ('web', 'email', 'api', 'slack'));
+
+-- 5. Expand the status constraint to include 'Assigned'
+-- (already in your allowedTransitions but missing from the CHECK constraint)
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS check_ticket_status;
+ALTER TABLE tickets ADD CONSTRAINT check_ticket_status
+CHECK (status IN ('Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'));
+
+-- 6. Expand category to fit longer names like "Account & Compliance" (18 chars is fine but safer at 50)
+-- and add a CHECK constraint to prevent bad data:
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS check_ticket_category;
+ALTER TABLE tickets ADD CONSTRAINT check_ticket_category
+CHECK (category IN (
+    'Billing & Invoicing',
+    'API & Integration',
+    'Onboarding & KYC',
+    'Transaction Disputes',
+    'Account & Compliance'
+));
