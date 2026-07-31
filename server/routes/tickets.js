@@ -2,6 +2,9 @@ const express = require("express");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
 const upload = require("../middleware/upload");
+const aiRoutes = require("./ai");
+
+const { classifyTicket } = aiRoutes;
 
 const router = express.Router();
 
@@ -117,15 +120,15 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
             });
         }
 
-        // ── Category whitelist ──
-        if (!category || !VALID_CATEGORIES.includes(category)) {
+        // ── Category whitelist (kept only as a fallback input; AI will override it) ──
+        if (category && !VALID_CATEGORIES.includes(category)) {
             return res.status(400).json({
                 error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", ")}`,
                 field: "category"
             });
         }
 
-        // ── Priority whitelist ──
+        // ── Priority whitelist (kept only as a fallback input; AI will override it) ──
         const safePriority = VALID_PRIORITIES.includes(priority) ? priority : "Medium";
 
         // ── Description validation ──
@@ -163,6 +166,14 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
             }
         }
 
+        // ── AI classification: derive the persisted category/priority from the model result ──
+        const aiPrediction = await classifyTicket(cleanTitle, cleanDesc);
+        const persistedCategory = aiPrediction.category || category || "API & Integration";
+        const persistedPriority = aiPrediction.priority || safePriority;
+        const persistedConfidence = typeof aiPrediction.confidence === "number"
+            ? aiPrediction.confidence
+            : null;
+
         // ── Rate limiting check (prevent spam: max 10 tickets per hour per user) ──
         const recentCount = await pool.query(
             `SELECT COUNT(*) FROM tickets
@@ -179,11 +190,11 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
         const result = await pool.query(
             `INSERT INTO tickets
             (customer_id, title, category, priority, description, image_url,
-             affected_area, metadata, last_customer_reply_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             affected_area, metadata, ai_confidence, last_customer_reply_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING ticket_id, created_at`,
-            [customer_id, cleanTitle, category, safePriority, cleanDesc, image,
-             safeArea, parsedMetadata ? JSON.stringify(parsedMetadata) : null, new Date()]
+            [customer_id, cleanTitle, persistedCategory, persistedPriority, cleanDesc, image,
+             safeArea, parsedMetadata ? JSON.stringify(parsedMetadata) : null, persistedConfidence, new Date()]
         );
 
         const newTicket = result.rows[0];

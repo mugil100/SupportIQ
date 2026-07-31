@@ -243,7 +243,7 @@ function Raiseticket() {
                         <button type="button" className="form-banner__dismiss" onClick={() => setSubmitError("")}>✕</button>
                     </div>
                 )}
-
+                // Check if ticket is submitted
                 {submitted ? (
                     <div className="success-screen">
                         <div className="success-screen__icon">

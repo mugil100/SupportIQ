@@ -15,11 +15,9 @@ const categories = [
 
 const priorityLevels = ["Low", "Medium", "High"];
 
-router.post("/categorise", verifyToken, async (req, res) => {
-  const { title, description } = req.body;
-
+async function classifyTicket(title, description) {
   if (!title || title.trim().length < 5) {
-    return res.status(400).json({ error: "Title too short to classify" });
+    throw new Error("Title too short to classify");
   }
 
   try {
@@ -64,7 +62,7 @@ Priority rules:
       parsed = JSON.parse(cleaned);
     } catch (parseErr) {
       console.error("Groq returned non-JSON:", text);
-      return res.status(502).json({ error: "AI returned unexpected format" });
+      throw new Error("AI returned unexpected format");
     }
 
     if (!categories.includes(parsed.category)) {
@@ -77,12 +75,12 @@ Priority rules:
       parsed.confidence = 0.5;
     }
 
-    return res.json({
+    return {
       category: parsed.category,
       priority: parsed.priority,
       confidence: Math.min(1, Math.max(0, parsed.confidence)),
       reason: parsed.reason || "Auto-classified by Groq AI",
-    });
+    };
   } catch (err) {
     console.error(
       "Groq API call failed (Falling back to rule-based classification):",
@@ -123,13 +121,29 @@ Priority rules:
       fallbackPriority = "High";
     }
 
-    return res.json({
+    return {
       category: fallbackCategory,
       priority: fallbackPriority,
       confidence: 0.8,
       reason: "Rule-based fallback classification (Groq API unavailable)",
-    });
+    };
+  }
+}
+
+router.post("/categorise", verifyToken, async (req, res) => {
+  const { title, description } = req.body;
+
+  if (!title || title.trim().length < 5) {
+    return res.status(400).json({ error: "Title too short to classify" });
+  }
+
+  try {
+    const result = await classifyTicket(title, description);
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Failed to classify ticket" });
   }
 });
 
 module.exports = router;
+module.exports.classifyTicket = classifyTicket;
