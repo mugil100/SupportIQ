@@ -4,10 +4,17 @@ const verifyToken = (req, res, next) => {
     console.log("Auth header:", req.headers.authorization);
 
     const authHeader = req.headers.authorization;
+    let token = null;
 
-    if (!authHeader) return res.status(401).json({ error: "No token" });
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+    } else if (authHeader) {
+        token = authHeader;
+    } else if (req.query && req.query.token) {
+        token = req.query.token;
+    }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No token" });
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         console.log("Decoded JWT:", decoded);

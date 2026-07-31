@@ -171,3 +171,39 @@ CHECK (category IN (
     'Transaction Disputes',
     'Account & Compliance'
 ));
+
+-- 1. Delete associated notifications for the offending tickets
+DELETE FROM notifications 
+WHERE ticket_id IN (
+    SELECT ticket_id FROM tickets 
+    WHERE category NOT IN (
+        'Billing & Invoicing',
+        'API & Integration',
+        'Onboarding & KYC',
+        'Transaction Disputes',
+        'Account & Compliance'
+    ) OR category IS NULL
+);
+
+-- 2. Delete the offending tickets
+DELETE FROM tickets 
+WHERE category NOT IN (
+    'Billing & Invoicing',
+    'API & Integration',
+    'Onboarding & KYC',
+    'Transaction Disputes',
+    'Account & Compliance'
+) OR category IS NULL;
+
+-- 3. Add the constraint
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS check_ticket_category;
+ALTER TABLE tickets ADD CONSTRAINT check_ticket_category
+CHECK (category IN (
+    'Billing & Invoicing',
+    'API & Integration',
+    'Onboarding & KYC',
+    'Transaction Disputes',
+    'Account & Compliance'
+));
+
+
