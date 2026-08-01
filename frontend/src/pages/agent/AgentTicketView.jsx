@@ -24,6 +24,10 @@ function AgentTicketView() {
     const bottomRef = useRef(null);
     const typingTimer = useRef(null);
 
+    // ── Smart Summary state ───────────────────────────────────────
+    const [summary, setSummary] = useState(null);
+    const [summaryExpanded, setSummaryExpanded] = useState(true);
+
     // ── AI Panel state ───────────────────────────────────────────────────────
     const [showAiPanel, setShowAiPanel] = useState(true);
     const [activeVariant, setActiveVariant] = useState("professional");
@@ -37,6 +41,10 @@ function AgentTicketView() {
         axios.get(`agent/agenttickets/${id}`).then(res => {
             setTicket(res.data.ticket);
             setMessages(res.data.messages || []);
+            // Load summary once on mount — never re-fetched on live socket events.
+            // Agent sees the cached summary for this session; stale flag is set
+            // server-side on new messages, so next open will regenerate.
+            if (res.data.summary) setSummary(res.data.summary);
         });
 
         if (socket.connected) {
@@ -247,7 +255,7 @@ function AgentTicketView() {
                     </div>
                 </div>
 
-                {/* ─── Details ────────────────────────────────────────────── */}
+                {/* ─── Details ─────────────────────────────────────── */}
                 <div className="ticket-details">
                     <h3>{ticket.title}</h3>
                     <p className="category">Category : {ticket.category}</p>
@@ -259,6 +267,17 @@ function AgentTicketView() {
                         Mark as Resolved
                     </button>
                 </div>
+
+                {/* ─── Smart Summary ───────────────────────────────────────── */}
+                {summary && (
+                    <div className="summary-card">
+                        <div className="summary-header" onClick={() => setSummaryExpanded(!summaryExpanded)}>
+                            <span>✨ Smart Summary</span>
+                            <button>{summaryExpanded ? "▲" : "▼"}</button>
+                        </div>
+                        {summaryExpanded && <div className="summary-content">{summary}</div>}
+                    </div>
+                )}
 
                 {/* ─── Bottom Grid ────────────────────────────────────────── */}
                 <div className={`ticket-bottom ${showAiPanel ? "with-ai" : "without-ai"}`}>

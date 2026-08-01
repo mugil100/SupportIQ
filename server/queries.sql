@@ -206,4 +206,11 @@ CHECK (category IN (
     'Account & Compliance'
 ));
 
-
+-- ── Smart Ticket Summary ──────────────────────────────────────────────────
+-- ai_summary: cached 2-sentence AI summary of the ticket thread
+-- ai_summary_updated_at: timestamp of last generation (used for 60s debounce)
+-- last_summarized_message_id: cursor — highest message_id included in current summary
+--   NULL means no summary exists yet or the summary was invalidated by a new message
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS ai_summary TEXT;
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS ai_summary_updated_at TIMESTAMP;
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS last_summarized_message_id INT;

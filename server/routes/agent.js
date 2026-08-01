@@ -2,6 +2,7 @@
 const express = require("express");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
+const { generateAndCacheSummary } = require("../services/SummaryService");
 const router = express.Router();
 
 // get all tickets assigned to the agent
@@ -110,7 +111,19 @@ router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
         if (details.rows.length === 0) {
             return res.status(404).json({ error: "Ticket details not found" });
         }
-        res.json({ ticket: details.rows[0], messages: ticket_details.rows });
+
+        // ── Smart Summary (lazy, cached) ─────────────────────────────────────
+        // Only triggers a Groq call when ai_summary is null/stale.
+        // Debounce + incremental logic lives inside SummaryService.
+        let summary = null;
+        try {
+            summary = await generateAndCacheSummary(id, pool);
+        } catch (summaryErr) {
+            // Non-fatal — ticket view still works without a summary
+            console.error("[agent.js] Summary generation failed:", summaryErr.message);
+        }
+
+        res.json({ ticket: details.rows[0], messages: ticket_details.rows, summary });
 
     } catch (err) {
         res.status(500).json("Ticket not fetched");

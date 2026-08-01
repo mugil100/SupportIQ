@@ -111,6 +111,14 @@ io.on("connection", (socket) => { //server wide connections
                 values ($1,$2,$3,$4,false,false) RETURNING message_id`, [ticket_id, sender, sender_id, message]
             );
 
+            // ── Smart Summary invalidation ──────────────────────────────────
+            // Null out the cached summary so it regenerates (incrementally)
+            // the next time an agent opens/refreshes this ticket. Zero AI cost.
+            await pool.query(
+                `UPDATE tickets SET ai_summary = NULL WHERE ticket_id = $1`,
+                [ticket_id]
+            );
+
             if (sender === "Agent") {
                 await pool.query(
                     `UPDATE tickets SET last_agent_reply_at = $1, status = CASE WHEN status = 'Open' THEN 'In Progress' ELSE status END WHERE ticket_id = $2`,
