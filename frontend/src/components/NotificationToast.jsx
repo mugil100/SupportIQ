@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketContext";
+import axios from "../api/axios";
 import "../styles/NotificationToast.css";
 
 const ICON_MAP = {
@@ -99,11 +100,23 @@ export default function NotificationToast({ onUnreadChange }) {
             }
         }
 
+        function onNotificationsRead() {
+            axios.post("/noti/filter", { state: "unread" })
+                .then(res => {
+                    if (onUnreadChange && Array.isArray(res.data)) {
+                        onUnreadChange(res.data.length);
+                    }
+                })
+                .catch(() => {});
+        }
+
         // Socket is already connected via SocketProvider — just listen
         socket.on("new_notification", onNewNotification);
+        socket.on("notifications_read_for_ticket", onNotificationsRead);
 
         return () => {
             socket.off("new_notification", onNewNotification);
+            socket.off("notifications_read_for_ticket", onNotificationsRead);
         };
     }, [navigate, onUnreadChange, socket]);
 

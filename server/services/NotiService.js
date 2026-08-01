@@ -92,4 +92,21 @@ async function mark_all_as_read(req,res){
     }
 }
 
-module.exports = {getNoti, mark_noti_read, filterNoti, mark_all_as_read};
+async function mark_ticket_noti_read(req, res) {
+    const ticket_id = req.params.id;
+    const user_id = req.customer_id;
+    try {
+        await pool.query(
+            `UPDATE Notifications 
+             SET is_read = true 
+             WHERE user_id = $1 AND ticket_id = $2 AND is_read = false`,
+            [user_id, ticket_id]
+        );
+        res.json({ message: "Ticket notifications marked as read" });
+    } catch (error) {
+        console.error("Error marking ticket notifications as read:", error);
+        res.status(500).json({ error: "Error marking ticket notifications as read" });
+    }
+}
+
+module.exports = {getNoti, mark_noti_read, filterNoti, mark_all_as_read, mark_ticket_noti_read};

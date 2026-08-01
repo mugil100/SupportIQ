@@ -52,10 +52,27 @@ io.on("connection", (socket) => { //server wide connections
     socket.join(`user_${userId}`);
     console.log(`User ${userId} joined personal room user_${userId}`);
 
-    socket.on("join_ticket", (ticket_id) => { // listens for events related to a specific client connection
-
-        socket.join(ticket_id); //subscribe a specific client socket to an arbitrary channel called a "room"
+    socket.on("join_ticket", async (ticket_id) => {
+        socket.join(ticket_id);
         console.log(`Joined ticket room ${ticket_id}`);
+
+        const userId = socket.user?.customer_id;
+        if (userId && ticket_id) {
+            try {
+                const updateRes = await pool.query(
+                    `UPDATE Notifications 
+                     SET is_read = true 
+                     WHERE user_id = $1 AND ticket_id = $2 AND is_read = false
+                     RETURNING notification_id`,
+                    [userId, ticket_id]
+                );
+                if (updateRes.rows.length > 0) {
+                    io.to(`user_${userId}`).emit("notifications_read_for_ticket", { ticket_id });
+                }
+            } catch (err) {
+                console.error("Error marking ticket notifications as read on join:", err);
+            }
+        }
     });
 
     socket.on("leave_ticket", (ticket_id) => {
@@ -106,13 +123,19 @@ io.on("connection", (socket) => { //server wide connections
                 );
                 const customerId = custResult.rows[0]?.customer_id;
                 if (customerId) {
+                    // Check if customer is currently in the ticket room
+                    const custSockets = await io.in(`user_${customerId}`).fetchSockets();
+                    const isCustInRoom = custSockets.some(s => s.rooms.has(String(ticket_id)));
+
                     const notiResult = await pool.query(
                         `INSERT INTO Notifications
-                        (user_id, ticket_id, notification_type, message_content)
-                        VALUES($1,$2,'AGENT_REPLY', $3) RETURNING *`,
-                        [customerId, ticket_id, `Agent replied to your Ticket #${ticket_id}`]
+                        (user_id, ticket_id, notification_type, message_content, is_read)
+                        VALUES($1,$2,'AGENT_REPLY', $3, $4) RETURNING *`,
+                        [customerId, ticket_id, `Agent replied to your Ticket #${ticket_id}`, isCustInRoom]
                     );
-                    io.to(`user_${customerId}`).emit("new_notification", notiResult.rows[0]);
+                    if (!isCustInRoom) {
+                        io.to(`user_${customerId}`).emit("new_notification", notiResult.rows[0]);
+                    }
                 }
             } else {
                 await pool.query(
@@ -127,14 +150,20 @@ io.on("connection", (socket) => { //server wide connections
 
                 // Only insert notification if there is an assigned agent
                 if (agentId) {
+                    // Check if agent is currently in the ticket room
+                    const agentSockets = await io.in(`user_${agentId}`).fetchSockets();
+                    const isAgentInRoom = agentSockets.some(s => s.rooms.has(String(ticket_id)));
+
                     const notiResult = await pool.query(
                         `INSERT INTO Notifications
-                        (user_id, ticket_id, notification_type, message_content)
-                        VALUES($1,$2,'CUSTOMER_REPLY', $3) RETURNING *`,
-                        [agentId, ticket_id, `Customer messaged to Ticket #${ticket_id}`]
+                        (user_id, ticket_id, notification_type, message_content, is_read)
+                        VALUES($1,$2,'CUSTOMER_REPLY', $3, $4) RETURNING *`,
+                        [agentId, ticket_id, `Customer messaged to Ticket #${ticket_id}`, isAgentInRoom]
                     );
-                    // Push real-time notification to the agent's personal room
-                    io.to(`user_${agentId}`).emit("new_notification", notiResult.rows[0]);
+                    if (!isAgentInRoom) {
+                        // Push real-time notification to the agent's personal room
+                        io.to(`user_${agentId}`).emit("new_notification", notiResult.rows[0]);
+                    }
                 }
 
                 // Check if ticket is resolved and should be reopened

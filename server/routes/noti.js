@@ -1,6 +1,6 @@
 const express = require("express");
 const { verifyToken } = require("../middleware/auth");
-const { getNoti, mark_noti_read, filterNoti, mark_all_as_read } = require("../services/NotiService");
+const { getNoti, mark_noti_read, filterNoti, mark_all_as_read, mark_ticket_noti_read } = require("../services/NotiService");
 
 const router = express.Router();
 
@@ -29,6 +29,16 @@ router.post("/noti/mark-all", verifyToken, async (req, res) => {
     try {
         await mark_all_as_read(req, res);
         console.log("All notifications marked as read");
+    } catch (error) {
+        res.status(404).json(error);
+    }
+});
+
+// Mark all notifications for a specific ticket as read
+router.post("/noti/ticket/:id/read", verifyToken, async (req, res) => {
+    try {
+        await mark_ticket_noti_read(req, res);
+        console.log("Ticket notifications marked as read");
     } catch (error) {
         res.status(404).json(error);
     }
