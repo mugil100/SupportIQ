@@ -52,63 +52,111 @@ io.on("connection", (socket) => { //server wide connections
     socket.join(`user_${userId}`);
     console.log(`User ${userId} joined personal room user_${userId}`);
 
+    // ── Issue 3+4: join_ticket ─────────────────────────────────────────────
+    // Validates ticket_id, enforces authorization, uses namespaced room name.
     socket.on("join_ticket", async (ticket_id) => {
-        socket.join(ticket_id);
-        console.log(`Joined ticket room ${ticket_id}`);
+        // Issue 3: validate and normalize to a safe integer
+        const tid = parseInt(ticket_id, 10);
+        if (!Number.isFinite(tid) || tid <= 0) return;
+        const roomId = `ticket_${tid}`;
 
         const userId = socket.user?.customer_id;
-        if (userId && ticket_id) {
-            try {
+        const role = socket.user?.role?.toLowerCase();
+
+        try {
+            // Issue 4: verify the user is the ticket owner or the assigned agent
+            const ticketCheck = await pool.query(
+                `SELECT customer_id, assigned_agent_id FROM tickets WHERE ticket_id = $1`,
+                [tid]
+            );
+            if (ticketCheck.rows.length === 0) return;
+            const { customer_id, assigned_agent_id } = ticketCheck.rows[0];
+            const isAuthorized =
+                (userId === customer_id) ||
+                (userId === assigned_agent_id) ||
+                (role === "manager");
+            if (!isAuthorized) {
+                socket.emit("error_message", { error: "Unauthorized access to this ticket" });
+                return;
+            }
+
+            socket.join(roomId);
+            console.log(`Joined ticket room ${roomId}`);
+
+            if (userId && tid) {
                 const updateRes = await pool.query(
                     `UPDATE Notifications 
                      SET is_read = true 
                      WHERE user_id = $1 AND ticket_id = $2 AND is_read = false
                      RETURNING notification_id`,
-                    [userId, ticket_id]
+                    [userId, tid]
                 );
                 if (updateRes.rows.length > 0) {
-                    io.to(`user_${userId}`).emit("notifications_read_for_ticket", { ticket_id });
+                    io.to(`user_${userId}`).emit("notifications_read_for_ticket", { ticket_id: tid });
                 }
-            } catch (err) {
-                console.error("Error marking ticket notifications as read on join:", err);
             }
+        } catch (err) {
+            console.error("join_ticket error:", err);
         }
     });
 
     socket.on("leave_ticket", (ticket_id) => {
-        socket.leave(ticket_id);
-        console.log(`Left ticket room ${ticket_id}`);
+        // Issue 3: validate and normalize
+        const tid = parseInt(ticket_id, 10);
+        if (!Number.isFinite(tid) || tid <= 0) return;
+        socket.leave(`ticket_${tid}`);
+        console.log(`Left ticket room ticket_${tid}`);
     });
 
+    // ── Issue 3+4: send_message ────────────────────────────────────────────
+    // Validates ticket_id, combines status+auth into one DB query, uses
+    // namespaced room name for all broadcasts.
     socket.on("send_message", async (payload) => {
         try {
             if (!payload) return;
             const { ticket_id, message } = payload;
-            
+
+            // Issue 3: validate and normalize ticket_id
+            const tid = parseInt(ticket_id, 10);
+            if (!Number.isFinite(tid) || tid <= 0) return;
+
             // Derive sender from JWT to prevent spoofing
             const userRole = socket.user?.role?.toLowerCase();
             const sender = (userRole === "agent" || userRole === "manager") ? "Agent" : "Customer";
-            
-            console.log("📩 send_message received:", ticket_id, sender);
+
+            console.log("📩 send_message received:", tid, sender);
 
             // The JWT payload maps the user's ID to `customer_id` for both Agents and Customers
             const sender_id = socket.user?.customer_id;
             const reply_time = new Date();
 
-            // Check if ticket is closed before saving message
-            const statusCheck = await pool.query(
-                `SELECT status FROM tickets WHERE ticket_id = $1`, [ticket_id]
+            // Issue 4: combined status + authorization check — single DB round-trip
+            const ticketRow = await pool.query(
+                `SELECT status, customer_id, assigned_agent_id FROM tickets WHERE ticket_id = $1`,
+                [tid]
             );
-            if (statusCheck.rows.length === 0) return;
-            if (statusCheck.rows[0].status === "Closed") {
+            if (ticketRow.rows.length === 0) return;
+            const { status: ticketStatus, customer_id, assigned_agent_id } = ticketRow.rows[0];
+
+            if (ticketStatus === "Closed") {
                 socket.emit("error_message", { error: "Cannot send messages to a closed ticket" });
+                return;
+            }
+
+            // Issue 4: must be the ticket owner or the assigned agent
+            const isAuthorized =
+                (sender_id === customer_id) ||
+                (sender_id === assigned_agent_id) ||
+                (userRole === "manager");
+            if (!isAuthorized) {
+                socket.emit("error_message", { error: "Unauthorized: you do not have access to this ticket" });
                 return;
             }
 
             // save message to db
             const result = await pool.query(
                 `insert into ticket_messages (ticket_id,sender_type,sender_id,message,delivered,seen)
-                values ($1,$2,$3,$4,false,false) RETURNING message_id`, [ticket_id, sender, sender_id, message]
+                values ($1,$2,$3,$4,false,false) RETURNING message_id`, [tid, sender, sender_id, message]
             );
 
             // ── Smart Summary invalidation ──────────────────────────────────
@@ -116,30 +164,28 @@ io.on("connection", (socket) => { //server wide connections
             // the next time an agent opens/refreshes this ticket. Zero AI cost.
             await pool.query(
                 `UPDATE tickets SET ai_summary = NULL WHERE ticket_id = $1`,
-                [ticket_id]
+                [tid]
             );
 
             if (sender === "Agent") {
                 await pool.query(
                     `UPDATE tickets SET last_agent_reply_at = $1, status = CASE WHEN status = 'Open' THEN 'In Progress' ELSE status END WHERE ticket_id = $2`,
-                    [reply_time, ticket_id]
+                    [reply_time, tid]
                 );
 
                 // AGENT_REPLY: notify the customer who owns this ticket
-                const custResult = await pool.query(
-                    `SELECT customer_id FROM tickets WHERE ticket_id = $1`, [ticket_id]
-                );
-                const customerId = custResult.rows[0]?.customer_id;
+                // Use the already-fetched customer_id (saves one DB round-trip)
+                const customerId = customer_id;
                 if (customerId) {
-                    // Check if customer is currently in the ticket room
+                    // Issue 3: check the namespaced room name
                     const custSockets = await io.in(`user_${customerId}`).fetchSockets();
-                    const isCustInRoom = custSockets.some(s => s.rooms.has(String(ticket_id)));
+                    const isCustInRoom = custSockets.some(s => s.rooms.has(`ticket_${tid}`));
 
                     const notiResult = await pool.query(
                         `INSERT INTO Notifications
                         (user_id, ticket_id, notification_type, message_content, is_read)
                         VALUES($1,$2,'AGENT_REPLY', $3, $4) RETURNING *`,
-                        [customerId, ticket_id, `Agent replied to your Ticket #${ticket_id}`, isCustInRoom]
+                        [customerId, tid, `Agent replied to your Ticket #${tid}`, isCustInRoom]
                     );
                     if (!isCustInRoom) {
                         io.to(`user_${customerId}`).emit("new_notification", notiResult.rows[0]);
@@ -148,25 +194,22 @@ io.on("connection", (socket) => { //server wide connections
             } else {
                 await pool.query(
                     `UPDATE tickets SET last_customer_reply_at = $1 WHERE ticket_id = $2`,
-                    [reply_time, ticket_id]
+                    [reply_time, tid]
                 );
-                // Look up the assigned agent for this ticket
-                const agentResult = await pool.query(
-                    `SELECT assigned_agent_id FROM tickets WHERE ticket_id = $1`, [ticket_id]
-                );
-                const agentId = agentResult.rows[0]?.assigned_agent_id;
+                // Use the already-fetched assigned_agent_id (saves one DB round-trip)
+                const agentId = assigned_agent_id;
 
                 // Only insert notification if there is an assigned agent
                 if (agentId) {
-                    // Check if agent is currently in the ticket room
+                    // Issue 3: check the namespaced room name
                     const agentSockets = await io.in(`user_${agentId}`).fetchSockets();
-                    const isAgentInRoom = agentSockets.some(s => s.rooms.has(String(ticket_id)));
+                    const isAgentInRoom = agentSockets.some(s => s.rooms.has(`ticket_${tid}`));
 
                     const notiResult = await pool.query(
                         `INSERT INTO Notifications
                         (user_id, ticket_id, notification_type, message_content, is_read)
                         VALUES($1,$2,'CUSTOMER_REPLY', $3, $4) RETURNING *`,
-                        [agentId, ticket_id, `Customer messaged to Ticket #${ticket_id}`, isAgentInRoom]
+                        [agentId, tid, `Customer messaged to Ticket #${tid}`, isAgentInRoom]
                     );
                     if (!isAgentInRoom) {
                         // Push real-time notification to the agent's personal room
@@ -176,14 +219,14 @@ io.on("connection", (socket) => { //server wide connections
 
                 // Check if ticket is resolved and should be reopened
                 const check_resolve = await pool.query(
-                    `select status from tickets where ticket_id = $1`, [ticket_id]
+                    `select status from tickets where ticket_id = $1`, [tid]
                 );
                 if (check_resolve.rows[0]?.status === "Resolved") {
                     await pool.query(
-                        `update tickets set status = 'Open' where ticket_id = $1`, [ticket_id]
+                        `update tickets set status = 'Open' where ticket_id = $1`, [tid]
                     );
-                    // Notify everyone in the room that the ticket is back open
-                    io.to(ticket_id).emit("ticket_reopened");
+                    // Issue 3: namespaced room broadcast
+                    io.to(`ticket_${tid}`).emit("ticket_reopened");
 
                     // TICKET_REOPENED: notify the assigned agent
                     if (agentId) {
@@ -191,7 +234,7 @@ io.on("connection", (socket) => { //server wide connections
                             `INSERT INTO Notifications
                             (user_id, ticket_id, notification_type, message_content)
                             VALUES($1,$2,'TICKET_REOPENED', $3) RETURNING *`,
-                            [agentId, ticket_id, `Ticket #${ticket_id} has been reopened by the customer`]
+                            [agentId, tid, `Ticket #${tid} has been reopened by the customer`]
                         );
                         io.to(`user_${agentId}`).emit("new_notification", reopenNoti.rows[0]);
                     }
@@ -200,8 +243,8 @@ io.on("connection", (socket) => { //server wide connections
 
             const message_id = result.rows[0].message_id;
 
-            // emit to all users in this ticket
-            io.to(ticket_id).emit("receive_message", {
+            // Issue 3: broadcast to the namespaced ticket room
+            io.to(`ticket_${tid}`).emit("receive_message", {
                 message_id: message_id,
                 sender_type: sender,
                 message,
@@ -218,15 +261,17 @@ io.on("connection", (socket) => { //server wide connections
     });
 
     socket.on("typing_start", ({ ticket_id, sender }) => {
-        socket.to(ticket_id).emit("typing_start", {
-            sender
-        });
+        // Issue 3: validate and use namespaced room
+        const tid = parseInt(ticket_id, 10);
+        if (!Number.isFinite(tid) || tid <= 0) return;
+        socket.to(`ticket_${tid}`).emit("typing_start", { sender });
     });
 
     socket.on("typing_stop", ({ ticket_id, sender }) => {
-        socket.to(ticket_id).emit("typing_stop", {
-            sender
-        });
+        // Issue 3: validate and use namespaced room
+        const tid = parseInt(ticket_id, 10);
+        if (!Number.isFinite(tid) || tid <= 0) return;
+        socket.to(`ticket_${tid}`).emit("typing_stop", { sender });
     });
 
     socket.on("disconnect", () => {
@@ -237,7 +282,9 @@ io.on("connection", (socket) => { //server wide connections
         try {
             if (!payload) return;
             const { ticket_id } = payload;
-            if (!ticket_id) return;
+            // Issue 3: validate and normalize
+            const tid = parseInt(ticket_id, 10);
+            if (!Number.isFinite(tid) || tid <= 0) return;
 
             let receiveId;
             let receiveType;
@@ -256,10 +303,11 @@ io.on("connection", (socket) => { //server wide connections
                 `update ticket_messages 
                 set seen = true
                 where ticket_id = $1 and sender_type = $2`,
-                [ticket_id, receiveType]
+                [tid, receiveType]
             );
 
-            socket.to(ticket_id).emit("messages_seen");
+            // Issue 3: namespaced room broadcast
+            socket.to(`ticket_${tid}`).emit("messages_seen");
         } catch (error) {
             console.error("Socket mark_seen error:", error);
         }

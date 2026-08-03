@@ -47,37 +47,49 @@ function AgentTicketView() {
             if (res.data.summary) setSummary(res.data.summary);
         });
 
-        if (socket.connected) {
+        // Issue 1: named handler so it can be registered for both initial connect
+        // and every subsequent reconnect — avoids the one-shot else-branch problem
+        const handleConnect = () => {
             socket.emit("join_ticket", id);
             socket.emit("mark_seen", { ticket_id: id });
+        };
+
+        // Issue 2: named handlers so socket.off() removes only THIS effect's
+        // listeners, not every listener registered for these events
+        const onMessage        = (msg) => setMessages(prev => [...prev, msg]);
+        const onTypingStart    = ({ sender }) => setTypingUser(sender);
+        const onTypingStop     = () => setTypingUser(null);
+        const onMessagesSeen   = () => setMessages(prev => prev.map(m => ({ ...m, seen: true })));
+        const onTicketReopened = () => setTicket(prev => ({ ...prev, status: "Open" }));
+        const onTicketResolved = () => setTicket(prev => ({ ...prev, status: "Resolved" }));
+
+        if (socket.connected) {
+            handleConnect();
         } else {
-            socket.on("connect", () => {
-                socket.emit("join_ticket", id);
-                socket.emit("mark_seen", { ticket_id: id });
-            });
+            // socket.once: auto-removed after firing, prevents stacking on re-mounts
+            socket.once("connect", handleConnect);
         }
 
-        socket.on("receive_message", (msg) => setMessages(prev => [...prev, msg]));
-        socket.on("typing_start", ({ sender }) => setTypingUser(sender));
-        socket.on("typing_stop", () => setTypingUser(null));
-        socket.on("messages_seen", () =>
-            setMessages(prev => prev.map(m => ({ ...m, seen: true })))
-        );
-        socket.on("ticket_reopened", () =>
-            setTicket(prev => ({ ...prev, status: "Open" }))
-        );
-        socket.on("ticket_resolved", () =>
-            setTicket(prev => ({ ...prev, status: "Resolved" }))
-        );
+        // Issue 1: re-join room and re-mark-seen after every reconnect
+        socket.on("reconnect", handleConnect);
+
+        socket.on("receive_message", onMessage);
+        socket.on("typing_start",    onTypingStart);
+        socket.on("typing_stop",     onTypingStop);
+        socket.on("messages_seen",   onMessagesSeen);
+        socket.on("ticket_reopened", onTicketReopened);
+        socket.on("ticket_resolved", onTicketResolved);
 
         return () => {
-            socket.off("connect");
-            socket.off("receive_message");
-            socket.off("typing_start");
-            socket.off("typing_stop");
-            socket.off("messages_seen");
-            socket.off("ticket_reopened");
-            socket.off("ticket_resolved");
+            // Issue 2: remove only the specific handler references from this effect
+            socket.off("connect",         handleConnect);
+            socket.off("reconnect",       handleConnect);
+            socket.off("receive_message", onMessage);
+            socket.off("typing_start",    onTypingStart);
+            socket.off("typing_stop",     onTypingStop);
+            socket.off("messages_seen",   onMessagesSeen);
+            socket.off("ticket_reopened", onTicketReopened);
+            socket.off("ticket_resolved", onTicketResolved);
             socket.emit("leave_ticket", id);
             if (typingTimer.current) clearTimeout(typingTimer.current);
         };

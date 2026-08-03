@@ -398,7 +398,8 @@ router.post("/ticket/:id/close", verifyToken, async (req, res) => {
             const io = req.app.get("io");
             if (io) {
                 io.to(`user_${agentId}`).emit("new_notification", notiResult.rows[0]);
-                io.to(id).emit("ticket_closed");
+                // Issue 3: use the namespaced room name that matches join_ticket on the server
+                io.to(`ticket_${id}`).emit("ticket_closed");
             }
         }
 
