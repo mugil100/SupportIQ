@@ -9,6 +9,26 @@ export function useSocket() {
 
 export function SocketProvider({ children }) {
     useEffect(() => {
+        // Setup local storage interceptors to detect changes in the same tab
+        if (!window.__localStorageIntercepted) {
+            window.__localStorageIntercepted = true;
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                originalSetItem.apply(this, arguments);
+                if (key === "token") window.dispatchEvent(new Event("local_token_change"));
+            };
+            const originalRemoveItem = localStorage.removeItem;
+            localStorage.removeItem = function(key) {
+                originalRemoveItem.apply(this, arguments);
+                if (key === "token") window.dispatchEvent(new Event("local_token_change"));
+            };
+            const originalClear = localStorage.clear;
+            localStorage.clear = function() {
+                originalClear.apply(this, arguments);
+                window.dispatchEvent(new Event("local_token_change"));
+            };
+        }
+
         const token = localStorage.getItem("token");
         if (token && !socket.connected) {
             socket.auth = { token };
@@ -28,9 +48,11 @@ export function SocketProvider({ children }) {
         };
 
         window.addEventListener("storage", handleStorageChange);
+        window.addEventListener("local_token_change", handleStorageChange);
 
         return () => {
             window.removeEventListener("storage", handleStorageChange);
+            window.removeEventListener("local_token_change", handleStorageChange);
         };
     }, []);
 

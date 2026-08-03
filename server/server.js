@@ -111,7 +111,7 @@ io.on("connection", (socket) => { //server wide connections
     // ── Issue 3+4: send_message ────────────────────────────────────────────
     // Validates ticket_id, combines status+auth into one DB query, uses
     // namespaced room name for all broadcasts.
-    socket.on("send_message", async (payload) => {
+    socket.on("send_message", async (payload, callback) => {
         try {
             if (!payload) return;
             const { ticket_id, message } = payload;
@@ -243,13 +243,32 @@ io.on("connection", (socket) => { //server wide connections
 
             const message_id = result.rows[0].message_id;
 
-            // Issue 3: broadcast to the namespaced ticket room
-            io.to(`ticket_${tid}`).emit("receive_message", {
+            // Issue 8: Ack callback for optimistic UI reconciliation
+            if (typeof callback === "function") {
+                callback({
+                    success: true,
+                    message: {
+                        message_id: message_id,
+                        sender_type: sender,
+                        sender_id: sender_id, // Issue 6
+                        message,
+                        delivered: true,
+                        seen: false,
+                        created_at: reply_time.toISOString() // Issue 6
+                    }
+                });
+            }
+
+            // Issue 3 & 8: broadcast to the namespaced ticket room, using socket.to
+            // so the sender doesn't receive their own message again
+            socket.to(`ticket_${tid}`).emit("receive_message", {
                 message_id: message_id,
                 sender_type: sender,
+                sender_id: sender_id, // Issue 6
                 message,
                 delivered: true,
-                seen: false
+                seen: false,
+                created_at: reply_time.toISOString() // Issue 6
             });
             await pool.query(
                 `update ticket_messages set delivered = true where message_id = $1`, [message_id]
@@ -299,15 +318,19 @@ io.on("connection", (socket) => { //server wide connections
                 receiveType = "Agent";
             }
 
-            await pool.query(
+            const result = await pool.query(
                 `update ticket_messages 
                 set seen = true
-                where ticket_id = $1 and sender_type = $2`,
+                where ticket_id = $1 and sender_type = $2 and seen = false
+                RETURNING message_id`,
                 [tid, receiveType]
             );
 
-            // Issue 3: namespaced room broadcast
-            socket.to(`ticket_${tid}`).emit("messages_seen");
+            // Issue 7: only emit if rows were actually updated
+            if (result.rows.length > 0) {
+                // Issue 3: namespaced room broadcast
+                socket.to(`ticket_${tid}`).emit("messages_seen");
+            }
         } catch (error) {
             console.error("Socket mark_seen error:", error);
         }

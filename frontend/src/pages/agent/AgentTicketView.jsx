@@ -23,6 +23,7 @@ function AgentTicketView() {
     const [typingUser, setTypingUser] = useState(null);
     const bottomRef = useRef(null);
     const typingTimer = useRef(null);
+    const isTypingRef = useRef(false);
 
     // ── Smart Summary state ───────────────────────────────────────
     const [summary, setSummary] = useState(null);
@@ -38,6 +39,20 @@ function AgentTicketView() {
 
     // ── Socket & ticket loading ──────────────────────────────────────────────
     useEffect(() => {
+        // Issue 1: named handler so it can be registered for both initial connect
+        // and every subsequent reconnect — avoids the one-shot else-branch problem
+        const handleConnect = async () => {
+            socket.emit("join_ticket", id);
+            socket.emit("mark_seen", { ticket_id: id });
+            // Issue 5: Refetch to get any messages missed during disconnect
+            try {
+                const res = await axios.get(`agent/agenttickets/${id}`);
+                if (res.data.messages) setMessages(res.data.messages);
+            } catch (err) {
+                console.error("Failed to refetch messages on reconnect:", err);
+            }
+        };
+
         axios.get(`agent/agenttickets/${id}`).then(res => {
             setTicket(res.data.ticket);
             setMessages(res.data.messages || []);
@@ -45,14 +60,15 @@ function AgentTicketView() {
             // Agent sees the cached summary for this session; stale flag is set
             // server-side on new messages, so next open will regenerate.
             if (res.data.summary) setSummary(res.data.summary);
-        });
 
-        // Issue 1: named handler so it can be registered for both initial connect
-        // and every subsequent reconnect — avoids the one-shot else-branch problem
-        const handleConnect = () => {
-            socket.emit("join_ticket", id);
-            socket.emit("mark_seen", { ticket_id: id });
-        };
+            // Issue 11: Join room only after baseline fetch completes to prevent race conditions
+            if (socket.connected) {
+                handleConnect();
+            } else {
+                // socket.once: auto-removed after firing, prevents stacking on re-mounts
+                socket.once("connect", handleConnect);
+            }
+        });
 
         // Issue 2: named handlers so socket.off() removes only THIS effect's
         // listeners, not every listener registered for these events
@@ -62,13 +78,6 @@ function AgentTicketView() {
         const onMessagesSeen   = () => setMessages(prev => prev.map(m => ({ ...m, seen: true })));
         const onTicketReopened = () => setTicket(prev => ({ ...prev, status: "Open" }));
         const onTicketResolved = () => setTicket(prev => ({ ...prev, status: "Resolved" }));
-
-        if (socket.connected) {
-            handleConnect();
-        } else {
-            // socket.once: auto-removed after firing, prevents stacking on re-mounts
-            socket.once("connect", handleConnect);
-        }
 
         // Issue 1: re-join room and re-mark-seen after every reconnect
         socket.on("reconnect", handleConnect);
@@ -217,8 +226,34 @@ function AgentTicketView() {
     // ── Chat actions ─────────────────────────────────────────────────────────
     function sendReply() {
         if (!reply.trim()) return;
-        socket.emit("send_message", { ticket_id: id, sender: "Agent", message: reply });
+
+        // Issue 8: Optimistic UI
+        const tempId = `temp_${Date.now()}`;
+        const optimisticMsg = {
+            message_id: tempId,
+            sender_type: "Agent",
+            message: reply,
+            delivered: false,
+            seen: false,
+            created_at: new Date().toISOString(),
+            isOptimistic: true
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+        const replyText = reply;
         setReply("");
+
+        socket.emit("send_message", { ticket_id: id, sender: "Agent", message: replyText }, (ack) => {
+            if (ack?.success) {
+                setMessages(prev => prev.map(m =>
+                    m.message_id === tempId
+                        ? { ...ack.message, isOptimistic: false }
+                        : m
+                ));
+            } else {
+                setMessages(prev => prev.filter(m => m.message_id !== tempId));
+                alert("Failed to send message. Please try again.");
+            }
+        });
     }
 
     function handleResolve() {
@@ -303,13 +338,18 @@ function AgentTicketView() {
                             </div>
                         )}
                         <div className="chat-box">
-                            {messages.map((m, i) => (
-                                <div key={i} className={`chat-msg ${m.sender_type}1`}>
+                            {messages.map((m) => (
+                                <div key={m.message_id} className={`chat-msg ${m.sender_type}1`} style={{ opacity: m.isOptimistic ? 0.7 : 1 }}>
                                     {m.message}
-                                    {m.sender_type === "Agent" && (
+                                    {m.sender_type === "Agent" && !m.isOptimistic && (
                                         <span className="status">
                                             {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : ""}
                                         </span>
+                                    )}
+                                    {m.created_at && (
+                                        <div style={{ fontSize: '0.7em', marginTop: '4px', opacity: 0.7 }}>
+                                            {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -320,9 +360,13 @@ function AgentTicketView() {
                                 value={reply}
                                 onChange={e => {
                                     setReply(e.target.value);
-                                    socket.emit("typing_start", { ticket_id: id, sender: "Agent" });
+                                    if (!isTypingRef.current) {
+                                        isTypingRef.current = true;
+                                        socket.emit("typing_start", { ticket_id: id, sender: "Agent" });
+                                    }
                                     if (typingTimer.current) clearTimeout(typingTimer.current);
                                     typingTimer.current = setTimeout(() => {
+                                        isTypingRef.current = false;
                                         socket.emit("typing_stop", { ticket_id: id, sender: "Agent" });
                                     }, 1000);
                                 }}

@@ -19,6 +19,7 @@ function ViewTicket() {
     const [typingUser, setTypingUser] = useState(null);
     const bottomRef = useRef(null);
     const typingTimer = useRef(null);
+    const isTypingRef = useRef(false);
 
     // Close & Rate modal state
     const [showRatingModal, setShowRatingModal] = useState(false);
@@ -34,14 +35,32 @@ function ViewTicket() {
 
     useEffect(() => {
         axios.get(`ticket/${id}`).then(res => setTicket(res.data));
-        axios.get(`ticket/${id}/messages`).then(res => setMessages(res.data));
 
         // Issue 1: named handler so it can be registered for both initial connect
         // and every subsequent reconnect — avoids the one-shot else-branch problem
-        const handleConnect = () => {
+        const handleConnect = async () => {
             socket.emit("join_ticket", id);
             socket.emit("mark_seen", { ticket_id: id });
+            // Issue 5: Refetch to get any messages missed during disconnect
+            try {
+                const res = await axios.get(`ticket/${id}/messages`);
+                setMessages(res.data);
+            } catch (err) {
+                console.error("Failed to refetch messages on reconnect:", err);
+            }
         };
+
+        axios.get(`ticket/${id}/messages`).then(res => {
+            setMessages(res.data);
+            
+            // Issue 11: Join room only after baseline fetch completes to prevent race conditions
+            if (socket.connected) {
+                handleConnect();
+            } else {
+                // socket.once: auto-removed after firing, prevents stacking on re-mounts
+                socket.once("connect", handleConnect);
+            }
+        });
 
         // Issue 2: named handlers so socket.off() removes only THIS effect's
         // listeners, not every listener registered for these events
@@ -52,13 +71,6 @@ function ViewTicket() {
         const onTicketReopened = () => setTicket(prev => ({ ...prev, status: "Open" }));
         const onTicketResolved = () => setTicket(prev => ({ ...prev, status: "Resolved" }));
         const onTicketClosed   = () => setTicket(prev => ({ ...prev, status: "Closed" }));
-
-        if (socket.connected) {
-            handleConnect();
-        } else {
-            // socket.once: auto-removed after firing, prevents stacking on re-mounts
-            socket.once("connect", handleConnect);
-        }
 
         // Issue 1: re-join room and re-mark-seen after every reconnect
         socket.on("reconnect", handleConnect);
@@ -95,13 +107,37 @@ function ViewTicket() {
     const sendMessage = async () => {
         if (!text.trim()) return;
 
+        // Issue 8: Optimistic UI
+        const tempId = `temp_${Date.now()}`;
+        const optimisticMsg = {
+            message_id: tempId,
+            sender_type: "Customer",
+            message: text,
+            delivered: false,
+            seen: false,
+            created_at: new Date().toISOString(),
+            isOptimistic: true
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+        const messageText = text;
+        setText("");
+
         socket.emit("send_message", {
             ticket_id: id,
             sender: "Customer",
-            message: text
+            message: messageText
+        }, (ack) => {
+            if (ack?.success) {
+                setMessages(prev => prev.map(m =>
+                    m.message_id === tempId
+                        ? { ...ack.message, isOptimistic: false }
+                        : m
+                ));
+            } else {
+                setMessages(prev => prev.filter(m => m.message_id !== tempId));
+                alert("Failed to send message. Please try again.");
+            }
         });
-
-        setText("");
     }
 
     const handleCloseTicket = async () => {
@@ -190,16 +226,22 @@ function ViewTicket() {
                     )}
                     <div className="chatbox">
                         {messages.map((m) => (
-                            <div key={m.message_id} className={`chat-msg ${m.sender_type}`}>
+                            <div key={m.message_id} className={`chat-msg ${m.sender_type}`} style={{ opacity: m.isOptimistic ? 0.7 : 1 }}>
 
                                 <span>{m.message}</span>
-                                {m.sender_type === "Customer" && (
+                                {m.sender_type === "Customer" && !m.isOptimistic && (
                                     <span className="status">
                                         {m.seen ? "✔✔ Seen" : m.delivered ? "✔ Delivered" : "Sent"}
                                     </span>
                                 )}
 
-                                {m.sender_type === "Customer" && !isClosed && (
+                                {m.created_at && (
+                                    <div style={{ fontSize: '0.7em', marginTop: '4px', opacity: 0.7 }}>
+                                        {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                )}
+
+                                {m.sender_type === "Customer" && !isClosed && !m.isOptimistic && (
                                     <button className="delete-btn" onClick={() => deleteMsg(m.message_id)}>✕</button>
                                 )}
 
@@ -214,13 +256,17 @@ function ViewTicket() {
                                 onChange={e => {
                                     setText(e.target.value);
 
-                                    socket.emit("typing_start", {
-                                        ticket_id: id,
-                                        sender: "Customer"
-                                    });
+                                    if (!isTypingRef.current) {
+                                        isTypingRef.current = true;
+                                        socket.emit("typing_start", {
+                                            ticket_id: id,
+                                            sender: "Customer"
+                                        });
+                                    }
 
                                     if (typingTimer.current) clearTimeout(typingTimer.current);
                                     typingTimer.current = setTimeout(() => {
+                                        isTypingRef.current = false;
                                         socket.emit("typing_stop", {
                                             ticket_id: id,
                                             sender: "Customer"
