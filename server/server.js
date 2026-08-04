@@ -329,7 +329,7 @@ io.on("connection", (socket) => { //server wide connections
             // Issue 7: only emit if rows were actually updated
             if (result.rows.length > 0) {
                 // Issue 3: namespaced room broadcast
-                socket.to(`ticket_${tid}`).emit("messages_seen");
+                socket.to(`ticket_${tid}`).emit("messages_seen", { seenBy: userRole === "customer" ? "Customer" : "Agent" });
             }
         } catch (error) {
             console.error("Socket mark_seen error:", error);

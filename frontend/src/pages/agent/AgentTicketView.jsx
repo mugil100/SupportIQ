@@ -49,9 +49,18 @@ function AgentTicketView() {
                 const res = await axios.get(`agent/agenttickets/${id}`);
                 if (res.data.messages) {
                     setMessages(prev => {
-                        const existingIds = new Set(res.data.messages.map(m => m.message_id));
-                        const optimistic = prev.filter(m => m.isOptimistic && !existingIds.has(m.message_id));
-                        return [...res.data.messages, ...optimistic];
+                        const maxServerId = res.data.messages.length > 0 ? Math.max(...res.data.messages.map(m => m.message_id)) : 0;
+                        const existingSeen = new Set(prev.filter(m => m.seen).map(m => m.message_id));
+                        
+                        const merged = res.data.messages.map(m => ({
+                            ...m,
+                            seen: m.seen || existingSeen.has(m.message_id)
+                        }));
+                        
+                        const existingIds = new Set(merged.map(m => m.message_id));
+                        const missing = prev.filter(m => !existingIds.has(m.message_id) && (m.isOptimistic || m.message_id > maxServerId));
+                        
+                        return [...merged, ...missing];
                     });
                 }
             } catch (err) {
@@ -81,7 +90,10 @@ function AgentTicketView() {
         const onMessage        = (msg) => setMessages(prev => [...prev, msg]);
         const onTypingStart    = ({ sender }) => setTypingUser(sender);
         const onTypingStop     = () => setTypingUser(null);
-        const onMessagesSeen   = () => setMessages(prev => prev.map(m => ({ ...m, seen: true })));
+        const onMessagesSeen   = (data) => {
+            if (data?.seenBy === "Agent") return; // Ignore if it was another Agent tab
+            setMessages(prev => prev.map(m => ({ ...m, seen: true })));
+        };
         const onTicketReopened = () => setTicket(prev => prev ? { ...prev, status: "Open" } : null);
         const onTicketResolved = () => setTicket(prev => prev ? { ...prev, status: "Resolved" } : null);
 
