@@ -80,7 +80,7 @@ function AgentTicketView() {
         const onTicketResolved = () => setTicket(prev => ({ ...prev, status: "Resolved" }));
 
         // Issue 1: re-join room and re-mark-seen after every reconnect
-        socket.on("reconnect", handleConnect);
+        socket.io.on("reconnect", handleConnect);
 
         socket.on("receive_message", onMessage);
         socket.on("typing_start",    onTypingStart);
@@ -92,7 +92,7 @@ function AgentTicketView() {
         return () => {
             // Issue 2: remove only the specific handler references from this effect
             socket.off("connect",         handleConnect);
-            socket.off("reconnect",       handleConnect);
+            socket.io.off("reconnect",       handleConnect);
             socket.off("receive_message", onMessage);
             socket.off("typing_start",    onTypingStart);
             socket.off("typing_stop",     onTypingStop);
