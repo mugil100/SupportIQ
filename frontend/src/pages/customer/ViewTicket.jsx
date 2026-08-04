@@ -44,7 +44,11 @@ function ViewTicket() {
             // Issue 5: Refetch to get any messages missed during disconnect
             try {
                 const res = await axios.get(`ticket/${id}/messages`);
-                setMessages(res.data);
+                setMessages(prev => {
+                    const existingIds = new Set(res.data.map(m => m.message_id));
+                    const optimistic = prev.filter(m => m.isOptimistic && !existingIds.has(m.message_id));
+                    return [...res.data, ...optimistic];
+                });
             } catch (err) {
                 console.error("Failed to refetch messages on reconnect:", err);
             }
@@ -68,9 +72,9 @@ function ViewTicket() {
         const onTypingStart    = ({ sender }) => setTypingUser(sender);
         const onTypingStop     = () => setTypingUser(null);
         const onMessagesSeen   = () => setMessages(prev => prev.map(m => ({ ...m, seen: true })));
-        const onTicketReopened = () => setTicket(prev => ({ ...prev, status: "Open" }));
-        const onTicketResolved = () => setTicket(prev => ({ ...prev, status: "Resolved" }));
-        const onTicketClosed   = () => setTicket(prev => ({ ...prev, status: "Closed" }));
+        const onTicketReopened = () => setTicket(prev => prev ? { ...prev, status: "Open" } : null);
+        const onTicketResolved = () => setTicket(prev => prev ? { ...prev, status: "Resolved" } : null);
+        const onTicketClosed   = () => setTicket(prev => prev ? { ...prev, status: "Closed" } : null);
 
         // Issue 1: re-join room and re-mark-seen after every reconnect
         socket.io.on("reconnect", handleConnect);

@@ -47,7 +47,13 @@ function AgentTicketView() {
             // Issue 5: Refetch to get any messages missed during disconnect
             try {
                 const res = await axios.get(`agent/agenttickets/${id}`);
-                if (res.data.messages) setMessages(res.data.messages);
+                if (res.data.messages) {
+                    setMessages(prev => {
+                        const existingIds = new Set(res.data.messages.map(m => m.message_id));
+                        const optimistic = prev.filter(m => m.isOptimistic && !existingIds.has(m.message_id));
+                        return [...res.data.messages, ...optimistic];
+                    });
+                }
             } catch (err) {
                 console.error("Failed to refetch messages on reconnect:", err);
             }
@@ -76,8 +82,8 @@ function AgentTicketView() {
         const onTypingStart    = ({ sender }) => setTypingUser(sender);
         const onTypingStop     = () => setTypingUser(null);
         const onMessagesSeen   = () => setMessages(prev => prev.map(m => ({ ...m, seen: true })));
-        const onTicketReopened = () => setTicket(prev => ({ ...prev, status: "Open" }));
-        const onTicketResolved = () => setTicket(prev => ({ ...prev, status: "Resolved" }));
+        const onTicketReopened = () => setTicket(prev => prev ? { ...prev, status: "Open" } : null);
+        const onTicketResolved = () => setTicket(prev => prev ? { ...prev, status: "Resolved" } : null);
 
         // Issue 1: re-join room and re-mark-seen after every reconnect
         socket.io.on("reconnect", handleConnect);
