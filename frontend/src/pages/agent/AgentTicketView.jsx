@@ -86,8 +86,19 @@ function AgentTicketView() {
         });
 
         // Issue 2: named handlers so socket.off() removes only THIS effect's
-        // listeners, not every listener registered for these events
-        const onMessage        = (msg) => setMessages(prev => [...prev, msg]);
+        const onFocus = () => {
+            if (socket.connected) {
+                socket.emit("mark_seen", { ticket_id: id });
+            }
+        };
+        window.addEventListener("focus", onFocus);
+
+        const onMessage = (msg) => {
+            setMessages(prev => [...prev, msg]);
+            if (document.hasFocus()) {
+                socket.emit("mark_seen", { ticket_id: id });
+            }
+        };
         const onTypingStart    = ({ sender }) => setTypingUser(sender);
         const onTypingStop     = () => setTypingUser(null);
         const onMessagesSeen   = (data) => {
@@ -117,6 +128,7 @@ function AgentTicketView() {
             socket.off("messages_seen",   onMessagesSeen);
             socket.off("ticket_reopened", onTicketReopened);
             socket.off("ticket_resolved", onTicketResolved);
+            window.removeEventListener("focus", onFocus);
             socket.emit("leave_ticket", id);
             if (typingTimer.current) clearTimeout(typingTimer.current);
         };
