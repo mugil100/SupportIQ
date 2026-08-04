@@ -92,8 +92,13 @@ function ViewTicket() {
         const onTypingStart    = ({ sender }) => setTypingUser(sender);
         const onTypingStop     = () => setTypingUser(null);
         const onMessagesSeen   = (data) => {
-            if (data?.seenBy === "Customer") return; // Ignore if it was another Customer tab
-            setMessages(prev => prev.map(m => ({ ...m, seen: true })));
+            // seenBy = who just read the messages
+            // If an Agent read them, mark Customer-sent messages as seen
+            // If another Customer tab triggered this, ignore it
+            if (!data?.seenBy || data.seenBy === "Customer") return;
+            setMessages(prev => prev.map(m =>
+                m.sender_type === "Customer" ? { ...m, seen: true } : m
+            ));
         };
         const onTicketReopened = () => setTicket(prev => prev ? { ...prev, status: "Open" } : null);
         const onTicketResolved = () => setTicket(prev => prev ? { ...prev, status: "Resolved" } : null);
