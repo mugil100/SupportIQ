@@ -27,12 +27,18 @@ function AgentNavbar(){
         }
     }, [location.pathname]);
 
-    function logout(){
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_id");
-        localStorage.removeItem("role");
-        localStorage.removeItem("name");
-        navigate("/");
+    async function logout(){
+        try {
+            await axios.post("/logout");
+        } catch (err) {
+            console.error("Logout failed:", err);
+        } finally {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user_id");
+            localStorage.removeItem("role");
+            localStorage.removeItem("name");
+            navigate("/");
+        }
     }
 
     return (

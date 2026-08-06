@@ -50,12 +50,26 @@ router.post("/signup",
         );
 
         const newUser = insertRes.rows[0];
-        // issue token for the newly registered user
+        // issue access token
         const token = jwt.sign(
             { customer_id: newUser.id, role: newUser.role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "15m" }
         );
+
+        // issue refresh token
+        const refreshToken = jwt.sign(
+            { customer_id: newUser.id, role: newUser.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
 
         res.status(201).json({
             message: "User registered successfully !!!",
@@ -122,8 +136,24 @@ router.post("/login",
                 role: userData.rows[0].role
             },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "15m" }
         );
+
+        const refreshToken = jwt.sign(
+            {
+                customer_id: userData.rows[0].id,
+                role: userData.rows[0].role
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
+        });
 
         return res.json({
             message: "Login Successful",
@@ -137,6 +167,32 @@ router.post("/login",
         console.error(err);
         res.status(500).json({ error: "Server error" });
     }
+});
+
+router.post("/refresh", (req, res) => {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+        return res.status(401).json({ error: "No refresh token provided" });
+    }
+
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ error: "Invalid or expired refresh token" });
+        }
+
+        const token = jwt.sign(
+            { customer_id: decoded.customer_id, role: decoded.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        res.json({ token });
+    });
+});
+
+router.post("/logout", (req, res) => {
+    res.clearCookie("refreshToken");
+    res.json({ message: "Logged out successfully" });
 });
 
 router.post("/forgot-pwd",
