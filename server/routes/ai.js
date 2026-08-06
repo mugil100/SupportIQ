@@ -3,6 +3,9 @@ const router = express.Router();
 const Groq = require("groq-sdk");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
+const { body } = require("express-validator");
+const { validate } = require("../middleware/validate");
+const { aiLimiter } = require("../middleware/rateLimiter");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -131,7 +134,13 @@ Priority rules:
   }
 }
 
-router.post("/categorise", verifyToken, async (req, res) => {
+router.post("/categorise", verifyToken, aiLimiter,
+  [
+    body("title").trim().notEmpty().withMessage("Title is required").isLength({ min: 5 }).withMessage("Title too short to classify"),
+    body("description").optional().trim()
+  ],
+  validate,
+  async (req, res) => {
   const { title, description } = req.body;
 
   if (!title || title.trim().length < 5) {
@@ -148,7 +157,14 @@ router.post("/categorise", verifyToken, async (req, res) => {
 
 // Suggested reply backend: POST /agent/ai-suggest and POST /agent/ai-suggest/:id
 // Takes ticket ID and optional variant context, streams reply variants via SSE
-router.post(["/ai-suggest", "/ai-suggest/:id"], verifyToken, async (req, res) => {
+router.post(["/ai-suggest", "/ai-suggest/:id"], verifyToken, aiLimiter,
+  [
+    body("ticket_id").optional().isInt({ min: 1 }),
+    body("id").optional().isInt({ min: 1 }),
+    body("variant").optional({ checkFalsy: true }).isIn(['professional', 'empathetic', 'concise', 'brief']).withMessage("Invalid variant")
+  ],
+  validate,
+  async (req, res) => {
   if (req.role !== "agent" && req.role !== "manager" && req.role !== "admin") {
     return res.status(403).json({ error: "Access denied. Support agents only." });
   }

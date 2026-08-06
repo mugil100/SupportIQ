@@ -3,6 +3,8 @@ const express = require("express");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
 const { generateAndCacheSummary } = require("../services/SummaryService");
+const { body } = require("express-validator");
+const { validate } = require("../middleware/validate");
 const router = express.Router();
 
 // get all tickets assigned to the agent
@@ -186,7 +188,12 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
 });
 
 
-router.put(`/unassigned/assign`, verifyToken, async (req, res) => {
+router.put(`/unassigned/assign`, verifyToken,
+    [
+        body("ticket_id").isInt({ min: 1 }).withMessage("Ticket ID is required and must be an integer")
+    ],
+    validate,
+    async (req, res) => {
     if (req.role !== "agent") {
         return res.status(403).json({ error: "Forbidden" });
     }

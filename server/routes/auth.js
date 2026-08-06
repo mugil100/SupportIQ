@@ -7,8 +7,22 @@ const {Resend}  =require("resend");
 const router = express.Router();
 const  {SendEmail} = require("../services/emailService"); 
 
+const { body } = require("express-validator");
+const { validate } = require("../middleware/validate");
+const { authLimiter } = require("../middleware/rateLimiter");
+
 // User registration
-router.post("/signup", async (req, res) => {
+router.post("/signup",
+    authLimiter,
+    [
+        body("name").trim().notEmpty().withMessage("Name is required").isLength({ max: 100 }).withMessage("Name must be under 100 characters"),
+        body("username").trim().notEmpty().withMessage("Username is required").isLength({ min: 3, max: 30 }).withMessage("Username must be between 3 and 30 characters").isAlphanumeric().withMessage("Username must be alphanumeric"),
+        body("email").isEmail().withMessage("Must be a valid email").normalizeEmail(),
+        body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
+        body("role").optional().isIn(["customer", "agent", "manager"]).withMessage("Invalid role")
+    ],
+    validate,
+    async (req, res) => {
     const { name, username, email, password, role } = req.body;
 
     try {
@@ -59,7 +73,22 @@ router.post("/signup", async (req, res) => {
 });
 
 // User login
-router.post("/login", async (req, res) => {
+router.post("/login",
+    authLimiter,
+    [
+        body("email").optional().isEmail().withMessage("Must be a valid email").normalizeEmail(),
+        body("username").optional().trim(),
+        body("password").notEmpty().withMessage("Password is required"),
+        body("role").isIn(["customer", "agent", "manager"]).withMessage("Invalid role"),
+        body().custom(value => {
+            if (!value.email && !value.username) {
+                throw new Error("Either email or username is required");
+            }
+            return true;
+        })
+    ],
+    validate,
+    async (req, res) => {
     const { email, username, password, role } = req.body;
     const identifier = email || username;
 
@@ -110,7 +139,12 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.post("/forgot-pwd", async (req, res) => {
+router.post("/forgot-pwd",
+    [
+        body("email").isEmail().withMessage("Must be a valid email").normalizeEmail()
+    ],
+    validate,
+    async (req, res) => {
     try{
         const { email } = req.body;
         console.log(email);
@@ -153,7 +187,13 @@ router.post("/forgot-pwd", async (req, res) => {
     }
 });
 
-router.post("/reset-pwd", async(req,res)=>{
+router.post("/reset-pwd",
+    [
+        body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
+        body("token").notEmpty().withMessage("Token is required")
+    ],
+    validate,
+    async(req,res)=>{
 
     try{
         const {password, token}  = req.body;

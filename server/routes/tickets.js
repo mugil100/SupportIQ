@@ -3,6 +3,9 @@ const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const aiRoutes = require("./ai");
+const { body } = require("express-validator");
+const { validate } = require("../middleware/validate");
+const { generalLimiter } = require("../middleware/rateLimiter");
 
 const { classifyTicket } = aiRoutes;
 
@@ -88,7 +91,7 @@ const VALID_PRIORITIES = ["Low", "Medium", "High"];
 const VALID_AFFECTED_AREAS = ["Dashboard", "API / SDK", "Webhooks", "Settlements", "Reports"];
 
 // Raise a ticket — hardened
-router.post("/raiseticket", verifyToken, (req, res, next) => {
+router.post("/raiseticket", verifyToken, generalLimiter, (req, res, next) => {
     const uploadSingle = upload.single("image");
     uploadSingle(req, res, (err) => {
         if (err) {
@@ -99,7 +102,15 @@ router.post("/raiseticket", verifyToken, (req, res, next) => {
         }
         next();
     });
-}, async (req, res) => {
+},
+[
+    body("title").trim().isLength({ min: 5, max: 150 }).withMessage("Title must be between 5 and 150 characters"),
+    body("description").trim().isLength({ min: 20, max: 5000 }).withMessage("Description must be between 20 and 5000 characters"),
+    body("category").optional({ checkFalsy: true }).isIn(VALID_CATEGORIES).withMessage("Invalid category"),
+    body("affected_area").optional({ checkFalsy: true }).isIn(VALID_AFFECTED_AREAS).withMessage("Invalid affected area"),
+],
+validate,
+async (req, res) => {
     try {
         const { title, category, priority, description, affected_area, metadata } = req.body;
         const image = req.file?.filename || null;
@@ -290,7 +301,12 @@ router.get("/ticket/:id/messages", verifyToken, async (req, res) => {
 
 
 // update ticket status
-router.put("/ticket/:id/status", verifyToken, async (req, res) => {
+router.put("/ticket/:id/status", verifyToken, generalLimiter,
+    [
+        body("status").isIn(['Open', 'Assigned', 'In Progress', 'Resolved', 'Closed']).withMessage("Invalid status")
+    ],
+    validate,
+    async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
@@ -348,7 +364,13 @@ router.delete("/ticket/message/:id/", verifyToken, async (req, res) => {
 // close ticket and submit rating
 
 
-router.post("/ticket/:id/close", verifyToken, async (req, res) => {
+router.post("/ticket/:id/close", verifyToken, generalLimiter,
+    [
+        body("rating").isInt({ min: 1, max: 5 }).withMessage("Rating must be between 1 and 5"),
+        body("feedback_text").optional({ checkFalsy: true }).isLength({ max: 1000 }).withMessage("Feedback too long")
+    ],
+    validate,
+    async (req, res) => {
     const { id } = req.params;
     const { rating, feedback_text } = req.body;
     const customer_id = req.customer_id;

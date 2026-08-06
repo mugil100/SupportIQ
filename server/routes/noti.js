@@ -1,6 +1,8 @@
 const express = require("express");
 const { verifyToken } = require("../middleware/auth");
 const { getNoti, mark_noti_read, filterNoti, mark_all_as_read, mark_ticket_noti_read } = require("../services/NotiService");
+const { body } = require("express-validator");
+const { validate } = require("../middleware/validate");
 
 const router = express.Router();
 
@@ -15,7 +17,12 @@ router.get("/noti", verifyToken, async (req, res) => {
 });
 
 // Filter notifications by read/unread state
-router.post("/noti/filter", verifyToken, async (req, res) => {
+router.post("/noti/filter", verifyToken, 
+    [
+        body("state").isIn(['read', 'unread']).withMessage("Invalid state")
+    ],
+    validate,
+    async (req, res) => {
     try {
         await filterNoti(req, res);
         console.log("Notification filtered successfully");
