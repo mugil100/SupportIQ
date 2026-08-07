@@ -27,6 +27,7 @@ function ViewTicket() {
     const [hoverRating, setHoverRating] = useState(0);
     const [feedbackText, setFeedbackText] = useState("");
     const [closing, setClosing] = useState(false);
+    const [modalImage, setModalImage] = useState(null);
 
     const deleteMsg = async (msgId) => {
         await axios.delete(`ticket/message/${msgId}`);
@@ -222,7 +223,13 @@ function ViewTicket() {
                     <p className="category">Category : {ticket.category}</p>
                     <div className="description">{ticket.description}</div>
                     {ticket.image_url && (
-                        <img src={`${cleanApiUrl}/uploads/${ticket.image_url}`} alt="Ticket Attachment" className="ticket-image" />
+                        <img 
+                            src={`${cleanApiUrl}/uploads/${ticket.image_url}?token=${localStorage.getItem("token")}`} 
+                            alt="Ticket Attachment" 
+                            className="ticket-image" 
+                            style={{ cursor: "pointer" }}
+                            onClick={() => setModalImage(`${cleanApiUrl}/uploads/${ticket.image_url}?token=${localStorage.getItem("token")}`)}
+                        />
                     )}
                 </div>
 
@@ -370,6 +377,16 @@ function ViewTicket() {
                         >
                             {closing ? "Submitting..." : "Submit & Close Ticket"}
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Modal */}
+            {modalImage && (
+                <div className="image-modal-overlay" onClick={() => setModalImage(null)}>
+                    <div className="image-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="modal-close-btn image-modal-close" onClick={() => setModalImage(null)}>✕</button>
+                        <img src={modalImage} alt="Fullscreen Attachment" />
                     </div>
                 </div>
             )}

@@ -11,6 +11,36 @@ const { classifyTicket } = aiRoutes;
 
 const router = express.Router();
 
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+// Secure route to serve uploaded files using S3 pre-signed URLs
+router.get("/uploads/:filename", verifyToken, async (req, res) => {
+    try {
+        const { filename } = req.params;
+        
+        // Ensure s3 client is attached to upload middleware
+        const s3Client = upload.s3Client;
+        if (!s3Client || !process.env.AWS_S3_BUCKET) {
+            return res.status(500).json({ error: "S3 not configured on server" });
+        }
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: filename
+        });
+
+        // Generate a pre-signed URL valid for 5 minutes (300 seconds)
+        const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+
+        // Redirect browser to the secure AWS URL
+        res.redirect(presignedUrl);
+    } catch (err) {
+        console.error("Error generating presigned URL:", err);
+        res.status(500).json({ error: "Failed to generate presigned URL" });
+    }
+});
+
 
 // Raise a ticket
 // router.post("/raiseticket", verifyToken, (req, res, next) => {
@@ -113,7 +143,7 @@ validate,
 async (req, res) => {
     try {
         const { title, category, priority, description, affected_area, metadata } = req.body;
-        const image = req.file?.filename || null;
+        const image = req.file?.key || req.file?.filename || null;
         const customer_id = req.customer_id;
 
         // ── Title validation ──
