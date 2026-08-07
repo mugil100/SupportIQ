@@ -26,10 +26,58 @@ router.get("/unassigned", verifyToken, async (req, res) => {
         return res.status(403).json({ error: "Forbidden" });
     }
     try {
-        const result = await pool.query(
-            `select * from tickets where assigned_agent_id is NULL order by created_at DESC`
-        );
-        res.json(result.rows);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || "";
+        const category = req.query.category || "";
+        const status = req.query.status || "";
+        const offset = (page - 1) * limit;
+
+        let countQuery = `SELECT COUNT(*) FROM tickets WHERE assigned_agent_id IS NULL`;
+        let countParams = [];
+        
+        let query = `SELECT * FROM tickets WHERE assigned_agent_id IS NULL`;
+        let params = [];
+        let paramIndex = 1;
+
+        if (status) {
+            query += ` AND status = $${paramIndex}`;
+            countQuery += ` AND status = $${paramIndex}`;
+            params.push(status);
+            countParams.push(status);
+            paramIndex++;
+        }
+
+        if (search) {
+            const searchStr = `%${search}%`;
+            query += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+            countQuery += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+            params.push(searchStr);
+            countParams.push(searchStr);
+            paramIndex++;
+        }
+
+        if (category) {
+            query += ` AND category = $${paramIndex}`;
+            countQuery += ` AND category = $${paramIndex}`;
+            params.push(category);
+            countParams.push(category);
+            paramIndex++;
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        params.push(limit, offset);
+
+        const countResult = await pool.query(countQuery, countParams);
+        const total = parseInt(countResult.rows[0].count);
+
+        const result = await pool.query(query, params);
+        res.json({
+            tickets: result.rows,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     }
     catch (err) {
         res.status(500).json({ message: "Unassigned tickets not fetched !" });
@@ -65,18 +113,57 @@ router.get("/agenttickets", verifyToken, async (req, res) => {
         };
         const dbStatus = statusMap[status];
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || "";
+        const category = req.query.category || "";
+        const offset = (page - 1) * limit;
+
+        let countQuery = `SELECT COUNT(*) FROM tickets WHERE assigned_agent_id = $1`;
+        let countParams = [agentId];
+        
         let query = `SELECT * FROM tickets WHERE assigned_agent_id = $1`;
-        const params = [agentId];
+        let params = [agentId];
+        let paramIndex = 2;
 
         if (dbStatus) {
-            query += ` AND status = $2`;
+            query += ` AND status = $${paramIndex}`;
+            countQuery += ` AND status = $${paramIndex}`;
             params.push(dbStatus);
+            countParams.push(dbStatus);
+            paramIndex++;
         }
 
-        query += ` ORDER BY created_at DESC`;
+        if (search) {
+            const searchStr = `%${search}%`;
+            query += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+            countQuery += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+            params.push(searchStr);
+            countParams.push(searchStr);
+            paramIndex++;
+        }
+
+        if (category) {
+            query += ` AND category = $${paramIndex}`;
+            countQuery += ` AND category = $${paramIndex}`;
+            params.push(category);
+            countParams.push(category);
+            paramIndex++;
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        params.push(limit, offset);
+
+        const countResult = await pool.query(countQuery, countParams);
+        const total = parseInt(countResult.rows[0].count);
 
         const result = await pool.query(query, params);
-        res.json(result.rows);
+        res.json({
+            tickets: result.rows,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
         console.error("Error fetching assigned tickets:", err);
         res.status(500).json({ error: "Error fetching the assigned tickets" });

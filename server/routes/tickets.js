@@ -226,18 +226,63 @@ async (req, res) => {
 
 // Get user's tickets
 router.get("/mytickets", verifyToken, async (req, res) => {
-
     const customer_id = req.customer_id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const status = req.query.status || "";
+    const category = req.query.category || "";
+    
+    const offset = (page - 1) * limit;
 
     try {
-        const result = await pool.query(
-            `select ticket_id, title,category,priority,status,created_at
-            from tickets
-            where customer_id = $1
-            order by created_at DESC`,
-            [customer_id]
-        );
-        res.json(result.rows);
+        let countQuery = `SELECT COUNT(*) FROM tickets WHERE customer_id = $1`;
+        let countParams = [customer_id];
+
+        let query = `SELECT ticket_id, title, category, priority, status, created_at FROM tickets WHERE customer_id = $1`;
+        let params = [customer_id];
+        
+        let paramIndex = 2;
+
+        if (search) {
+            const searchStr = `%${search}%`;
+            query += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+            countQuery += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+            params.push(searchStr);
+            countParams.push(searchStr);
+            paramIndex++;
+        }
+
+        if (status) {
+            query += ` AND status = $${paramIndex}`;
+            countQuery += ` AND status = $${paramIndex}`;
+            params.push(status);
+            countParams.push(status);
+            paramIndex++;
+        }
+
+        if (category) {
+            query += ` AND category = $${paramIndex}`;
+            countQuery += ` AND category = $${paramIndex}`;
+            params.push(category);
+            countParams.push(category);
+            paramIndex++;
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        params.push(limit, offset);
+
+        const countResult = await pool.query(countQuery, countParams);
+        const total = parseInt(countResult.rows[0].count);
+
+        const result = await pool.query(query, params);
+
+        res.json({
+            tickets: result.rows,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Database error" });
