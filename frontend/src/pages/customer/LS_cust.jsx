@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../../styles/LoginSignUp.css";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import Header from "../../components/Header";
 import Input from "../../components/Input";
@@ -65,7 +66,7 @@ function LS_cust() {
     const handleSubmit = async () => {
         const error = validateForm();
         if (error) {
-            alert(error);
+            toast.error(error);
             return;
         }
         try {
@@ -90,7 +91,7 @@ function LS_cust() {
                 if (response.data?.name) {
                     localStorage.setItem("name", response.data.name);
                 }
-                alert("Login successful");
+                toast.success("Login successful");
                 console.log("Login done: " + response.data.name);
                 navigate("/chome", { state: { name: response.data.name } });
 
@@ -113,12 +114,12 @@ function LS_cust() {
                 if (response.data?.name) {
                     localStorage.setItem("name", response.data.name);
                 }
-                alert("Signup success");
+                toast.success("Signup success");
                 console.log(response.data.name);
                 navigate("/chome", { state: { name: response.data.name } });
             }
         } catch (err) {
-            alert(err.response?.data?.error); //wot???
+            toast.error(err.response?.data?.error || "Authentication failed");
         }
 
         setFormData({ name: "", username: "", identifier: "", email: "", password: "" });

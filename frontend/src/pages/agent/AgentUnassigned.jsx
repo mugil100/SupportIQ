@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentUnassigned.css";
+import toast from "react-hot-toast";
 
 export default function AgentUnassigned() {
 
@@ -15,6 +16,7 @@ export default function AgentUnassigned() {
     const [status, setStatus] = useState("");
     const [category, setCategory] = useState("");
     const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -25,12 +27,17 @@ export default function AgentUnassigned() {
     }, [search]);
 
     const fetchTickets = () => {
+        setLoading(true);
         axios.get("/agent/unassigned", { params: { page, limit, search: debouncedSearch, status, category } })
             .then(res => {
                 setTickets(res.data.tickets || []);
                 setTotalPages(res.data.totalPages || 1);
+                setLoading(false);
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
     };
 
     useEffect(() => {
@@ -60,10 +67,12 @@ export default function AgentUnassigned() {
                 }
             );
             // Refresh ticket list after assignment
+            toast.success("Ticket assigned to you!");
             fetchTickets();
         }
         catch(err){
             console.error(err);
+            toast.error("Failed to assign ticket");
         }
 
     };
@@ -113,7 +122,15 @@ export default function AgentUnassigned() {
                             </tr>
                         </thead>
                         <tbody>
-                            {tickets.length === 0 ? (
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, idx) => (
+                                    <tr key={`skeleton-${idx}`}>
+                                        <td colSpan="6" style={{ padding: '8px' }}>
+                                            <div className="skeleton skeleton-row" style={{ height: '32px', margin: 0 }}></div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : tickets.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="unassigned-empty">
                                         No unassigned tickets 🎉

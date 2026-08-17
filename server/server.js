@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
@@ -8,6 +9,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const ticketRoutes = require("./routes/tickets");
 const agentRoutes = require("./routes/agent");
+const managerRoutes = require("./routes/manager");
 const notiRoutes = require("./routes/noti");
 const aiRoutes = require("./routes/ai");
 require("./bg_jobs/autoClose");
@@ -15,18 +17,42 @@ const app = express();
 const server = http.createServer(app);
 const pool = require("../server/config/database");
 
+// Security Headers via Helmet
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+
+// Strict CORS Origin Whitelist
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS policy violation: Origin ${origin} not allowed`));
+        }
+    },
     credentials: true
-}));
-// Health check
+};
+
+app.use(cors(corsOptions));
 
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error(`CORS policy violation for Socket.IO: Origin ${origin} not allowed`));
+            }
+        },
         credentials: true
     }
 });
@@ -351,6 +377,7 @@ app.use("/", authRoutes);
 app.use("/", ticketRoutes);
 app.use("/", notiRoutes); // Customer-facing notification routes
 app.use("/agent", agentRoutes);
+app.use("/manager", managerRoutes);
 app.use("/agent", notiRoutes);
 app.use("/agent", aiRoutes);
 app.use("/ai", aiRoutes);

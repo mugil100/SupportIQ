@@ -4,6 +4,7 @@ import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentTicketView.css";
 import { useSocket } from "../../context/SocketContext";
+import toast from "react-hot-toast";
 
 const VARIANTS = ["professional", "empathetic", "concise"];
 const VARIANT_LABELS = {
@@ -291,7 +292,7 @@ function AgentTicketView() {
                 ));
             } else {
                 setMessages(prev => prev.filter(m => m.message_id !== tempId));
-                alert("Failed to send message. Please try again.");
+                toast.error("Failed to send message. Please try again.");
             }
         });
     }
@@ -299,18 +300,37 @@ function AgentTicketView() {
     function handleResolve() {
         if (ticket.status === "Resolved") return;
         axios.post(`agent/agenttickets/${id}/resolved`)
-            .then(() => setTicket(prev => ({ ...prev, status: "Resolved" })))
+            .then(() => {
+                setTicket(prev => ({ ...prev, status: "Resolved" }));
+                toast.success("Ticket marked as resolved");
+            })
             .catch(err => {
                 console.error("Failed to resolve ticket:", err);
-                alert("Could not resolve ticket. Please try again.");
+                toast.error("Could not resolve ticket. Please try again.");
             });
     }
 
     if (!ticket) return (
-        <div className="ticket-loading">
-            <div className="ticket-loading-spinner" />
-            <span>Loading ticket...</span>
-        </div>
+        <>
+            <AgentNavbar />
+            <div className="ticket-view-page">
+                <div className="ticket-header" style={{ display: 'block' }}>
+                    <div className="skeleton skeleton-title" style={{ width: '40%' }}></div>
+                    <div className="skeleton skeleton-text" style={{ width: '25%' }}></div>
+                </div>
+                <div className="ticket-details">
+                    <div className="skeleton skeleton-title" style={{ width: '60%' }}></div>
+                    <div className="skeleton skeleton-text" style={{ width: '20%' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '80px' }}></div>
+                </div>
+                <div className="chat-section" style={{ marginTop: '16px' }}>
+                    <div className="skeleton skeleton-text" style={{ width: '120px', marginBottom: '20px' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-end' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
+                </div>
+            </div>
+        </>
     );
 
     return (

@@ -1,0 +1,128 @@
+/* ─── Error Boundary ─── */
+.error-boundary-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6; /* light mode fallback */
+    padding: 20px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-boundary-container {
+        background: #0d0d12;
+    }
+}
+
+.error-boundary-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-boundary-card {
+        background: #13131c;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.error-boundary-card h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-boundary-card h2 {
+        color: #e8eaf6;
+    }
+}
+
+.error-boundary-card p {
+    font-size: 15px;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-boundary-card p {
+        color: rgba(232, 234, 246, 0.65);
+    }
+}
+
+.error-boundary-card button {
+    background: #5e6ad2;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    margin-bottom: 20px;
+}
+
+.error-boundary-card button:hover {
+    background: #4855c4;
+    transform: translateY(-1px);
+}
+
+.error-details {
+    text-align: left;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    border: 1px solid #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-details {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+}
+
+.error-details summary {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-details summary {
+        color: rgba(232, 234, 246, 0.8);
+    }
+}
+
+.error-details pre {
+    font-family: monospace;
+    font-size: 11px;
+    color: #dc2626;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0 0 10px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .error-details pre {
+        color: #fca5a5;
+    }
+}

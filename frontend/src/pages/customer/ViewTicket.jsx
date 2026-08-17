@@ -3,6 +3,7 @@ import axios from "../../api/axios";
 import { useParams } from "react-router-dom";
 import "../../styles/ViewTicket.css";
 import { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import { useSocket } from "../../context/SocketContext";
@@ -169,7 +170,7 @@ function ViewTicket() {
                 ));
             } else {
                 setMessages(prev => prev.filter(m => m.message_id !== tempId));
-                alert("Failed to send message. Please try again.");
+                toast.error("Failed to send message. Please try again.");
             }
         });
     }
@@ -184,9 +185,10 @@ function ViewTicket() {
             });
             setTicket(prev => ({ ...prev, status: "Closed" }));
             setShowRatingModal(false);
+            toast.success("Ticket closed and rated successfully!");
         } catch (err) {
             console.error("Error closing ticket:", err);
-            alert("Failed to close ticket. Please try again.");
+            toast.error("Failed to close ticket. Please try again.");
         } finally {
             setClosing(false);
         }
@@ -198,7 +200,23 @@ function ViewTicket() {
     if (!ticket) return (
         <div className="vt-body">
             <TicketNavbar />
-            <p className="loading">Loading ticket...</p>
+            <div className="customer-ticket-container">
+                <div className="ticket-header" style={{ display: 'block' }}>
+                    <div className="skeleton skeleton-title" style={{ width: '40%' }}></div>
+                    <div className="skeleton skeleton-text" style={{ width: '25%' }}></div>
+                </div>
+                <div className="ticket-details">
+                    <div className="skeleton skeleton-title" style={{ width: '60%' }}></div>
+                    <div className="skeleton skeleton-text" style={{ width: '20%' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '80px' }}></div>
+                </div>
+                <div className="chat-section">
+                    <div className="skeleton skeleton-text" style={{ width: '120px', marginBottom: '20px' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-end' }}></div>
+                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
+                </div>
+            </div>
             <Footer />
         </div>
     );

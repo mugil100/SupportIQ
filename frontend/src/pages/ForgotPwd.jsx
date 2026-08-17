@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import "../styles/LoginSignUp.css";
+import toast from "react-hot-toast";
 
 import Header from "../components/Header";
 import Input from "../components/Input";
@@ -25,18 +26,18 @@ function ForgotPwd() {
         let valid = validateEmail(email);
 
         if (!valid) {
-            alert("Invalid Email Address");
+            toast.error("Invalid Email Address");
             return;
         }
 
         try {
             const response = await axios.post("/forgot-pwd", { email });
             console.log("Forgot password response:", response.data);
-            alert(response.data?.message || "Check your email");
+            toast.success(response.data?.message || "Check your email");
             setEmail("");
         } catch (error) {
             console.error("Forgot password error:", error);
-            alert(error.response?.data?.error || "An error occurred. Check console for details.");
+            toast.error(error.response?.data?.error || "An error occurred");
         }
     }
 

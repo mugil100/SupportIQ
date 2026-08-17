@@ -86,16 +86,30 @@ function AgentTickets() {
                             </tr>
                         </thead>
                         <tbody>
-                            {tickets.map((t) => (
-                                <tr key={t.ticket_id}
-                                    onClick={() => handleClick(t.ticket_id)}>
-                                    <td>{t.ticket_id}</td>
-                                    <td>{t.title}</td>
-                                    <td>{t.category}</td>
-                                    <td>{t.created_at}</td>
-                                    <td>{t.status}</td>
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, idx) => (
+                                    <tr key={`skeleton-${idx}`}>
+                                        <td colSpan="5" style={{ padding: '8px' }}>
+                                            <div className="skeleton skeleton-row" style={{ height: '32px', margin: 0 }}></div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : tickets.length > 0 ? (
+                                tickets.map((t) => (
+                                    <tr key={t.ticket_id}
+                                        onClick={() => handleClick(t.ticket_id)}>
+                                        <td>{t.ticket_id}</td>
+                                        <td>{t.title}</td>
+                                        <td>{t.category}</td>
+                                        <td>{t.created_at}</td>
+                                        <td>{t.status}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No tickets found</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>

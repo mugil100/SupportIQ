@@ -3,6 +3,7 @@ import "../../styles/LoginSignUp.css";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import Header from "../../components/Header";
 import Input from "../../components/Input";
@@ -53,8 +54,8 @@ function LS_Reps() {
             if (!emailregex.test(formData.email))
                 return "Invalid email format";
 
-            if (formData.password.length < 6)
-                return "Password must be atleast 6 characters";
+            if (formData.password.length < 8)
+                return "Password must be at least 8 characters";
         }
         if (action === "Login") {
             if (!formData.identifier.trim())
@@ -67,7 +68,7 @@ function LS_Reps() {
     const handleSubmit = async () => {
         const error = validateForm();
         if (error) {
-            alert(error);
+            toast.error(error);
             return;
         }
         try {
@@ -91,7 +92,7 @@ function LS_Reps() {
                     axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
                     console.log(axios.defaults.headers.common["Authorization"]);
                 }
-                alert("Login successful");
+                toast.success("Login successful");
                 console.log(response.data.name);
                 navigate("/agent/ahome", { state: { name: response.data.name } });
 
@@ -112,12 +113,14 @@ function LS_Reps() {
                     axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
                     console.log(response.data);
                 }
-                alert("Signup success");
+                toast.success("Signup success");
                 console.log(response.data.name);
                 navigate("/agent/ahome", { state: { name: response.data.name } });
             }
         } catch (err) {
-            alert(err.response?.data?.error); //wot???
+            const data = err.response?.data;
+            const errorMsg = data?.error || (data?.errors && data.errors[0]?.message) || "Authentication failed";
+            toast.error(errorMsg);
         }
 
         setFormData({ name: "", username: "", identifier: "", email: "", password: "" });

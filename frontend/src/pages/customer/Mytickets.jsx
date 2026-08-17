@@ -15,6 +15,7 @@ function Mytickets(){
     const [status, setStatus] = useState("");
     const [category, setCategory] = useState("");
     const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(true);
 
     const navigate = useNavigate();
 
@@ -27,12 +28,17 @@ function Mytickets(){
     }, [search]);
 
     useEffect(()=>{
+        setLoading(true);
         axios.get("mytickets", { params: { page, limit, search: debouncedSearch, status, category } })
         .then(res => {
             setTickets(res.data.tickets || []);
             setTotalPages(res.data.totalPages || 1);
+            setLoading(false);
         })
-        .catch(err=>console.error(err));
+        .catch(err => {
+            console.error(err);
+            setLoading(false);
+        });
     }, [page, limit, debouncedSearch, status, category]);
 
     return(
@@ -80,18 +86,32 @@ function Mytickets(){
                     </thead>
 
                     <tbody>
-                        {tickets.map(t=>(
-                            <tr key={t.ticket_id}
-                            onClick={()=>navigate(`/ticket/${t.ticket_id}`)}
-                            >
-                                <td>{t.ticket_id}</td>
-                                <td>{t.title}</td>
-                                <td>{t.category}</td>
-                                <td className={t.priority}>{t.priority}</td>
-                                <td>{t.status}</td>
-                                <td>{new Date(t.created_at).toLocaleDateString()}</td>
+                        {loading ? (
+                            Array.from({ length: 5 }).map((_, idx) => (
+                                <tr key={`skeleton-${idx}`}>
+                                    <td colSpan="6" style={{ padding: '8px' }}>
+                                        <div className="skeleton skeleton-row" style={{ height: '32px', margin: 0 }}></div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : tickets.length > 0 ? (
+                            tickets.map(t=>(
+                                <tr key={t.ticket_id}
+                                onClick={()=>navigate(`/ticket/${t.ticket_id}`)}
+                                >
+                                    <td>{t.ticket_id}</td>
+                                    <td>{t.title}</td>
+                                    <td>{t.category}</td>
+                                    <td className={t.priority}>{t.priority}</td>
+                                    <td>{t.status}</td>
+                                    <td>{new Date(t.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>No tickets found</td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
 

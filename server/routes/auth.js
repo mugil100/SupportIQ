@@ -124,6 +124,11 @@ router.post("/login",
             return res.status(400).json({ error: "Wrong Password" });
         }
 
+        // Block deactivated agents/managers from logging in
+        if (userData.rows[0].is_active === false) {
+            return res.status(403).json({ error: "Account deactivated. Contact your manager." });
+        }
+
         // update last seen
         await pool.query(
             "update users set last_seen = NOW() where id =$1",

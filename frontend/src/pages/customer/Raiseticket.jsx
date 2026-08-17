@@ -4,6 +4,7 @@ import "../../styles/Raiseticket.css";
 import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import axios from "../../api/axios";
+import toast from "react-hot-toast";
 
 const CATEGORIES = [
     "Billing & Invoicing",
@@ -217,8 +218,10 @@ function Raiseticket() {
             setCreatedTicketId(res.data.ticket_id);
             setSubmitted(true);
             setSubmitting(false);
+            toast.success("Ticket created successfully!");
         } catch (err) {
             const serverMsg = err.response?.data?.error || "Something went wrong. Please try again.";
+            toast.error(serverMsg);
             setSubmitError(serverMsg);
             setSubmitting(false);
         }

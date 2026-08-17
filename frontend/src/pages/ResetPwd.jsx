@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "../api/axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/LoginSignUp.css";
+import toast from "react-hot-toast";
 
 import Header from "../components/Header";
 import Input from "../components/Input";
@@ -29,12 +30,12 @@ function ResetPwd() {
         if (e) e.preventDefault();
 
         if (!pwd || !confirmpwd) {
-            alert("Both passwords are required for resetting...");
+            toast.error("Both passwords are required for resetting...");
             return;
         }
 
         if (pwd !== confirmpwd) {
-            alert("Passwords do not match");
+            toast.error("Passwords do not match");
             return;
         }
 
@@ -44,10 +45,10 @@ function ResetPwd() {
                 password: pwd,
                 token: token
             });
-            alert("Password reset successful, please log in with your new password");
+            toast.success("Password reset successful, please log in with your new password");
             navigate("/");
         } catch (error) {
-            alert(error.response?.data?.error || "An error occurred");
+            toast.error(error.response?.data?.error || "An error occurred");
         }
     }
 
