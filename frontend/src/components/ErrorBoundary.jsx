@@ -26,7 +26,7 @@ class ErrorBoundary extends React.Component {
             <p>An unexpected error occurred. Our team has been notified.</p>
             <button onClick={() => window.location.reload()}>Reload Page</button>
             
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="error-details">
                 <summary>Error Details</summary>
                 <pre>{this.state.error.toString()}</pre>

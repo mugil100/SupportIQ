@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/AgentNavbar.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import NotificationToast, { requestNotificationPermission } from "../../components/NotificationToast";
+import NotificationToast from "../../components/NotificationToast";
+import { requestNotificationPermission } from "../../utils/notificationHelper";
 import axios from "../../api/axios";
 
 function AgentNavbar(){

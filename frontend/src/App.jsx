@@ -18,6 +18,7 @@ import AgentNoti from "./pages/agent/AgentNoti";
 import AgentTicketView from './pages/agent/AgentTicketView';
 import ForgotPwd from './pages/ForgotPwd';
 import ResetPwd from "./pages/ResetPwd";
+import ManagerDashboard from "./pages/manager/ManagerDashboard";
 function App() {
     return (
         <Routes>
@@ -93,6 +94,13 @@ function App() {
             } />
 
             <Route path="/reset-pwd/:token" element={<ResetPwd/>}/> 
+
+            {/* Manager Routes */}
+            <Route path="/manager/dashboard" element={
+                <PrivateRoute role='manager'>
+                    <ManagerDashboard />
+                </PrivateRoute>
+            } />
 
         </Routes>
     );

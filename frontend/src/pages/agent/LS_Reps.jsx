@@ -93,9 +93,11 @@ function LS_Reps() {
                     console.log(axios.defaults.headers.common["Authorization"]);
                 }
                 toast.success("Login successful");
-                console.log(response.data.name);
-                navigate("/agent/ahome", { state: { name: response.data.name } });
-
+                if (role === "manager") {
+                    navigate("/manager/dashboard", { state: { name: response.data.name } });
+                } else {
+                    navigate("/agent/ahome", { state: { name: response.data.name } });
+                }
 
             } else {
                 const response = await axios.post(addr + "signup", {
@@ -114,8 +116,11 @@ function LS_Reps() {
                     console.log(response.data);
                 }
                 toast.success("Signup success");
-                console.log(response.data.name);
-                navigate("/agent/ahome", { state: { name: response.data.name } });
+                if (role === "manager") {
+                    navigate("/manager/dashboard", { state: { name: response.data.name } });
+                } else {
+                    navigate("/agent/ahome", { state: { name: response.data.name } });
+                }
             }
         } catch (err) {
             const data = err.response?.data;

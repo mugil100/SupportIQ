@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "../styles/TicketNavbar.css";
-import NotificationToast, { requestNotificationPermission } from "./NotificationToast";
+import NotificationToast from "./NotificationToast";
+import { requestNotificationPermission } from "../utils/notificationHelper";
 import axios from "../api/axios";
 
 function TicketNavbar(){

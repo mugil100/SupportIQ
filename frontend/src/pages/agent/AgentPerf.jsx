@@ -10,6 +10,30 @@ import {
 const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 const STAR_COLORS = ["", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#10b981"];
 
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="perf-tooltip">
+                <p className="tooltip-label">{label}</p>
+                <p className="tooltip-value">{payload[0].value} tickets</p>
+            </div>
+        );
+    }
+    return null;
+};
+
+const RatingTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="perf-tooltip">
+                <p className="tooltip-label">{payload[0].payload.label}</p>
+                <p className="tooltip-value">{payload[0].value} ratings</p>
+            </div>
+        );
+    }
+    return null;
+};
+
 function AgentPerf() {
     const [perf, setPerf] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -61,29 +85,7 @@ function AgentPerf() {
     const chartData = buildChartData();
     const ratingData = buildRatingData();
 
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="perf-tooltip">
-                    <p className="tooltip-label">{label}</p>
-                    <p className="tooltip-value">{payload[0].value} tickets</p>
-                </div>
-            );
-        }
-        return null;
-    };
 
-    const RatingTooltip = ({ active, payload }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="perf-tooltip">
-                    <p className="tooltip-label">{payload[0].payload.label}</p>
-                    <p className="tooltip-value">{payload[0].value} ratings</p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     return (
         <>
