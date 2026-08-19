@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Groq = require("groq-sdk");
+const { getFallbackClassification } = require("../utils/helpers");
 const pool = require("../config/database");
 const { verifyToken } = require("../middleware/auth");
 const { body } = require("express-validator");
@@ -92,45 +93,7 @@ Priority rules:
     );
 
     // Fallback rule-based classifier if Groq API is unavailable
-    let fallbackCategory = "API & Integration";
-    let fallbackPriority = "Medium";
-    const lowerText = `${title} ${description || ""}`.toLowerCase();
-
-    if (
-      lowerText.includes("invoice") ||
-      lowerText.includes("billing") ||
-      lowerText.includes("charge") ||
-      lowerText.includes("refund")
-    ) {
-      fallbackCategory = "Billing & Invoicing";
-    } else if (
-      lowerText.includes("kyc") ||
-      lowerText.includes("onboard") ||
-      lowerText.includes("document")
-    ) {
-      fallbackCategory = "Onboarding & KYC";
-    } else if (
-      lowerText.includes("dispute") ||
-      lowerText.includes("chargeback") ||
-      lowerText.includes("fraud")
-    ) {
-      fallbackCategory = "Transaction Disputes";
-    } else if (
-      lowerText.includes("suspend") ||
-      lowerText.includes("compliance") ||
-      lowerText.includes("policy") ||
-      lowerText.includes("outage")
-    ) {
-      fallbackCategory = "Account & Compliance";
-      fallbackPriority = "High";
-    }
-
-    return {
-      category: fallbackCategory,
-      priority: fallbackPriority,
-      confidence: 0.8,
-      reason: "Rule-based fallback classification (Groq API unavailable)",
-    };
+    return getFallbackClassification(title, description);
   }
 }
 

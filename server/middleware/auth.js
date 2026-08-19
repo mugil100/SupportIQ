@@ -1,18 +1,13 @@
 const jwt = require("jsonwebtoken");
+const { extractTokenFromHeaderOrQuery } = require("../utils/helpers");
 
 const verifyToken = (req, res, next) => {
     console.log("Auth header:", req.headers.authorization);
 
-    const authHeader = req.headers.authorization;
-    let token = null;
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-        token = authHeader.split(" ")[1];
-    } else if (authHeader) {
-        token = authHeader;
-    } else if (req.query && req.query.token) {
-        token = req.query.token;
-    }
+    const token = extractTokenFromHeaderOrQuery(
+        req.headers.authorization,
+        req.query ? req.query.token : null
+    );
 
     if (!token) return res.status(401).json({ error: "No token" });
 
