@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
 import "../../styles/AgentUnassigned.css";
@@ -7,10 +7,10 @@ import toast from "react-hot-toast";
 export default function AgentUnassigned() {
 
     const [tickets, setTickets] = useState([]);
-    const [showBtn, setShowBtn] = useState(false);
+
     
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
+    const limit = 10;
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [status, setStatus] = useState("");
@@ -26,7 +26,7 @@ export default function AgentUnassigned() {
         return () => clearTimeout(handler);
     }, [search]);
 
-    const fetchTickets = () => {
+    const fetchTickets = useCallback(() => {
         setLoading(true);
         axios.get("/agent/unassigned", { params: { page, limit, search: debouncedSearch, status, category } })
             .then(res => {
@@ -38,27 +38,18 @@ export default function AgentUnassigned() {
                 console.error(err);
                 setLoading(false);
             });
-    };
+    }, [page, limit, debouncedSearch, status, category]);
 
     useEffect(() => {
         fetchTickets();
-    }, [page, limit, debouncedSearch, status, category]);
-
-    const handleMouse = (e) =>{
-        if(e.nativeEvent.offsetY < 50){
-            setShowBtn(true);
-        }
-        else{
-            setShowBtn(false);
-        }
-    };
+    }, [fetchTickets]);
 
     async function handleAssign(ticket_id){
         console.log("btn clicked", ticket_id);
         try{
             const token = localStorage.getItem("token");
 
-            const res = await axios.put(
+            await axios.put(
                 "/agent/unassigned/assign",
                 { ticket_id },
                 {

@@ -14,7 +14,7 @@ export function SocketProvider({ children }) {
         if (!window.__localStorageIntercepted) {
             window.__localStorageIntercepted = true;
             const originalSetItem = localStorage.setItem;
-            localStorage.setItem = function(key, value) {
+            localStorage.setItem = function(key, _value) {
                 originalSetItem.apply(this, arguments);
                 if (key === "token") window.dispatchEvent(new Event("local_token_change"));
             };

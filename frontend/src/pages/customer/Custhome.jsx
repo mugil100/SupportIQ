@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import TicketNavbar from "../../components/TicketNavbar";
 import "../../styles/Custhome.css";
-import { Route, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 
 function Custhome(){
     const navigate = useNavigate();
-    const location = useLocation();
     const name = localStorage.getItem("name") || "User";
     console.log(name);
 

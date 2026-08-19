@@ -114,30 +114,31 @@ export default function NotificationToast({ onUnreadChange }) {
     // ---- auto-dismiss timers ----
     useEffect(() => {
         const activeIds = new Set(toasts.map((t) => t.id));
+        const currentTimerMap = timerMap.current;
 
         // Start timers only for new toasts that aren't already tracked
         toasts.forEach((t) => {
-            if (!t.exiting && !timerMap.current.has(t.id)) {
+            if (!t.exiting && !currentTimerMap.has(t.id)) {
                 const timerId = setTimeout(() => {
-                    timerMap.current.delete(t.id);
+                    currentTimerMap.delete(t.id);
                     dismiss(t.id);
                 }, AUTO_DISMISS_MS);
-                timerMap.current.set(t.id, timerId);
+                currentTimerMap.set(t.id, timerId);
             }
         });
 
         // Clean up timers for toasts that have been removed from the array
-        timerMap.current.forEach((timerId, id) => {
+        currentTimerMap.forEach((timerId, id) => {
             if (!activeIds.has(id)) {
                 clearTimeout(timerId);
-                timerMap.current.delete(id);
+                currentTimerMap.delete(id);
             }
         });
 
         // On unmount, clear all remaining timers
         return () => {
-            timerMap.current.forEach(clearTimeout);
-            timerMap.current.clear();
+            currentTimerMap.forEach(clearTimeout);
+            currentTimerMap.clear();
         };
     }, [toasts, dismiss]);
 

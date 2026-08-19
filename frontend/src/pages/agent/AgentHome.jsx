@@ -2,13 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import "../../styles/AgentHome.css";
 import AgentNavbar from "./AgentNavbar";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import AgentStats from "../../components/AgentStats";
 
 function AgentHome() {
-    const navigate = useNavigate();
-    const location = useLocation();
     const aname = localStorage.getItem("name") || "Agent";
     const [stats, setStats] = useState({
         assigned: 0,

@@ -131,10 +131,7 @@ function LS_Reps() {
         setFormData({ name: "", username: "", identifier: "", email: "", password: "" });
     };
 
-    const reset_pwd = async () => {
-        await axios.post(addr + "/auth/forgot-pwd")
 
-    }
 
     return (
         <div className="al-container">

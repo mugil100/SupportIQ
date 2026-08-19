@@ -202,7 +202,7 @@ function AgentTicketView() {
                             accumulated += parsed.text;
                             setStreamedText(accumulated);
                         }
-                    } catch (_) { /* skip */ }
+                    } catch { /* skip */ }
                 }
             }
 

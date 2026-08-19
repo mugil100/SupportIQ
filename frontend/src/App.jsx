@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import "./styles/LoginSignUp.css";
 import LS_cust from './pages/customer/LS_cust';
 import LS_Reps from './pages/agent/LS_Reps';

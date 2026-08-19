@@ -1,4 +1,4 @@
-import React,{useState, useEffect, use} from "react";
+import React,{useState, useEffect} from "react";
 import "../../styles/Tickets.css";
 import axios from "../../api/axios";
 import TicketNavbar from "../../components/TicketNavbar";
@@ -9,7 +9,7 @@ function Mytickets(){
 
     const [tickets, setTickets] = useState([]);
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
+    const limit = 10;
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [status, setStatus] = useState("");
