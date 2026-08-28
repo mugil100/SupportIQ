@@ -284,4 +284,105 @@ router.post("/reset-pwd",
 
 });
 
+// ── POST /accept-invite ─────────────────────────────────────────────────────
+// Agent invite acceptance: verifies token, creates agent account, auto-login
+router.post("/accept-invite",
+    [
+        body("token").notEmpty().withMessage("Invite token is required"),
+        body("name").trim().notEmpty().withMessage("Name is required").isLength({ max: 100 }),
+        body("username").trim().notEmpty().withMessage("Username is required").isLength({ min: 3, max: 30 }).isAlphanumeric(),
+        body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters")
+    ],
+    validate,
+    async (req, res) => {
+        const { token, name, username, password } = req.body;
+
+        try {
+            // 1. Verify and decode the invite token
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                return res.status(400).json({ error: "Invalid or expired invite link" });
+            }
+
+            if (decoded.purpose !== "agent_invite") {
+                return res.status(400).json({ error: "Invalid invite token" });
+            }
+
+            // 2. Check invite record in DB
+            const inviteResult = await pool.query(
+                `SELECT * FROM agent_invites WHERE token = $1 AND accepted = false AND expires_at > NOW()`,
+                [token]
+            );
+            if (inviteResult.rows.length === 0) {
+                return res.status(400).json({ error: "Invite has expired or already been accepted" });
+            }
+
+            const invite = inviteResult.rows[0];
+
+            // 3. Check username uniqueness
+            const usernameCheck = await pool.query(`SELECT id FROM users WHERE username = $1`, [username]);
+            if (usernameCheck.rows.length > 0) {
+                return res.status(400).json({ error: "Username already taken" });
+            }
+
+            // 4. Check email uniqueness (should be unique since we checked at invite time)
+            const emailCheck = await pool.query(`SELECT id FROM users WHERE email = $1`, [invite.email]);
+            if (emailCheck.rows.length > 0) {
+                return res.status(400).json({ error: "An account with this email already exists" });
+            }
+
+            // 5. Create the agent account
+            const hashPwd = await bcrypt.hash(password, 10);
+            const insertRes = await pool.query(
+                `INSERT INTO users (username, email, password, role, name, is_active)
+                 VALUES ($1, $2, $3, 'agent', $4, true) RETURNING id, username, name, role`,
+                [username, invite.email, hashPwd, name]
+            );
+
+            const newUser = insertRes.rows[0];
+
+            // 6. Mark invite as accepted
+            await pool.query(
+                `UPDATE agent_invites SET accepted = true WHERE invite_id = $1`,
+                [invite.invite_id]
+            );
+
+            // 7. Issue tokens (auto-login)
+            const accessToken = jwt.sign(
+                { customer_id: newUser.id, role: newUser.role },
+                process.env.JWT_SECRET,
+                { expiresIn: "15m" }
+            );
+
+            const refreshToken = jwt.sign(
+                { customer_id: newUser.id, role: newUser.role },
+                process.env.JWT_SECRET,
+                { expiresIn: "7d" }
+            );
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax"
+            });
+
+            res.status(201).json({
+                message: "Account created successfully!",
+                name: newUser.name,
+                username: newUser.username,
+                role: newUser.role,
+                id: newUser.id,
+                token: accessToken
+            });
+
+        } catch (err) {
+            console.error("Error accepting invite:", err);
+            res.status(500).json({ error: "Failed to create account" });
+        }
+    }
+);
+
 module.exports = router;

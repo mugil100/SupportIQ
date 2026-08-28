@@ -19,6 +19,7 @@ import AgentTicketView from './pages/agent/AgentTicketView';
 import ForgotPwd from './pages/ForgotPwd';
 import ResetPwd from "./pages/ResetPwd";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
+import ManagerLogin from "./pages/manager/ManagerLogin";
 function App() {
     return (
         <Routes>
@@ -96,6 +97,7 @@ function App() {
             <Route path="/reset-pwd/:token" element={<ResetPwd/>}/> 
 
             {/* Manager Routes */}
+            <Route path="/manager" element={<ManagerLogin />} />
             <Route path="/manager/dashboard" element={
                 <PrivateRoute role='manager'>
                     <ManagerDashboard />

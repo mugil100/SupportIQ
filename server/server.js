@@ -80,6 +80,12 @@ io.on("connection", (socket) => { //server wide connections
     socket.join(`user_${userId}`);
     console.log(`User ${userId} joined personal room user_${userId}`);
 
+    // Auto-join managers to a shared room for escalation broadcasts
+    if (socket.user.role === "manager") {
+        socket.join("managers");
+        console.log(`Manager ${userId} joined managers room`);
+    }
+
     // ── Issue 3+4: join_ticket ─────────────────────────────────────────────
     // Validates ticket_id, enforces authorization, uses namespaced room name.
     socket.on("join_ticket", async (ticket_id) => {

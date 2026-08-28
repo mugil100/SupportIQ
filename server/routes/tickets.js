@@ -507,4 +507,83 @@ router.post("/ticket/:id/close", verifyToken, generalLimiter,
     }
 });
 
+// ── POST /ticket/:id/escalate ──────────────────────────────────────────────
+// Customer-facing: flags a ticket as escalated, notifies all managers via socket
+router.post("/ticket/:id/escalate", verifyToken, generalLimiter, async (req, res) => {
+    const { id } = req.params;
+    const customer_id = req.customer_id;
+
+    try {
+        // Verify ticket belongs to this customer and is not already escalated
+        const ticket = await pool.query(
+            `SELECT * FROM tickets WHERE ticket_id = $1 AND customer_id = $2`,
+            [id, customer_id]
+        );
+
+        if (ticket.rows.length === 0) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
+
+        if (ticket.rows[0].escalated) {
+            return res.status(400).json({ error: "Ticket is already escalated" });
+        }
+
+        if (ticket.rows[0].status === "Closed") {
+            return res.status(400).json({ error: "Cannot escalate a closed ticket" });
+        }
+
+        // Flag the ticket as escalated
+        await pool.query(
+            `UPDATE tickets SET escalated = true, escalated_at = NOW(), escalated_by = $1
+             WHERE ticket_id = $2`,
+            [customer_id, id]
+        );
+
+        // Insert a system message into the ticket chat
+        await pool.query(
+            `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message, delivered, seen)
+             VALUES ($1, 'System', NULL, 'Customer requested escalation to a manager.', true, false)`,
+            [id]
+        );
+
+        const io = req.app.get("io");
+        if (io) {
+            // Broadcast system message to the ticket room
+            io.to(`ticket_${id}`).emit("receive_message", {
+                message_id: Date.now(),
+                sender_type: "System",
+                sender_id: null,
+                message: "Customer requested escalation to a manager.",
+                delivered: true,
+                seen: false,
+                created_at: new Date().toISOString()
+            });
+
+            // Notify all managers via the managers room
+            io.to("managers").emit("new_escalation", {
+                ticket_id: parseInt(id),
+                title: ticket.rows[0].title,
+                priority: ticket.rows[0].priority,
+                escalated_at: new Date().toISOString()
+            });
+
+            // Create notifications for all managers in DB
+            const managers = await pool.query(`SELECT id FROM users WHERE role = 'manager'`);
+            for (const manager of managers.rows) {
+                const noti = await pool.query(
+                    `INSERT INTO Notifications (user_id, ticket_id, notification_type, message_content)
+                     VALUES ($1, $2, 'ESCALATION', $3) RETURNING *`,
+                    [manager.id, id, `Ticket #${id} has been escalated by the customer`]
+                );
+                io.to(`user_${manager.id}`).emit("new_notification", noti.rows[0]);
+            }
+        }
+
+        res.json({ message: "Ticket escalated successfully" });
+    } catch (err) {
+        console.error("Error escalating ticket:", err);
+        res.status(500).json({ error: "Failed to escalate ticket" });
+    }
+});
+
 module.exports = router;
