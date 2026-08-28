@@ -20,6 +20,9 @@ import ForgotPwd from './pages/ForgotPwd';
 import ResetPwd from "./pages/ResetPwd";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import ManagerLogin from "./pages/manager/ManagerLogin";
+import ManagerAllTickets from "./pages/manager/ManagerAllTickets";
+import ManagerTicketView from "./pages/manager/ManagerTicketView";
+
 function App() {
     return (
         <Routes>
@@ -101,6 +104,16 @@ function App() {
             <Route path="/manager/dashboard" element={
                 <PrivateRoute role='manager'>
                     <ManagerDashboard />
+                </PrivateRoute>
+            } />
+            <Route path="/manager/tickets" element={
+                <PrivateRoute role='manager'>
+                    <ManagerAllTickets />
+                </PrivateRoute>
+            } />
+            <Route path="/manager/tickets/:id" element={
+                <PrivateRoute role='manager'>
+                    <ManagerTicketView />
                 </PrivateRoute>
             } />
 
