@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import ManagerNavbar from "./ManagerNavbar";
 import Footer from "../../components/Footer";
 import axios from "../../api/axios";
@@ -6,6 +7,7 @@ import toast from "react-hot-toast";
 import "../../styles/AgentRoster.css";
 
 function AgentRoster() {
+    const navigate = useNavigate();
     const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -185,7 +187,7 @@ function AgentRoster() {
                             <tbody>
                                 {filteredAgents.map(agent => (
                                     <tr key={agent.agent_id} className={`ar-row ${!agent.is_active ? 'ar-row-inactive' : ''}`}>
-                                        <td className="ar-agent-cell">
+                                        <td className="ar-agent-cell" onClick={() => navigate(`/manager/agents/${agent.agent_id}`)} style={{ cursor: "pointer" }}>
                                             <div className="ar-avatar">
                                                 {(agent.agent_name || agent.username || "A").charAt(0).toUpperCase()}
                                             </div>
@@ -221,19 +223,30 @@ function AgentRoster() {
                                             {agent.created_at ? new Date(agent.created_at).toLocaleDateString() : "N/A"}
                                         </td>
                                         <td>
-                                            <button
-                                                className={`ar-btn-toggle ${agent.is_active ? 'deactivate' : 'activate'}`}
-                                                onClick={() => handleToggleStatus(agent)}
-                                                disabled={actionLoadingId === agent.agent_id}
-                                            >
-                                                {actionLoadingId === agent.agent_id ? (
-                                                    "Updating..."
-                                                ) : agent.is_active ? (
-                                                    "Deactivate"
-                                                ) : (
-                                                    "Activate"
-                                                )}
-                                            </button>
+                                            <div className="ar-actions-cell">
+                                                <button
+                                                    className="ar-btn-view"
+                                                    onClick={() => navigate(`/manager/agents/${agent.agent_id}`)}
+                                                >
+                                                    View
+                                                </button>
+                                                <button
+                                                    className={`ar-btn-toggle ${agent.is_active ? 'deactivate' : 'activate'}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleToggleStatus(agent);
+                                                    }}
+                                                    disabled={actionLoadingId === agent.agent_id}
+                                                >
+                                                    {actionLoadingId === agent.agent_id ? (
+                                                        "Updating..."
+                                                    ) : agent.is_active ? (
+                                                        "Deactivate"
+                                                    ) : (
+                                                        "Activate"
+                                                    )}
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

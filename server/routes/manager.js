@@ -629,4 +629,89 @@ router.put("/agents/:id/activate", verifyToken, requireManager, async (req, res)
     }
 });
 
+// ── GET /manager/agents/:id ─────────────────────────────────────────────────
+// Get detailed single agent profile, metrics, and assigned tickets
+router.get("/agents/:id", verifyToken, requireManager, async (req, res) => {
+    const agentId = parseInt(req.params.id, 10);
+
+    try {
+        // 1. Agent profile
+        const agentResult = await pool.query(
+            `SELECT id, name, username, email, is_active, last_seen, created_at
+             FROM users WHERE id = $1 AND role = 'agent'`,
+            [agentId]
+        );
+
+        if (agentResult.rows.length === 0) {
+            return res.status(404).json({ error: "Agent not found" });
+        }
+
+        const agent = agentResult.rows[0];
+
+        // 2. Metrics
+        const statsResult = await pool.query(`
+            SELECT 
+                COUNT(CASE WHEN t.status = 'Open' THEN 1 END) AS open_count,
+                COUNT(CASE WHEN t.status = 'In Progress' THEN 1 END) AS in_progress_count,
+                COUNT(CASE WHEN t.status = 'Resolved' THEN 1 END) AS resolved_count,
+                COUNT(CASE WHEN t.status = 'Closed' THEN 1 END) AS closed_count,
+                COUNT(t.ticket_id) AS total_assigned,
+                ROUND(
+                    AVG(
+                        CASE 
+                            WHEN t.last_agent_reply_at IS NOT NULL AND t.created_at IS NOT NULL
+                            THEN EXTRACT(EPOCH FROM (t.last_agent_reply_at - t.created_at)) / 3600
+                        END
+                    )::numeric, 1
+                ) AS avg_response_hours,
+                ROUND(AVG(f.rating)::numeric, 1) AS avg_rating,
+                COUNT(f.rating) AS feedback_count
+            FROM tickets t
+            LEFT JOIN ticket_feedback f ON f.ticket_id = t.ticket_id
+            WHERE t.assigned_agent_id = $1
+        `, [agentId]);
+
+        const statsRow = statsResult.rows[0];
+
+        // 3. Assigned tickets
+        const ticketsResult = await pool.query(`
+            SELECT 
+                t.ticket_id, t.title, t.status, t.priority, t.category,
+                t.created_at, t.escalated, t.escalation_resolved,
+                c.name AS customer_name
+            FROM tickets t
+            LEFT JOIN users c ON t.customer_id = c.id
+            WHERE t.assigned_agent_id = $1
+            ORDER BY t.created_at DESC
+            LIMIT 50
+        `, [agentId]);
+
+        res.json({
+            agent: {
+                id: agent.id,
+                name: agent.name,
+                username: agent.username,
+                email: agent.email,
+                is_active: agent.is_active,
+                last_seen: agent.last_seen,
+                created_at: agent.created_at,
+            },
+            stats: {
+                open_count: parseInt(statsRow.open_count) || 0,
+                in_progress_count: parseInt(statsRow.in_progress_count) || 0,
+                resolved_count: parseInt(statsRow.resolved_count) || 0,
+                closed_count: parseInt(statsRow.closed_count) || 0,
+                total_assigned: parseInt(statsRow.total_assigned) || 0,
+                avg_response_hours: parseFloat(statsRow.avg_response_hours) || 0,
+                avg_rating: parseFloat(statsRow.avg_rating) || 0,
+                feedback_count: parseInt(statsRow.feedback_count) || 0,
+            },
+            tickets: ticketsResult.rows
+        });
+    } catch (err) {
+        console.error("Error fetching agent details:", err);
+        res.status(500).json({ error: "Failed to fetch agent details" });
+    }
+});
+
 module.exports = router;

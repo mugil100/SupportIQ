@@ -311,7 +311,31 @@
   font-size: 13px;
 }
 
-/* Action button */
+/* Action buttons */
+.ar-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ar-btn-view {
+  padding: 5px 12px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ar-btn-view:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
 .ar-btn-toggle {
   padding: 5px 12px;
   border-radius: 6px;

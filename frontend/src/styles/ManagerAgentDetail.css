@@ -1,0 +1,383 @@
+/* ─── ManagerAgentDetail.css ─── */
+
+.mad-container {
+  margin-left: 250px;
+  padding: 32px;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  flex: 1;
+  width: calc(100% - 250px);
+  box-sizing: border-box;
+}
+
+/* ─── Top Nav ─── */
+.mad-top-nav {
+  margin-bottom: 20px;
+}
+
+.mad-btn-back {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.mad-btn-back:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* ─── Profile Card ─── */
+.mad-profile-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.mad-profile-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mad-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #818cf8);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  flex-shrink: 0;
+}
+
+.mad-profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.mad-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mad-name-row h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.mad-username {
+  color: #64748b;
+  font-size: 14px;
+  margin: 2px 0 8px;
+  font-weight: 500;
+}
+
+.mad-meta-list {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+/* Status Badge */
+.mad-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mad-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.mad-status-badge.active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+.mad-status-badge.active .mad-status-dot {
+  background: #10b981;
+}
+
+.mad-status-badge.inactive {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+}
+.mad-status-badge.inactive .mad-status-dot {
+  background: #94a3b8;
+}
+
+/* Action Button */
+.mad-btn-toggle {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mad-btn-toggle.deactivate {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.mad-btn-toggle.deactivate:hover:not(:disabled) {
+  background: #ef4444;
+  color: white;
+}
+
+.mad-btn-toggle.activate {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mad-btn-toggle.activate:hover:not(:disabled) {
+  background: #10b981;
+  color: white;
+}
+
+.mad-btn-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Stats Grid ─── */
+.mad-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.mad-stat-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.mad-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.mad-stat-val {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.mad-val-warning {
+  color: #d97706;
+}
+
+.mad-val-success {
+  color: #059669;
+}
+
+.mad-val-rating {
+  color: #6366f1;
+}
+
+.mad-stat-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ─── Assigned Tickets Section ─── */
+.mad-tickets-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.mad-section-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.mad-section-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.mad-section-header p {
+  color: #64748b;
+  font-size: 13.5px;
+  margin: 0;
+}
+
+.mad-ticket-filters {
+  display: flex;
+  gap: 12px;
+}
+
+.mad-filter-input {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.2s;
+}
+
+.mad-filter-input:focus {
+  border-color: #6366f1;
+}
+
+.mad-filter-select {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  outline: none;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+}
+
+/* ─── Table ─── */
+.mad-table-wrapper {
+  overflow-x: auto;
+}
+
+.mad-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.mad-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mad-ticket-row {
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mad-ticket-row:hover {
+  background: #f8fafc;
+}
+
+.mad-ticket-row td {
+  padding: 14px 20px;
+  font-size: 13.5px;
+  vertical-align: middle;
+  color: #1e293b;
+}
+
+.mad-tid {
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.mad-cust {
+  font-weight: 500;
+  color: #334155;
+}
+
+.mad-title {
+  max-width: 260px;
+}
+
+.mad-title-text {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.mad-escalated-badge {
+  display: inline-block;
+  background: #fee2e2;
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.mad-date {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.mad-table-empty {
+  padding: 40px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* ─── Loading & Empty States ─── */
+.mad-loading, .mad-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+}

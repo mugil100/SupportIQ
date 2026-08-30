@@ -24,7 +24,10 @@ import ManagerAllTickets from "./pages/manager/ManagerAllTickets";
 import ManagerTicketView from "./pages/manager/ManagerTicketView";
 import EscalationQueue from "./pages/manager/EscalationQueue";
 import AgentRoster from "./pages/manager/AgentRoster";
+import ManagerAgentDetail from "./pages/manager/ManagerAgentDetail";
 import AcceptInvite from "./pages/agent/AcceptInvite";
+import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
 
 function App() {
     return (
@@ -115,6 +118,11 @@ function App() {
                     <AgentRoster />
                 </PrivateRoute>
             } />
+            <Route path="/manager/agents/:id" element={
+                <PrivateRoute role='manager'>
+                    <ManagerAgentDetail />
+                </PrivateRoute>
+            } />
             <Route path="/manager/tickets" element={
                 <PrivateRoute role='manager'>
                     <ManagerAllTickets />
@@ -131,6 +139,8 @@ function App() {
                 </PrivateRoute>
             } />
 
+            <Route path="/unauth" element={<Unauthorized />} />
+            <Route path="*" element={<NotFound />} />
         </Routes>
     );
 }

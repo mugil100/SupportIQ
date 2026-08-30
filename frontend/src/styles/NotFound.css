@@ -1,0 +1,85 @@
+/* ─── NotFound.css — shared by 404 Not Found and 403 Unauthorized ─── */
+
+.notfound-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8edf7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  padding: 24px;
+}
+
+.notfound-card {
+  background: white;
+  border-radius: 20px;
+  padding: 56px 48px;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.notfound-code {
+  font-size: 88px;
+  font-weight: 800;
+  color: #6366f1;
+  line-height: 1;
+  letter-spacing: -4px;
+  font-variant-numeric: tabular-nums;
+  /* Subtle shimmer via gradient text */
+  background: linear-gradient(135deg, #4f46e5, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.notfound-divider {
+  width: 48px;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #a5b4fc);
+  border-radius: 2px;
+  margin: 20px auto 24px;
+}
+
+.notfound-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px;
+  letter-spacing: -0.4px;
+}
+
+.notfound-message {
+  font-size: 14.5px;
+  color: #64748b;
+  line-height: 1.65;
+  margin: 0 0 32px;
+}
+
+.notfound-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.notfound-btn:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+
+.notfound-btn:active {
+  transform: translateY(0);
+}
