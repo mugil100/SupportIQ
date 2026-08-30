@@ -23,6 +23,8 @@ import ManagerLogin from "./pages/manager/ManagerLogin";
 import ManagerAllTickets from "./pages/manager/ManagerAllTickets";
 import ManagerTicketView from "./pages/manager/ManagerTicketView";
 import EscalationQueue from "./pages/manager/EscalationQueue";
+import AgentRoster from "./pages/manager/AgentRoster";
+import AcceptInvite from "./pages/agent/AcceptInvite";
 
 function App() {
     return (
@@ -99,12 +101,18 @@ function App() {
             } />
 
             <Route path="/reset-pwd/:token" element={<ResetPwd/>}/> 
+            <Route path="/agent/accept-invite/:token" element={<AcceptInvite />} />
 
             {/* Manager Routes */}
             <Route path="/manager" element={<ManagerLogin />} />
             <Route path="/manager/dashboard" element={
                 <PrivateRoute role='manager'>
                     <ManagerDashboard />
+                </PrivateRoute>
+            } />
+            <Route path="/manager/agents" element={
+                <PrivateRoute role='manager'>
+                    <AgentRoster />
                 </PrivateRoute>
             } />
             <Route path="/manager/tickets" element={

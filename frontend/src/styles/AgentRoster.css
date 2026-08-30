@@ -1,0 +1,512 @@
+/* ─── AgentRoster.css ─── */
+
+.ar-container {
+  margin-left: 250px;
+  padding: 32px;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  flex: 1;
+  width: calc(100% - 250px);
+  box-sizing: border-box;
+}
+
+/* ─── Header ─── */
+.ar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ar-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+  letter-spacing: -0.5px;
+}
+
+.ar-header p {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.ar-btn-invite {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  transition: all 0.2s ease;
+}
+
+.ar-btn-invite:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+
+.ar-btn-icon {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ─── Stats Grid ─── */
+.ar-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ar-stat-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.ar-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.ar-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.ar-stat-active {
+  color: #10b981;
+}
+
+.ar-stat-resolved {
+  color: #6366f1;
+}
+
+/* ─── Controls & Search ─── */
+.ar-controls-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.ar-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 14px;
+  transition: border-color 0.2s;
+}
+
+.ar-search-wrapper:focus-within {
+  border-color: #6366f1;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.ar-search-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.ar-search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+}
+
+.ar-search-input::placeholder {
+  color: #94a3b8;
+}
+
+/* ─── Table ─── */
+.ar-table-container {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.ar-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ar-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ar-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+
+.ar-row:hover {
+  background: #f8fafc;
+}
+
+.ar-row-inactive {
+  opacity: 0.65;
+  background: #fcfcfd;
+}
+
+.ar-row td {
+  padding: 14px 18px;
+  font-size: 13.5px;
+  vertical-align: middle;
+  color: #1e293b;
+}
+
+/* Agent cell */
+.ar-agent-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.ar-row-inactive .ar-avatar {
+  background: #94a3b8;
+}
+
+.ar-agent-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ar-agent-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ar-agent-username {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ar-email {
+  color: #475569;
+}
+
+/* Status Badges */
+.ar-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ar-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.ar-status-badge.active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.ar-status-badge.active .ar-status-dot {
+  background: #10b981;
+}
+
+.ar-status-badge.inactive {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+}
+
+.ar-status-badge.inactive .ar-status-dot {
+  background: #94a3b8;
+}
+
+/* Workload pills */
+.ar-workload-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.ar-pill {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.ar-pill-open {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ar-pill-progress {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.ar-resolved-count {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ar-resp-time {
+  color: #475569;
+}
+
+.ar-date {
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Action button */
+.ar-btn-toggle {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ar-btn-toggle.deactivate {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ar-btn-toggle.deactivate:hover:not(:disabled) {
+  background: #ef4444;
+  color: white;
+}
+
+.ar-btn-toggle.activate {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.ar-btn-toggle.activate:hover:not(:disabled) {
+  background: #10b981;
+  color: white;
+}
+
+.ar-btn-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Empty & Loading ─── */
+.ar-loading, .ar-empty {
+  padding: 50px 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.ar-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.ar-empty h3 {
+  font-size: 16px;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+/* ─── Invite Modal ─── */
+.ar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ar-modal-card {
+  background: white;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: arModalIn 0.2s ease-out;
+}
+
+@keyframes arModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ar-modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ar-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.ar-modal-close:hover {
+  color: #0f172a;
+}
+
+.ar-modal-desc {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.ar-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ar-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ar-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.ar-form-group input {
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.ar-form-group input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.ar-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.ar-btn-cancel {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ar-btn-cancel:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.ar-btn-submit {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ar-btn-submit:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.ar-btn-submit:disabled,
+.ar-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

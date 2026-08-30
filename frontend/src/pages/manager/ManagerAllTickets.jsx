@@ -90,11 +90,11 @@ function ManagerAllTickets() {
 
                         <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
                             <option value="">All Categories</option>
-                            <option value="Billing">Billing</option>
-                            <option value="Technical Issue">Technical Issue</option>
-                            <option value="Account Access">Account Access</option>
-                            <option value="General Inquiry">General Inquiry</option>
-                            <option value="Feedback/Suggestions">Feedback/Suggestions</option>
+                            <option value="Billing & Invoicing">Billing & Invoicing</option>
+                            <option value="API & Integration">API & Integration</option>
+                            <option value="Onboarding & KYC">Onboarding & KYC</option>
+                            <option value="Transaction Disputes">Transaction Disputes</option>
+                            <option value="Account & Compliance">Account & Compliance</option>
                         </select>
                     </div>
                 </div>

@@ -30,7 +30,7 @@ function EscalationQueue() {
         } finally {
             setLoading(false);
         }
-    };
+    }; 
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
