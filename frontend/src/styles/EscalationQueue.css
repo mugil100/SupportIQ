@@ -1,0 +1,259 @@
+/* ─── EscalationQueue.css ─── */
+
+.escalation-queue-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.eq-main {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 32px auto;
+  padding: 0 20px;
+}
+
+/* ─── Header ─── */
+.eq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.eq-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #b91c1c; /* Deep red for urgency */
+  margin: 0 0 6px;
+  letter-spacing: -0.5px;
+}
+
+.eq-header p {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.eq-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.eq-stat-box {
+  background: white;
+  border: 1px solid #fef2f2;
+  border-top: 3px solid #ef4444;
+  padding: 12px 24px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+}
+
+.eq-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #b91c1c;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.eq-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #ef4444;
+}
+
+/* ─── Content Area ─── */
+.eq-content {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+
+/* ─── Table ─── */
+.eq-table-container {
+  overflow-x: auto;
+}
+
+.eq-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.eq-table th {
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 16px;
+  border-bottom: 2px solid #fee2e2;
+}
+
+.eq-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s;
+}
+
+.eq-row:hover {
+  background: #fef2f2; /* Soft red hover */
+}
+
+.eq-row td {
+  padding: 16px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.eq-title-cell {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.eq-link {
+  color: #0f172a;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.eq-link:hover {
+  color: #ef4444;
+}
+
+.eq-agent-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.eq-unassigned {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.eq-time {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+}
+.eq-time small {
+  color: #94a3b8;
+}
+
+/* ─── Priority Badges ─── */
+.eq-priority-badge {
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.eq-priority-badge.High {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+}
+.eq-priority-badge.Medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+.eq-priority-badge.Low {
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+}
+
+/* ─── Action Button ─── */
+.eq-action-btn {
+  display: inline-block;
+  background: #ef4444;
+  color: white;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.eq-action-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  transform: translateY(-1px);
+}
+
+/* ─── Empty & Loading States ─── */
+.eq-loading, .eq-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.eq-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.eq-empty h3 {
+  font-size: 18px;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+/* ─── Pagination ─── */
+.eq-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.eq-pagination button {
+  padding: 6px 14px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.eq-pagination button:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.eq-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.eq-page-info {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}

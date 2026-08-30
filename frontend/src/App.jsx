@@ -22,6 +22,7 @@ import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import ManagerLogin from "./pages/manager/ManagerLogin";
 import ManagerAllTickets from "./pages/manager/ManagerAllTickets";
 import ManagerTicketView from "./pages/manager/ManagerTicketView";
+import EscalationQueue from "./pages/manager/EscalationQueue";
 
 function App() {
     return (
@@ -114,6 +115,11 @@ function App() {
             <Route path="/manager/tickets/:id" element={
                 <PrivateRoute role='manager'>
                     <ManagerTicketView />
+                </PrivateRoute>
+            } />
+            <Route path="/manager/escalations" element={
+                <PrivateRoute role='manager'>
+                    <EscalationQueue />
                 </PrivateRoute>
             } />
 

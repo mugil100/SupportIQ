@@ -29,6 +29,7 @@ function ViewTicket() {
     const [feedbackText, setFeedbackText] = useState("");
     const [closing, setClosing] = useState(false);
     const [modalImage, setModalImage] = useState(null);
+    const [escalating, setEscalating] = useState(false);
 
     const deleteMsg = async (msgId) => {
         await axios.delete(`ticket/message/${msgId}`);
@@ -194,6 +195,21 @@ function ViewTicket() {
         }
     };
 
+    const handleEscalate = async () => {
+        if (!window.confirm("Are you sure you want to escalate this ticket to a manager?")) return;
+        setEscalating(true);
+        try {
+            await axios.post(`ticket/${id}/escalate`);
+            setTicket(prev => ({ ...prev, escalated: true }));
+            toast.success("Ticket escalated to a manager successfully");
+        } catch (err) {
+            console.error("Error escalating ticket:", err);
+            toast.error(err.response?.data?.error || "Failed to escalate ticket");
+        } finally {
+            setEscalating(false);
+        }
+    };
+
     const isClosed = ticket?.status === "Closed";
     const isResolved = ticket?.status === "Resolved";
 
@@ -233,6 +249,19 @@ function ViewTicket() {
                     <div className="ticket-badges">
                         {ticket.priority && <span className={`badge ${ticket.priority}`}>{ticket.priority}</span>}
                         <span className={`badge status-${ticket.status}`}>{ticket.status}</span>
+                        
+                        {(ticket.status === "Open" || ticket.status === "In Progress") && !ticket.escalated && (
+                            <button 
+                                className="vt-escalate-btn" 
+                                onClick={handleEscalate} 
+                                disabled={escalating}
+                            >
+                                {escalating ? "Escalating..." : "Request Escalation"}
+                            </button>
+                        )}
+                        {ticket.escalated && !ticket.escalation_resolved && (
+                            <span className="badge vt-escalated-badge">Escalated</span>
+                        )}
                     </div>
                 </div>
 

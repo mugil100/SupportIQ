@@ -32,3 +32,5 @@ CREATE TABLE IF NOT EXISTS agent_invites (
     accepted    BOOLEAN DEFAULT false,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- 5. Allow NULL sender_id for System messages in chat
+ALTER TABLE ticket_messages ALTER COLUMN sender_id DROP NOT NULL;

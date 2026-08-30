@@ -111,6 +111,44 @@
   color: #dc2626;
 }
 
+/* ─── Escalation UI ─── */
+.vt-escalate-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.vt-escalate-btn:hover:not(:disabled) {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.vt-escalate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vt-escalated-badge {
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.vt-escalated-badge::before {
+  content: "⚠️";
+  font-size: 12px;
+}
+
 /* ─── Ticket Details Card ─── */
 .ticket-details {
   background: var(--bg-surface);
