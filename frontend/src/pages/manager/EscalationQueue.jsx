@@ -25,7 +25,7 @@ function EscalationQueue() {
                 totalPages: res.data.totalPages,
                 total: res.data.total
             });
-        } catch (err) {
+        } catch (_err) {
             toast.error("Failed to load escalations");
         } finally {
             setLoading(false);

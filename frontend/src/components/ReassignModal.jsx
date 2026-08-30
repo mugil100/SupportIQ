@@ -19,7 +19,7 @@ function ReassignModal({ ticketId, currentAgentId, onClose, onReassign }) {
                     a => a.is_active && a.agent_id !== currentAgentId
                 );
                 setAgents(availableAgents);
-            } catch (err) {
+            } catch (_err) {
                 toast.error("Failed to load agents");
             } finally {
                 setLoading(false);

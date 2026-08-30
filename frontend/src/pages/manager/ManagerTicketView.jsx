@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import ManagerNavbar from "./ManagerNavbar";
 import ReassignModal from "../../components/ReassignModal";
@@ -22,22 +22,22 @@ function ManagerTicketView() {
     const chatEndRef = useRef(null);
     const notesEndRef = useRef(null);
 
-    const fetchTicketData = async () => {
+    const fetchTicketData = useCallback(async () => {
         try {
             const res = await axios.get(`/manager/tickets/${id}`);
             setTicket(res.data.ticket);
             setMessages(res.data.messages);
             setNotes(res.data.notes);
-        } catch (err) {
+        } catch (_err) {
             toast.error("Failed to load ticket details");
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
     useEffect(() => {
         fetchTicketData();
-    }, [id]);
+    }, [fetchTicketData]);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -64,7 +64,7 @@ function ManagerTicketView() {
             setNotes([...notes, noteWithAuthor]);
             setNewNote("");
             toast.success("Note added");
-        } catch (err) {
+        } catch (_err) {
             toast.error("Failed to add note");
         } finally {
             setSubmittingNote(false);
@@ -76,7 +76,7 @@ function ManagerTicketView() {
             await axios.put(`/manager/escalations/${id}/resolve`);
             setTicket(prev => ({ ...prev, escalation_resolved: true }));
             toast.success("Escalation resolved");
-        } catch (err) {
+        } catch (_err) {
             toast.error("Failed to resolve escalation");
         }
     };
