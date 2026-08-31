@@ -46,6 +46,8 @@ export default function NotificationToast({ onUnreadChange }) {
             if (ticketId) {
                 if (role === "agent") {
                     navigate(`/agent/agenttickets/${ticketId}`);
+                } else if (role === "manager") {
+                    navigate(`/manager/tickets/${ticketId}`);
                 } else {
                     navigate(`/ticket/${ticketId}`);
                 }
@@ -82,6 +84,8 @@ export default function NotificationToast({ onUnreadChange }) {
                         if (noti.ticket_id) {
                             if (role === "agent") {
                                 navigate(`/agent/agenttickets/${noti.ticket_id}`);
+                            } else if (role === "manager") {
+                                navigate(`/manager/tickets/${noti.ticket_id}`);
                             } else {
                                 navigate(`/ticket/${noti.ticket_id}`);
                             }
