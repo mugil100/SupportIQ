@@ -53,6 +53,7 @@ function Mytickets(){
                         </div>
                     </div>
 
+                    {/* ─── Filters row ─── */}
                     <div className="ticket-controls">
                         <input 
                             type="text" 
@@ -63,7 +64,6 @@ function Mytickets(){
                         <select value={status} onChange={e => {setStatus(e.target.value); setPage(1);}}>
                             <option value="">All Statuses</option>
                             <option value="Open">Open</option>
-                            <option value="Assigned">Assigned</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Resolved">Resolved</option>
                             <option value="Closed">Closed</option>

@@ -62,14 +62,13 @@ function Custhome() {
                     {/* Top Hero Section */}
                     <div className="cust-hero-grid">
                         <div className="cust-hero-left">
-                            <span className="cust-hero-tag">Merchant Support Portal</span>
+                            <p className="cust-welcome-user">
+                                Welcome back, <strong>{name}</strong>
+                            </p>
                             <h1 className="cust-hero-title">
                                 Aligned. Responsive.<br />
                                 <span className="cust-hero-accent">Built for Merchants.</span>
                             </h1>
-                            <p className="cust-welcome-user">
-                                Welcome back, <strong>{name}</strong>
-                            </p>
                         </div>
 
                         <div className="cust-hero-right">
@@ -114,10 +113,6 @@ function Custhome() {
 
                     {/* Quick Stat Pill Bar */}
                     <div className="cust-quick-bar">
-                        <div className="cust-stat-chip">
-                            <span className="chip-dot dot-active"></span>
-                            <span>Live System: <strong>All Payment Gateways Operational</strong></span>
-                        </div>
                         <div className="cust-stat-chip">
                             <span>Active Tickets: <strong>{ticketCount.open} Open</strong></span>
                         </div>

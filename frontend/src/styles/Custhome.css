@@ -65,14 +65,18 @@
 }
 
 .cust-welcome-user {
-  font-size: 14px;
-  color: var(--cust-text-muted, #8C8C94);
-  margin: 0;
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--cust-bronze, #A48374);
+  margin: 0 0 12px;
 }
 
 .cust-welcome-user strong {
   color: var(--cust-charcoal, #18181B);
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .cust-hero-right {
