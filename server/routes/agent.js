@@ -471,5 +471,40 @@ router.get("/performance", verifyToken, async (req, res) => {
         res.status(500).json({ error: "Failed to fetch performance metrics" });
     }
 });
+// ── GET /agent/recent-activity ────────────────────────────────────────────
+// Returns the 5 most recently active tickets assigned to this agent,
+// ordered by whichever of last_customer_reply_at or last_agent_reply_at is
+// most recent (falls back to created_at for tickets with no messages yet).
+router.get("/recent-activity", verifyToken, async (req, res) => {
+    if (req.role !== "agent") {
+        return res.status(403).json({ error: "Forbidden" });
+    }
+    const agent_id = req.customer_id;
+    try {
+        const result = await pool.query(
+            `SELECT
+                t.ticket_id,
+                t.title,
+                t.status,
+                t.priority,
+                t.category,
+                GREATEST(
+                    COALESCE(t.last_customer_reply_at, t.created_at),
+                    COALESCE(t.last_agent_reply_at, t.created_at)
+                ) AS last_activity_at,
+                u.name AS customer_name
+            FROM tickets t
+            LEFT JOIN users u ON t.customer_id = u.id
+            WHERE t.assigned_agent_id = $1
+            ORDER BY last_activity_at DESC
+            LIMIT 5`,
+            [agent_id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching recent activity:", err);
+        res.status(500).json({ error: "Failed to fetch recent activity" });
+    }
+});
 
-module.exports = router;
+module.exports = router;

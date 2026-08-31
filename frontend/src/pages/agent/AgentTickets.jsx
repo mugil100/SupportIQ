@@ -6,7 +6,7 @@ import "../../styles/AgentTickets.css";
 
 function AgentTickets() {
 
-    const [filter, setFilter] = useState("open");
+    const [filter, setFilter] = useState("");
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     
@@ -49,6 +49,7 @@ function AgentTickets() {
             <div className="agent-tpage">
                 <h2>My Tickets</h2>
                 <div className="ticket-filters">
+                    <button className={filter === "" ? "active-filter" : ""} onClick={() => { setFilter(""); setPage(1); }}>All</button>
                     <button className={filter === "open" ? "active-filter" : ""} onClick={() => { setFilter("open"); setPage(1); }}>Open</button>
                     <button className={filter === "inprogress" ? "active-filter" : ""} onClick={() => { setFilter("inprogress"); setPage(1); }}>In Progress</button>
                     <button className={filter === "resolved" ? "active-filter" : ""} onClick={() => { setFilter("resolved"); setPage(1); }}>Resolved</button>
