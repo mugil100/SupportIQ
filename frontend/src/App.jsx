@@ -36,27 +36,27 @@ function App() {
             <Route path="/agent" element={<LS_Reps />} />
             <Route path="/forgot-pwd" element={<ForgotPwd />} />
             <Route path="/chome" element={
-                <PrivateRoute>
+                <PrivateRoute role='customer'>
                     <Custhome />         // customer home page
                 </PrivateRoute>
             } />
             <Route path="/mytickets" element={
-                <PrivateRoute>
+                <PrivateRoute role='customer'>
                     <Mytickets />        //  customer tickets page
                 </PrivateRoute>
             } />
             <Route path="/raiseticket" element={
-                <PrivateRoute>
+                <PrivateRoute role='customer'>
                     <Raiseticket />      //  customer raise tickets page
                 </PrivateRoute>
             } />
             <Route path="/ticket/:id" element={
-                <PrivateRoute>
+                <PrivateRoute role='customer'>
                     <ViewTicket />       //  customer view tickets page
                 </PrivateRoute>
             } />
             <Route path="/cnoti" element={
-                <PrivateRoute>
+                <PrivateRoute role='customer'>
                     <CustNoti />
                 </PrivateRoute>
             } />
