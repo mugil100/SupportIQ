@@ -17,6 +17,20 @@
   --cust-text-sub:     #52525B;
   --cust-text-muted:   #8C8C94;
 
+  /* Agent Ocean & Azure Aesthetic Tokens (Reference UI) */
+  --agent-canvas:        #F8FAFC;
+  --agent-surface:       #FFFFFF;
+  --agent-deep-navy:     #061325;
+  --agent-cobalt:        #0B2E59;
+  --agent-azure:         #0284C7;
+  --agent-blue-glow:     #38BDF8;
+  --agent-pill-dark:     #0B0F19;
+  --agent-text-main:     #0F172A;
+  --agent-text-sub:      #475569;
+  --agent-text-muted:    #94A3B8;
+  --agent-border:        #E2E8F0;
+  --agent-border-subtle: rgba(226, 232, 240, 0.8);
+
   /* Brand */
   --accent:         #8E9CA8;
   --accent-hover:   #7A8996;
