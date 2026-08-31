@@ -1,30 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 /* ─── Design Tokens ─── */
 :root {
+  /* Customer Editorial Warm Palette (Reference UI) */
+  --cust-canvas:       #F5EFEB;
+  --cust-card:         #FFFFFF;
+  --cust-slate:        #8E9CA8;
+  --cust-slate-hover:  #7C8B97;
+  --cust-slate-light:  rgba(142, 156, 168, 0.15);
+  --cust-bronze:       #A48374;
+  --cust-charcoal:     #18181B;
+  --cust-pill-dark:    #27272A;
+  --cust-pill-hover:   #18181B;
+  --cust-border:       #ECE6DC;
+  --cust-divider:      #EBE4DA;
+  --cust-text-sub:     #52525B;
+  --cust-text-muted:   #8C8C94;
+
   /* Brand */
-  --accent:         #5e6ad2;
-  --accent-hover:   #4855c4;
-  --accent-soft:    rgba(94, 106, 210, 0.10);
-  --accent-ring:    rgba(94, 106, 210, 0.25);
+  --accent:         #8E9CA8;
+  --accent-hover:   #7A8996;
+  --accent-soft:    rgba(142, 156, 168, 0.15);
+  --accent-ring:    rgba(142, 156, 168, 0.35);
 
   /* Backgrounds */
-  --bg-page:        #f7f8fc;
+  --bg-page:        #F5EFEB;
   --bg-surface:     #ffffff;
-  --bg-subtle:      #f1f3f9;
+  --bg-subtle:      #f4efe8;
   --bg-dark:        #0d0d12;
   --bg-dark-surface:#13131c;
   --bg-dark-hover:  #1a1a28;
 
   /* Text */
-  --text-primary:   #1a1f36;
-  --text-secondary: #6b7280;
-  --text-muted:     #9ca3af;
+  --text-primary:   #18181B;
+  --text-secondary: #52525B;
+  --text-muted:     #8C8C94;
   --text-on-dark:   #e8eaf6;
   --text-on-dark-2: rgba(232, 234, 246, 0.6);
 
   /* Borders */
-  --border:         #e5e7eb;
+  --border:         #ECE6DC;
   --border-dark:    rgba(255,255,255,0.08);
 
   /* Semantic */
@@ -42,13 +57,14 @@
   --radius-sm:  6px;
   --radius-md:  10px;
   --radius-lg:  14px;
-  --radius-xl:  18px;
-  --radius-pill:50px;
+  --radius-xl:  20px;
+  --radius-2xl: 26px;
+  --radius-pill:9999px;
 
   /* Shadow */
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
-  --shadow-lg:  0 12px 32px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03);
+  --shadow-lg:  0 14px 40px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.03);
 
   /* Transitions */
   --transition: 0.18s ease;
@@ -68,7 +84,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-page);
   color: var(--text-primary);
   min-height: 100vh;
@@ -83,6 +99,78 @@ a {
 button {
   font-family: inherit;
   cursor: pointer;
+}
+
+/* ─── Global Customer Button Utilities (Editorial Palette) ─── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--cust-pill-dark, #27272A);
+  color: #FFFFFF !important;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 22px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.1px;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: var(--cust-pill-hover, #18181B);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(39, 39, 42, 0.25);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FAF6F2;
+  color: var(--cust-charcoal, #18181B) !important;
+  border: 1px solid var(--cust-border, #ECE6DC);
+  border-radius: 9999px;
+  padding: 10px 22px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.1px;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: #F4EFEA;
+  border-color: #DDD6CA;
+  color: #000000 !important;
+}
+
+.btn-slate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--cust-slate, #8E9CA8);
+  color: #FFFFFF !important;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 22px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.1px;
+  text-decoration: none;
+}
+
+.btn-slate:hover {
+  background: var(--cust-slate-hover, #7C8B97);
+  box-shadow: 0 4px 14px rgba(142, 156, 168, 0.35);
 }
 
 input, textarea, select {

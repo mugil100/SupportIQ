@@ -1,130 +1,291 @@
-/* ─── Custhome — Intercom-style Customer Home ─── */
+/* ─── Custhome — Warm Editorial Aesthetic (Reference UI) ─── */
 
-/* ─── Body Wrapper ─── */
 .cust-body {
   min-height: 100vh;
-  background: var(--bg-page);
-  color: var(--text-primary);
+  background: var(--cust-canvas, #F5EFEB);
+  color: var(--cust-charcoal, #18181B);
   display: flex;
   flex-direction: column;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
-.root {
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* ─── Container ─── */
-.cust-container {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 28px 60px;
-}
-
-/* ─── Hero Welcome Banner ─── */
-.welcome {
-  background: linear-gradient(135deg, #5e6ad2 0%, #4855c4 50%, #3730a3 100%);
-  padding: 52px 40px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.welcome::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-.welcome h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-  position: relative;
-  z-index: 1;
-}
-
-.welcome h2 {
-  margin-top: 8px;
-  font-size: 16px;
-  font-weight: 400;
-  color: rgba(255,255,255,0.72);
-  position: relative;
-  z-index: 1;
-}
-
-/* ─── Actions Section ─── */
-.actions {
+/* ─── Canvas & Floating Card Frame ─── */
+.cust-main-canvas {
+  flex: 1;
+  padding: 24px 24px 48px;
   display: flex;
-  flex-direction: row;
   justify-content: center;
-  gap: 24px;
-  padding: 48px 0;
+  align-items: flex-start;
+}
+
+.cust-frame-card {
+  width: 100%;
+  max-width: 1180px;
+  background: var(--cust-card, #FFFFFF);
+  border: 1px solid var(--cust-border, #ECE6DC);
+  border-radius: var(--radius-2xl, 26px);
+  padding: 56px 64px;
+  box-shadow: 0 10px 36px rgba(24, 24, 27, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* ─── Top Hero Section ─── */
+.cust-hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: flex-end;
+}
+
+.cust-hero-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--cust-bronze, #A48374);
+  margin-bottom: 12px;
+}
+
+.cust-hero-title {
+  font-size: 2.85rem;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -1.2px;
+  color: var(--cust-charcoal, #18181B);
+  margin: 0 0 16px;
+}
+
+.cust-hero-accent {
+  color: var(--cust-bronze, #A48374);
+  font-weight: 400;
+  display: inline-block;
+}
+
+.cust-welcome-user {
+  font-size: 14px;
+  color: var(--cust-text-muted, #8C8C94);
+  margin: 0;
+}
+
+.cust-welcome-user strong {
+  color: var(--cust-charcoal, #18181B);
+  font-weight: 600;
+}
+
+.cust-hero-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.cust-hero-desc {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--cust-text-sub, #52525B);
+  margin: 0;
+  max-width: 440px;
+}
+
+/* ─── Dark Pill CTA Button ─── */
+.cust-hero-cta {
+  display: flex;
+  gap: 12px;
+}
+
+.cust-dark-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cust-pill-dark, #27272A);
+  color: #FFFFFF;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 9999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.1px;
+}
+
+.cust-dark-pill-btn:hover {
+  background: var(--cust-pill-hover, #18181B);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(39, 39, 42, 0.25);
+}
+
+.pill-arrow {
+  transition: transform 0.2s ease;
+}
+
+.cust-dark-pill-btn:hover .pill-arrow {
+  transform: translateX(3px);
+}
+
+/* ─── Interactive Action List (Direct reference to 01-04) ─── */
+.cust-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cust-list-item {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: transparent;
+  border-bottom: 1px solid var(--cust-divider, #EBE4DA);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cust-list-item:last-child {
+  border-bottom: none;
+}
+
+.cust-list-item:hover:not(.active-item) {
+  background: #FAF6F2;
+  border-radius: 14px;
+  transform: translateX(4px);
+}
+
+/* Highlighted / Active Row (Muted Slate Capsule) */
+.cust-list-item.active-item {
+  background: var(--cust-slate, #8E9CA8);
+  color: #FFFFFF;
+  border-bottom: none;
+  box-shadow: 0 6px 20px rgba(142, 156, 168, 0.35);
+  transform: scale(1.002);
+}
+
+.cust-item-num {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cust-text-muted, #8C8C94);
+  min-width: 28px;
+  letter-spacing: -0.2px;
+}
+
+.cust-list-item.active-item .cust-item-num {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.cust-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cust-item-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--cust-charcoal, #18181B);
+  letter-spacing: -0.2px;
+}
+
+.cust-list-item.active-item .cust-item-title {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.cust-item-desc {
+  font-size: 13px;
+  color: var(--cust-text-sub, #52525B);
+}
+
+.cust-list-item.active-item .cust-item-desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cust-item-arrow {
+  color: var(--cust-text-muted, #8C8C94);
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.cust-list-item.active-item .cust-item-arrow {
+  color: #FFFFFF;
+}
+
+.cust-list-item:hover .cust-item-arrow {
+  transform: translateX(4px);
+  color: var(--cust-charcoal, #18181B);
+}
+
+.cust-list-item.active-item:hover .cust-item-arrow {
+  color: #FFFFFF;
+}
+
+/* ─── Bottom Status Chip Bar ─── */
+.cust-quick-bar {
+  display: flex;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cust-divider, #EBE4DA);
   flex-wrap: wrap;
 }
 
-/* ─── Cards ─── */
-.card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  width: 340px;
-  padding: 36px 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: #5e6ad2;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s ease;
-}
-
-.card:hover::before { transform: scaleX(1); }
-
-.card:hover {
-  border-color: rgba(94,106,210,0.30);
-  box-shadow: 0 8px 28px rgba(94,106,210,0.12), var(--shadow-md);
-  transform: translateY(-4px);
-}
-
-.card h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-  letter-spacing: -0.3px;
-}
-
-.card p {
-  font-size: 13.5px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-}
-
-.card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  display: flex;
+.cust-stat-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  font-size: 20px;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #FAF6F2;
+  border: 1px solid var(--cust-border, #ECE6DC);
+  border-radius: 9999px;
+  font-size: 12.5px;
+  color: var(--cust-text-sub, #52525B);
+}
+
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dot-active {
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* ─── Responsive Layout ─── */
+@media (max-width: 900px) {
+  .cust-frame-card {
+    padding: 36px 28px;
+    gap: 36px;
+  }
+  .cust-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .cust-hero-title {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .cust-main-canvas {
+    padding: 12px 12px 36px;
+  }
+  .cust-frame-card {
+    padding: 28px 20px;
+    border-radius: 18px;
+    gap: 28px;
+  }
+  .cust-hero-title {
+    font-size: 1.85rem;
+  }
+  .cust-list-item {
+    gap: 16px;
+    padding: 16px 12px;
+  }
 }

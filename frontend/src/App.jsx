@@ -37,22 +37,22 @@ function App() {
             <Route path="/forgot-pwd" element={<ForgotPwd />} />
             <Route path="/chome" element={
                 <PrivateRoute role='customer'>
-                    <Custhome />         // customer home page
+                    <Custhome />
                 </PrivateRoute>
             } />
             <Route path="/mytickets" element={
                 <PrivateRoute role='customer'>
-                    <Mytickets />        //  customer tickets page
+                    <Mytickets />
                 </PrivateRoute>
             } />
             <Route path="/raiseticket" element={
                 <PrivateRoute role='customer'>
-                    <Raiseticket />      //  customer raise tickets page
+                    <Raiseticket />
                 </PrivateRoute>
             } />
             <Route path="/ticket/:id" element={
                 <PrivateRoute role='customer'>
-                    <ViewTicket />       //  customer view tickets page
+                    <ViewTicket />
                 </PrivateRoute>
             } />
             <Route path="/cnoti" element={
@@ -61,10 +61,10 @@ function App() {
                 </PrivateRoute>
             } />
 
-            //agent pages starts here
+            {/* Agent Routes */}
             <Route path="/agent/ahome" element={
                 <PrivateRoute role='agent'>
-                    <AgentHome />        //  agent home page
+                    <AgentHome />
                 </PrivateRoute>
             } />
             <Route path='/agent/agenttickets' element={

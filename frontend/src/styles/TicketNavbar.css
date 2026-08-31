@@ -1,57 +1,93 @@
-/* ─── TicketNavbar — Intercom-style Clean Top Bar ─── */
+/* ─── TicketNavbar — Warm Editorial Aesthetic ─── */
 
-.ticket-navbar {
+.ticket-navbar-wrapper {
   width: 100%;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: center;
+  background: var(--cust-canvas, #F5EFEB);
+  padding: 16px 24px 0;
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.ticket-nav {
-  width: 100%;
-  max-width: 1100px;
+.ticket-navbar {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: var(--cust-card, #FFFFFF);
+  border: 1px solid var(--cust-border, #ECE6DC);
+  border-radius: 9999px;
+  padding: 8px 18px 8px 24px;
   display: flex;
-  gap: 4px;
   align-items: center;
-  padding: 0 28px;
-  height: 56px;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(24, 24, 27, 0.04);
+  transition: box-shadow 0.2s ease;
 }
 
-/* Brand Logo area */
-.ticket-nav::before {
-  content: 'SupportIQ';
-  font-size: 15px;
-  font-weight: 700;
-  color: #5e6ad2;
+/* ─── Brand Logo ─── */
+.ticket-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cust-charcoal, #18181B);
   letter-spacing: -0.4px;
-  margin-right: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ticket-nav-brand strong {
+  font-weight: 800;
+  color: var(--cust-bronze, #A48374);
+}
+
+.brand-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cust-slate, #8E9CA8);
+}
+
+.brand-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #F4EFEA;
+  color: #71717A;
+  margin-left: 4px;
+}
+
+/* ─── Nav Links ─── */
+.ticket-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .nav-item {
-  color: var(--text-secondary);
+  color: var(--cust-text-sub, #52525B);
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  padding: 6px 14px;
-  border-radius: 7px;
-  transition: color var(--transition), background var(--transition);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
   letter-spacing: -0.1px;
 }
 
 .nav-item:hover {
-  background: var(--bg-subtle);
-  color: var(--text-primary);
+  background: #F4EFEA;
+  color: var(--cust-charcoal, #18181B);
 }
 
 .nav-item.active {
-  background: rgba(94,106,210,0.08);
-  color: #5e6ad2;
+  background: var(--cust-slate, #8E9CA8);
+  color: #FFFFFF;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(142, 156, 168, 0.35);
 }
 
 /* ─── Notification Badge ─── */
@@ -70,37 +106,56 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff;
+  background: #EF4444;
+  color: #FFFFFF;
   font-size: 10.5px;
   font-weight: 700;
   line-height: 1;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-  animation: cust-badge-pulse 2s ease-in-out infinite;
 }
 
-@keyframes cust-badge-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); }
-  50% { box-shadow: 0 0 14px rgba(239,68,68,0.65); }
+.nav-item.active .cust-noti-badge {
+  background: #FFFFFF;
+  color: var(--cust-charcoal, #18181B);
 }
 
-/* ─── Logout Button ─── */
+/* ─── Logout / Actions ─── */
+.ticket-nav-actions {
+  display: flex;
+  align-items: center;
+}
+
 .cust-logout-btn {
-  margin-left: 8px;
-  padding: 6px 14px;
+  padding: 8px 16px;
   background: transparent;
-  border: 1px solid #e2e8f0;
-  border-radius: 7px;
-  color: #64748b;
-  font-size: 13.5px;
+  border: 1px solid var(--cust-border, #ECE6DC);
+  border-radius: 9999px;
+  color: var(--cust-text-sub, #52525B);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  letter-spacing: -0.1px;
 }
 
 .cust-logout-btn:hover {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+  color: #DC2626;
+}
+
+@media (max-width: 768px) {
+  .ticket-navbar-wrapper {
+    padding: 12px 16px 0;
+  }
+  .ticket-navbar {
+    border-radius: 16px;
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .ticket-nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-around;
+    overflow-x: auto;
+  }
 }

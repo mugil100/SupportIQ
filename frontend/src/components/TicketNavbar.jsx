@@ -39,20 +39,36 @@ function TicketNavbar(){
     }
 
     return(
-        <div className="ticket-navbar">
+        <header className="ticket-navbar-wrapper">
             <NotificationToast onUnreadChange={setUnread} />
-            <nav className="ticket-nav">
-                <Link to="/chome" className="nav-item">Home</Link>
-                <Link to="/raiseticket" className="nav-item">Raise a Ticket</Link>
-                <Link to="/mytickets" className="nav-item">My Tickets</Link>
-                <Link to="/cnoti" className="nav-item noti-link">
-                    Notifications
-                    {unread > 0 && <span className="cust-noti-badge">{unread > 99 ? "99+" : unread}</span>}
-                </Link>
-                <Link to="/help" className="nav-item">Help</Link>
-                <button className="cust-logout-btn" onClick={logout}>Logout</button>
-            </nav>
-        </div>
+            <div className="ticket-navbar">
+                <div className="ticket-nav-brand" onClick={() => navigate("/chome")}>
+                    <span className="brand-dot"></span>
+                    Support<strong>IQ</strong>
+                    <span className="brand-badge">Merchant</span>
+                </div>
+                <nav className="ticket-nav">
+                    <Link to="/chome" className={`nav-item ${location.pathname === "/chome" ? "active" : ""}`}>
+                        Home
+                    </Link>
+                    <Link to="/raiseticket" className={`nav-item ${location.pathname === "/raiseticket" ? "active" : ""}`}>
+                        Raise a Ticket
+                    </Link>
+                    <Link to="/mytickets" className={`nav-item ${location.pathname.startsWith("/mytickets") ? "active" : ""}`}>
+                        My Tickets
+                    </Link>
+                    <Link to="/cnoti" className={`nav-item noti-link ${location.pathname === "/cnoti" ? "active" : ""}`}>
+                        Notifications
+                        {unread > 0 && <span className="cust-noti-badge">{unread > 99 ? "99+" : unread}</span>}
+                    </Link>
+                </nav>
+                <div className="ticket-nav-actions">
+                    <button className="cust-logout-btn" onClick={logout} title="Sign out">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
     );
 }
 export default TicketNavbar;

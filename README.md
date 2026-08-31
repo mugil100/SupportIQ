@@ -121,7 +121,7 @@ Create tables and database schemas by running the SQL scripts in `server/queries
    ```bash
    npm install
    ```
-3. Configure your `.env` file (see `.env.example` inside the `server` directory) with database credentials, `JWT_SECRET`, `RESEND_API_KEY`, and `GEMINI_API_KEY`.
+3. Configure your `.env` file (see `.env.example` inside the `server` directory) with database credentials, `JWT_SECRET`, `RESEND_API_KEY`, `GROQ_API_KEY`, and AWS S3 credentials.
 4. Start the server:
    ```bash
    node server.js
@@ -136,7 +136,11 @@ Create tables and database schemas by running the SQL scripts in `server/queries
    ```bash
    npm install
    ```
-3. Start the Vite development server:
+3. Configure your `.env` file (see `.env.example` inside the `frontend` directory):
+   ```env
+   VITE_API_URL=http://localhost:5000
+   ```
+4. Start the Vite development server:
    ```bash
    npm run dev
    ```
