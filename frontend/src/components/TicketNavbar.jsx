@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/TicketNavbar.css";
 import NotificationToast from "./NotificationToast";
 import { requestNotificationPermission } from "../utils/notificationHelper";
@@ -7,6 +7,7 @@ import axios from "../api/axios";
 
 function TicketNavbar(){
     const location = useLocation();
+    const navigate = useNavigate();
     const [unread, setUnread] = useState(0);
 
     // Fetch initial unread count
@@ -23,6 +24,20 @@ function TicketNavbar(){
         }
     }, [location.pathname]);
 
+    async function logout() {
+        try {
+            await axios.post("/logout");
+        } catch (_err) {
+            // Proceed with local cleanup even if server call fails
+        } finally {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user_id");
+            localStorage.removeItem("role");
+            localStorage.removeItem("name");
+            navigate("/");
+        }
+    }
+
     return(
         <div className="ticket-navbar">
             <NotificationToast onUnreadChange={setUnread} />
@@ -35,6 +50,7 @@ function TicketNavbar(){
                     {unread > 0 && <span className="cust-noti-badge">{unread > 99 ? "99+" : unread}</span>}
                 </Link>
                 <Link to="/help" className="nav-item">Help</Link>
+                <button className="cust-logout-btn" onClick={logout}>Logout</button>
             </nav>
         </div>
     );
