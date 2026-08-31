@@ -242,6 +242,25 @@
   margin: 0;
 }
 
+.noti-card-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.noti-view-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0284C7;
+  transition: transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.agent-noti-card:hover .noti-view-link {
+  transform: translateX(3px);
+}
+
 .agent-read-pill {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;

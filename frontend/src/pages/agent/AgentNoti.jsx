@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
 import Footer from "../../components/Footer";
@@ -8,6 +9,7 @@ export default function AgentNoti() {
     const [noti, setNoti] = useState([]);
     const [view, setView] = useState("unread"); // filter state
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchNotifications = async () => {
@@ -32,6 +34,15 @@ export default function AgentNoti() {
         } catch(error) {
             console.error("Error marking notification as read", error);
         } 
+    }
+
+    async function handleCardClick(item) {
+        if (view === "unread") {
+            handleRead(item.notification_id);
+        }
+        if (item.ticket_id) {
+            navigate(`/agent/agenttickets/${item.ticket_id}`);
+        }
     }
 
     async function handleClick(e) {
@@ -135,7 +146,12 @@ export default function AgentNoti() {
                                                item.notification_type?.toLowerCase() === "high" ||
                                                item.notification_type?.toLowerCase() === "escalated";
                                 return (
-                                    <div key={item.notification_id} className={`agent-noti-card ${isHigh ? 'is-warning' : ''}`}>
+                                    <div 
+                                        key={item.notification_id} 
+                                        className={`agent-noti-card ${isHigh ? 'is-warning' : ''}`}
+                                        onClick={() => handleCardClick(item)}
+                                        style={{ cursor: item.ticket_id ? 'pointer' : 'default' }}
+                                    >
                                         <div className="noti-card-left">
                                             <div className={`noti-icon-badge ${isHigh ? 'badge-high' : 'badge-normal'}`}>
                                                 {isHigh ? (
@@ -163,16 +179,22 @@ export default function AgentNoti() {
                                             </div>
                                         </div>
 
-                                        {view === "unread" && (
-                                            <div className="noti-card-action">
+                                        <div className="noti-card-action">
+                                            {item.ticket_id && (
+                                                <span className="noti-view-link">View Ticket →</span>
+                                            )}
+                                            {view === "unread" && (
                                                 <button 
                                                     className="agent-read-pill"
-                                                    onClick={() => handleRead(item.notification_id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleRead(item.notification_id);
+                                                    }}
                                                 >
                                                     Mark as Read
                                                 </button>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}
