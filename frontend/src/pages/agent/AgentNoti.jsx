@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
-import AgentNavbar from "../agent/AgentNavbar";
+import AgentNavbar from "./AgentNavbar";
+import Footer from "../../components/Footer";
 import "../../styles/AgentNoti.css";
 
 export default function AgentNoti() {
     const [noti, setNoti] = useState([]);
     const [view, setView] = useState("unread"); // filter state
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchNotifications = async () => {
+            setLoading(true);
             try {
-                // Fetch unread notifications initially
                 const res = await axios.post("/agent/noti/filter", { state: "unread" });
                 setNoti(res.data);
-                console.log("Unread notifications:", res.data);
             } catch (error) {
                 console.error("Error fetching notifications", error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -23,103 +26,162 @@ export default function AgentNoti() {
     }, []); 
 
     async function handleRead(id) {
-        try{
+        try {
             await axios.post(`agent/noti/${id}`);
             setNoti(prevNoti => prevNoti.filter(item => item.notification_id !== id));
-        }catch(error){
-            console.error("Error marking the notification as read", error);
+        } catch(error) {
+            console.error("Error marking notification as read", error);
         } 
     }
 
-    async function handleClick(e){
+    async function handleClick(e) {
         e.preventDefault();
-        const {name} = e.target;
+        const { name } = e.currentTarget;
         setView(name);
+        setLoading(true);
         try {
-            const res = await axios.post("/agent/noti/filter", { "state": name });
+            const res = await axios.post("/agent/noti/filter", { state: name });
             setNoti(res.data);
         } catch (error) {
             console.error("Error filtering notifications", error);
+        } finally {
+            setLoading(false);
         }
     }
 
-    async function handleAllRead(e){
+    async function handleAllRead(e) {
         e.preventDefault();
-        try{
+        try {
             await axios.post("/agent/noti/mark-all");
             setNoti([]);
-            console.log("All notifications marked as read");
-        }catch(error){
+        } catch(error) {
             console.error("Error marking all as read", error);
         }
     }
 
     return (
-        <div>
-            <AgentNavbar />
-            <div className="agent-noti-page">
-                <h1>Notifications</h1>
+        <div className="agent-page-root">
+            {/* Top Navigation */}
+            <div className="agent-header-wrapper">
+                <AgentNavbar />
+            </div>
 
-                <div className="noti-sort">
-                    <button 
-                        className={`noti-filter-btn ${view === "unread" ? "active" : ""}`} 
-                        onClick={handleClick} 
-                        name="unread"
-                    >
-                        Unread
-                    </button>
-                    <button 
-                        className={`noti-filter-btn ${view === "read" ? "active" : ""}`} 
-                        onClick={handleClick} 
-                        name="read"
-                    >
-                        Read
-                    </button>
-
-                    {view === "unread" && (
-                        <button onClick={handleAllRead}
-                        className={`noti-filter-btn ${view === "all" ? "active" : ""}`}
-                        name="all"
-                        >
-                            Mark all as Read
-                        </button>
-                    )}
+            <main className="agent-subpage-container">
+                {/* Page Header */}
+                <div className="agent-subpage-header">
+                    <div className="agent-subpage-tag">
+                        <span className="subpage-tag-dot"></span>
+                        <span>03 REAL-TIME DISPATCH</span>
+                    </div>
+                    <h1 className="agent-subpage-title">Notifications</h1>
+                    <p className="agent-subpage-desc">
+                        Live system alerts, escalation notices, customer ticket responses, and dispatch logs.
+                    </p>
                 </div>
 
-                {noti.length === 0 ? (
-                    <div className="noti-empty">
-                        <p>No {view} notifications 🎉</p>
+                {/* Main Card Frame */}
+                <div className="agent-card-frame">
+                    
+                    {/* Controls Row */}
+                    <div className="agent-noti-toolbar">
+                        <div className="agent-pill-filters">
+                            <button 
+                                className={`agent-filter-pill ${view === "unread" ? "active" : ""}`} 
+                                onClick={handleClick} 
+                                name="unread"
+                            >
+                                Unread Alerts
+                            </button>
+                            <button 
+                                className={`agent-filter-pill ${view === "read" ? "active" : ""}`} 
+                                onClick={handleClick} 
+                                name="read"
+                            >
+                                Read History
+                            </button>
+                        </div>
+
+                        {view === "unread" && noti.length > 0 && (
+                            <button 
+                                onClick={handleAllRead}
+                                className="agent-mark-all-btn"
+                            >
+                                Mark all as Read
+                            </button>
+                        )}
                     </div>
-                ) : (
-                    <ul className="noti-list">
-                        {noti.map((item, index) => {
-                            const isWarning = item.notification_type?.toLowerCase() === "warning" || item.notification_type?.toLowerCase() === "high";
-                            return (
-                                <li key={index} className="noti-item">
-                                    <div className="noti-content">
-                                        <div className="noti-header">
-                                            <span className={`noti-badge ${isWarning ? 'warning' : 'info'}`}>
-                                                {item.notification_type || "Notification"}
-                                            </span>
+
+                    {/* Notification List */}
+                    {loading ? (
+                        <div className="agent-noti-loading">
+                            <div className="agent-spinner"></div>
+                            <p>Loading alerts...</p>
+                        </div>
+                    ) : noti.length === 0 ? (
+                        <div className="agent-noti-empty-state">
+                            <div className="empty-noti-icon">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                            </div>
+                            <h3>No {view} notifications</h3>
+                            <p>You're completely caught up with all dispatch logs and customer alerts.</p>
+                        </div>
+                    ) : (
+                        <div className="agent-noti-list">
+                            {noti.map((item) => {
+                                const isHigh = item.notification_type?.toLowerCase() === "warning" || 
+                                               item.notification_type?.toLowerCase() === "high" ||
+                                               item.notification_type?.toLowerCase() === "escalated";
+                                return (
+                                    <div key={item.notification_id} className={`agent-noti-card ${isHigh ? 'is-warning' : ''}`}>
+                                        <div className="noti-card-left">
+                                            <div className={`noti-icon-badge ${isHigh ? 'badge-high' : 'badge-normal'}`}>
+                                                {isHigh ? (
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                                    </svg>
+                                                ) : (
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            <div className="noti-card-body">
+                                                <div className="noti-type-row">
+                                                    <span className={`noti-type-tag ${isHigh ? 'tag-warning' : 'tag-info'}`}>
+                                                        {item.notification_type || "Dispatch"}
+                                                    </span>
+                                                    <span className="noti-timestamp">
+                                                        {new Date(item.created_at).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                <p className="noti-card-message">{item.message_content}</p>
+                                            </div>
                                         </div>
-                                        <p className="noti-text">{item.message_content}</p>
+
+                                        {view === "unread" && (
+                                            <div className="noti-card-action">
+                                                <button 
+                                                    className="agent-read-pill"
+                                                    onClick={() => handleRead(item.notification_id)}
+                                                >
+                                                    Mark as Read
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="noti-meta">
-                                        <span className="noti-time">
-                                            {new Date(item.created_at).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    {view === "unread" && (
-                                        <div className="mark">
-                                            <button onClick={() => handleRead(item.notification_id)}>Mark as Read</button>
-                                        </div>
-                                    )}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                )}
-            </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </main>
+
+            <Footer />
         </div>
     );
 }

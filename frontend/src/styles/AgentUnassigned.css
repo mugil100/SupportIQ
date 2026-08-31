@@ -1,121 +1,332 @@
-/* ─── AgentUnassigned — Linear-style Unassigned Queue ─── */
+/* ─── AgentUnassigned — Clean Modern Queue ─── */
 
-.unassigned-page {
-  padding: 36px 36px;
-  margin-left: 228px;
+.agent-page-root {
   min-height: 100vh;
-  background: var(--bg-dark);
+  background: #F8FAFC;
+  color: #0F172A;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Subpage Header */
+.agent-header-wrapper {
+  position: relative;
+  background: 
+    linear-gradient(180deg, rgba(8, 26, 52, 0.7) 0%, rgba(8, 26, 52, 0.95) 100%),
+    url('/agent_hero_bg.jpg') center right / cover no-repeat;
+  height: 90px;
+  width: 100%;
+}
+
+.agent-header-wrapper .agent-top-navbar {
+  position: relative;
+  padding: 18px 44px;
+}
+
+/* Subpage Container */
+.agent-subpage-container {
+  max-width: 1240px;
+  width: 100%;
+  margin: 32px auto 60px;
+  padding: 0 24px;
   box-sizing: border-box;
+  flex: 1;
 }
 
-/* ─── Page Heading ─── */
-.unassigned-page h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-on-dark);
+.agent-subpage-header {
   margin-bottom: 24px;
-  letter-spacing: -0.5px;
 }
 
-/* ─── Table Container ─── */
-.unassigned-table {
-  background: var(--bg-dark-surface);
-  border: 1px solid var(--border-dark);
-  border-radius: 12px;
-  overflow: hidden;
+.agent-subpage-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #0284C7;
+  margin-bottom: 8px;
 }
 
-.unassigned-table table {
+.subpage-tag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0284C7;
+}
+
+.agent-subpage-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.8px;
+  margin: 0 0 6px;
+}
+
+.agent-subpage-desc {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+}
+
+/* Main Card Frame */
+.agent-card-frame {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
+  padding: 32px 36px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.03);
+}
+
+/* Filter Toolbar */
+.agent-filter-toolbar {
+  margin-bottom: 24px;
+}
+
+.agent-search-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.agent-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+  align-items: center;
+}
+
+.agent-search-input-wrap svg {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.agent-search-input-wrap input {
+  width: 100%;
+  padding: 9px 14px 9px 38px;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #0F172A;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.agent-search-input-wrap input:focus {
+  background: #FFFFFF;
+  border-color: #0284C7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.agent-category-select {
+  padding: 9px 16px;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #0F172A;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.agent-category-select:focus {
+  background: #FFFFFF;
+  border-color: #0284C7;
+}
+
+/* Table */
+.agent-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+}
+
+.agent-data-table {
   width: 100%;
   border-collapse: collapse;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: #FFFFFF;
 }
 
-/* ─── Table Head ─── */
-.unassigned-table thead {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid var(--border-dark);
-}
-
-.unassigned-table thead th {
-  padding: 12px 18px;
+.agent-data-table th {
+  padding: 14px 18px;
+  background: #F8FAFC;
+  color: #475569;
   text-align: left;
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-on-dark-2);
-  background: transparent;
-  border: none;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid #E2E8F0;
 }
 
-/* ─── Table Body ─── */
-.unassigned-table tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  transition: background var(--transition);
-  cursor: default;
-  background: transparent;
-}
-
-.unassigned-table tbody tr:last-child { border-bottom: none; }
-
-.unassigned-table tbody tr:hover {
-  background: var(--accent-soft);
-}
-
-.unassigned-table tbody td {
-  padding: 13px 18px;
+.agent-data-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #F1F5F9;
   font-size: 13.5px;
-  color: var(--text-on-dark);
-  background: transparent;
-  border: none;
+  color: #475569;
 }
 
-/* Ticket ID column */
-.unassigned-table tbody td:first-child {
-  font-weight: 600;
+.agent-data-table tbody tr {
+  transition: all 0.15s ease;
+}
+
+.agent-data-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.agent-data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badges */
+.agent-id-badge {
   font-size: 12px;
-  color: rgba(165, 180, 252, 0.85); /* light indigo matching main palette */
+  font-weight: 700;
+  color: #0284C7;
+  background: #E0F2FE;
+  padding: 3px 8px;
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
 }
 
-.unassigned-table tbody tr:hover td { color: #ffffff; }
+.agent-ticket-title-text {
+  font-weight: 600;
+  color: #0F172A;
+}
 
-/* Status column */
-.unassigned-table tbody td:nth-child(5) {
-  font-weight: 500;
+.agent-category-badge {
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+.agent-date-text {
   font-size: 12px;
+  color: #94A3B8;
+}
+
+.agent-status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
   text-transform: capitalize;
-  letter-spacing: 0.3px;
-  color: var(--warning); /* Using semantic warning color from the main palette */
 }
 
-/* ─── Assign Button (within table) ─── */
-.unassigned-table tbody td button {
-  padding: 6px 14px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-ring);
-  border-radius: var(--radius-sm);
-  color: #a5b4fc;
+.status-open {
+  background: #E0F2FE;
+  color: #0284C7;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.status-progress {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.status-resolved {
+  background: #D1FAE5;
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.status-closed {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+}
+
+/* Claim Button */
+.agent-claim-btn {
+  background: #0284C7;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 7px 16px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
 }
 
-.unassigned-table tbody td button:hover {
-  background: rgba(94, 106, 210, 0.25);
-  border-color: rgba(94, 106, 210, 0.5);
-  color: #ffffff;
+.agent-claim-btn:hover:not(:disabled) {
+  background: #0369A1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
 }
 
-/* ─── Empty State ─── */
-.unassigned-empty {
+.agent-claim-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.agent-empty-table-cell {
+  padding: 48px 20px;
   text-align: center;
-  padding: 56px 20px;
-  color: var(--text-on-dark-2);
-  font-size: 14px;
-  letter-spacing: 0.1px;
+}
+
+.empty-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #64748B;
+  font-size: 13.5px;
+}
+
+.empty-state-box .empty-icon {
+  font-size: 32px;
+}
+
+/* Pagination */
+.agent-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.agent-page-btn {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.agent-page-btn:hover:not(:disabled) {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.agent-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.agent-page-info {
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+@media (max-width: 768px) {
+  .agent-card-frame {
+    padding: 20px 16px;
+  }
 }

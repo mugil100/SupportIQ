@@ -220,14 +220,14 @@ router.get(`/agenttickets/:id`, verifyToken, async (req, res) => {
 });
 
 router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
-    if (req.role !== "agent") {
+    if (req.role !== "agent" && req.role !== "manager" && req.role !== "admin") {
         return res.status(403).json({ error: "Forbidden" });
     }
     try {
         const id = req.params.id;
 
         const statusCheck = await pool.query(
-            `SELECT status FROM tickets WHERE ticket_id = $1`, [id]
+            `SELECT status, assigned_agent_id FROM tickets WHERE ticket_id = $1`, [id]
         );
         if (statusCheck.rows.length === 0) {
             return res.status(404).json({ error: "Ticket not found" });
@@ -237,14 +237,28 @@ router.post(`/agenttickets/:id/resolved`, verifyToken, async (req, res) => {
         }
 
         const agentId = req.customer_id;
+        let updateResult;
 
-        const updateResult = await pool.query(
-            `update tickets set status = $1, resolved_at = NOW() where ticket_id = $2 AND assigned_agent_id = $3 RETURNING *`, 
-            ['Resolved', id, agentId]
-        );
+        if (req.role === "manager" || req.role === "admin") {
+            updateResult = await pool.query(
+                `UPDATE tickets SET status = $1, resolved_at = NOW() WHERE ticket_id = $2 RETURNING *`, 
+                ['Resolved', id]
+            );
+        } else {
+            // If ticket is unassigned, auto-assign to resolving agent, or verify it is assigned to this agent
+            updateResult = await pool.query(
+                `UPDATE tickets 
+                 SET status = $1, 
+                     resolved_at = NOW(),
+                     assigned_agent_id = COALESCE(assigned_agent_id, $3)
+                 WHERE ticket_id = $2 AND (assigned_agent_id = $3 OR assigned_agent_id IS NULL) 
+                 RETURNING *`, 
+                ['Resolved', id, agentId]
+            );
+        }
 
         if (updateResult.rows.length === 0) {
-             return res.status(403).json({ error: "Cannot resolve ticket. It may belong to another agent or not exist." });
+             return res.status(403).json({ error: "Cannot resolve ticket. It is assigned to another agent." });
         }
 
         // TICKET_RESOLVED: notify the customer who owns this ticket

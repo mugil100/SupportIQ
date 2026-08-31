@@ -2,10 +2,23 @@ import React, { useState, useEffect } from "react";
 import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
 import { useNavigate } from "react-router-dom";
+import Footer from "../../components/Footer";
 import "../../styles/AgentTickets.css";
 
-function AgentTickets() {
+const STATUS_CLASSES = {
+    "Open": "status-open",
+    "In Progress": "status-progress",
+    "Resolved": "status-resolved",
+    "Closed": "status-closed",
+};
 
+const PRIORITY_CLASSES = {
+    "High": "priority-high",
+    "Medium": "priority-medium",
+    "Low": "priority-low",
+};
+
+function AgentTickets() {
     const [filter, setFilter] = useState("");
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -39,91 +52,160 @@ function AgentTickets() {
     }, [filter, page, limit, debouncedSearch, category]);
 
     function handleClick(ticket_id) {
-        console.log(ticket_id);
         navigate(`/agent/agenttickets/${ticket_id}`);
     }
 
     return (
-        <>
-            <AgentNavbar />
-            <div className="agent-tpage">
-                <h2>My Tickets</h2>
-                <div className="ticket-filters">
-                    <button className={filter === "" ? "active-filter" : ""} onClick={() => { setFilter(""); setPage(1); }}>All</button>
-                    <button className={filter === "open" ? "active-filter" : ""} onClick={() => { setFilter("open"); setPage(1); }}>Open</button>
-                    <button className={filter === "inprogress" ? "active-filter" : ""} onClick={() => { setFilter("inprogress"); setPage(1); }}>In Progress</button>
-                    <button className={filter === "resolved" ? "active-filter" : ""} onClick={() => { setFilter("resolved"); setPage(1); }}>Resolved</button>
-                    <button className={filter === "closed" ? "active-filter" : ""} onClick={() => { setFilter("closed"); setPage(1); }}>Closed</button>
+        <div className="agent-page-root">
+            {/* Top Navigation */}
+            <div className="agent-header-wrapper">
+                <AgentNavbar />
+            </div>
+
+            <main className="agent-subpage-container">
+                {/* Page Header */}
+                <div className="agent-subpage-header">
+                    <div className="agent-subpage-tag">
+                        <span className="subpage-tag-dot"></span>
+                        <span>01 WORKSTATION QUEUE</span>
+                    </div>
+                    <h1 className="agent-subpage-title">My Tickets</h1>
+                    <p className="agent-subpage-desc">
+                        Review, triage, and resolve all support cases and merchant inquiries assigned directly to you.
+                    </p>
                 </div>
 
-                <div className="ticket-controls" style={{ display: 'flex', gap: '10px', margin: '20px 0' }}>
-                    <input 
-                        type="text" 
-                        placeholder="Search tickets..." 
-                        value={search} 
-                        onChange={e => setSearch(e.target.value)} 
-                        style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', flex: 1, color: 'black' }}
-                    />
-                    <select value={category} onChange={e => {setCategory(e.target.value); setPage(1);}} style={{ padding: '8px', borderRadius: '4px', color: 'black' }}>
-                        <option value="">All Categories</option>
-                        <option value="Billing & Invoicing">Billing & Invoicing</option>
-                        <option value="API & Integration">API & Integration</option>
-                        <option value="Onboarding & KYC">Onboarding & KYC</option>
-                        <option value="Transaction Disputes">Transaction Disputes</option>
-                        <option value="Account & Compliance">Account & Compliance</option>
-                    </select>
-                </div>
+                {/* Main Card Frame */}
+                <div className="agent-card-frame">
+                    
+                    {/* Filter Pills & Controls Row */}
+                    <div className="agent-filter-toolbar">
+                        <div className="agent-pill-filters">
+                            <button className={`agent-filter-pill ${filter === "" ? "active" : ""}`} onClick={() => { setFilter(""); setPage(1); }}>All</button>
+                            <button className={`agent-filter-pill ${filter === "open" ? "active" : ""}`} onClick={() => { setFilter("open"); setPage(1); }}>Open</button>
+                            <button className={`agent-filter-pill ${filter === "inprogress" ? "active" : ""}`} onClick={() => { setFilter("inprogress"); setPage(1); }}>In Progress</button>
+                            <button className={`agent-filter-pill ${filter === "resolved" ? "active" : ""}`} onClick={() => { setFilter("resolved"); setPage(1); }}>Resolved</button>
+                            <button className={`agent-filter-pill ${filter === "closed" ? "active" : ""}`} onClick={() => { setFilter("closed"); setPage(1); }}>Closed</button>
+                        </div>
 
+                        <div className="agent-search-controls">
+                            <div className="agent-search-input-wrap">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search by ID or title..." 
+                                    value={search} 
+                                    onChange={e => setSearch(e.target.value)} 
+                                />
+                            </div>
 
-                <div className="a-ticket-table">
-                    <table className="ticket-table">
-                        <thead>
-                            <tr>
-                                <th>Ticket ID</th>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Created At</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                Array.from({ length: 5 }).map((_, idx) => (
-                                    <tr key={`skeleton-${idx}`}>
-                                        <td colSpan="5" style={{ padding: '8px' }}>
-                                            <div className="skeleton skeleton-row" style={{ height: '32px', margin: 0 }}></div>
+                            <select 
+                                className="agent-category-select"
+                                value={category} 
+                                onChange={e => { setCategory(e.target.value); setPage(1); }}
+                            >
+                                <option value="">All Categories</option>
+                                <option value="Billing & Invoicing">Billing & Invoicing</option>
+                                <option value="API & Integration">API & Integration</option>
+                                <option value="Onboarding & KYC">Onboarding & KYC</option>
+                                <option value="Transaction Disputes">Transaction Disputes</option>
+                                <option value="Account & Compliance">Account & Compliance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Table View */}
+                    <div className="agent-table-wrapper">
+                        <table className="agent-data-table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    Array.from({ length: 5 }).map((_, idx) => (
+                                        <tr key={`skeleton-${idx}`}>
+                                            <td colSpan="6" style={{ padding: '14px 20px' }}>
+                                                <div className="skeleton skeleton-row" style={{ height: '36px', margin: 0 }}></div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : tickets.length > 0 ? (
+                                    tickets.map((t) => (
+                                        <tr key={t.ticket_id} onClick={() => handleClick(t.ticket_id)}>
+                                            <td>
+                                                <span className="agent-id-badge">#{t.ticket_id}</span>
+                                            </td>
+                                            <td>
+                                                <span className="agent-ticket-title-text">{t.title}</span>
+                                            </td>
+                                            <td>
+                                                <span className="agent-category-badge">{t.category}</span>
+                                            </td>
+                                            <td>
+                                                <span className={`agent-priority-chip ${PRIORITY_CLASSES[t.priority] || ''}`}>
+                                                    <span className="chip-dot"></span>
+                                                    {t.priority || "Normal"}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={`agent-status-pill ${STATUS_CLASSES[t.status] || ''}`}>
+                                                    {t.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="agent-date-text">{new Date(t.created_at).toLocaleDateString()}</span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="6" className="agent-empty-table-cell">
+                                            <div className="empty-state-box">
+                                                <span className="empty-icon">📂</span>
+                                                <p>No tickets found matching the selected filter</p>
+                                            </div>
                                         </td>
                                     </tr>
-                                ))
-                            ) : tickets.length > 0 ? (
-                                tickets.map((t) => (
-                                    <tr key={t.ticket_id}
-                                        onClick={() => handleClick(t.ticket_id)}>
-                                        <td>{t.ticket_id}</td>
-                                        <td>{t.title}</td>
-                                        <td>{t.category}</td>
-                                        <td>{t.created_at}</td>
-                                        <td>{t.status}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No tickets found</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                <div className="pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
-                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '5px 10px', cursor: page === 1 ? 'not-allowed' : 'pointer' }}>Previous</button>
-                    <span>Page {page} of {totalPages}</span>
-                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0} style={{ padding: '5px 10px', cursor: (page === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer' }}>Next</button>
+                    {/* Pagination */}
+                    <div className="agent-pagination">
+                        <button 
+                            className="agent-page-btn"
+                            onClick={() => setPage(p => Math.max(1, p - 1))} 
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </button>
+                        <span className="agent-page-info">Page {page} of {totalPages}</span>
+                        <button 
+                            className="agent-page-btn"
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                            disabled={page === totalPages || totalPages === 0}
+                        >
+                            Next
+                        </button>
+                    </div>
+
                 </div>
-            </div>
-        </>
+            </main>
+
+            <Footer />
+        </div>
     );
-
 }
 
 export default AgentTickets;

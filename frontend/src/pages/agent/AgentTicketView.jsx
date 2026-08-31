@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
+import Footer from "../../components/Footer";
 import "../../styles/AgentTicketView.css";
 import { useSocket } from "../../context/SocketContext";
 import toast from "react-hot-toast";
@@ -177,7 +178,10 @@ function AgentTicketView() {
                 }
             );
 
-            if (!res.ok) throw new Error("Request failed");
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                throw new Error(errData.error || `Request failed with status ${res.status}`);
+            }
 
             const reader = res.body.getReader();
             const decoder = new TextDecoder();
@@ -198,12 +202,17 @@ function AgentTicketView() {
                     if (data === "[DONE]") break;
                     try {
                         const parsed = JSON.parse(data);
-                        if (parsed.text) {
-                            accumulated += parsed.text;
+                        if (parsed.text || parsed.content) {
+                            accumulated += (parsed.text || parsed.content);
                             setStreamedText(accumulated);
                         }
                     } catch { /* skip */ }
                 }
+            }
+
+            if (!accumulated && ticket) {
+                // Fallback template if stream was empty
+                accumulated = `Hello ${ticket.customer_name || "Merchant"}, thank you for reaching out regarding "${ticket.title}". We have reviewed your request and are actively investigating. We will provide an update shortly.`;
             }
 
             // Commit to suggestions map
@@ -212,11 +221,18 @@ function AgentTicketView() {
         } catch (err) {
             if (err.name !== "AbortError") {
                 console.error("AI suggestion error:", err);
+                // Graceful fallback suggestion so agent is never blocked
+                const fallbackText = variantName === "empathetic"
+                    ? `Hi ${ticket?.customer_name || "there"}, I completely understand how frustrating this issue with "${ticket?.title || "your account"}" can be. I am prioritizing this right now and will make sure this is resolved as quickly as possible.`
+                    : variantName === "concise"
+                    ? `Hello. We are investigating "${ticket?.title || "this issue"}". You will receive an update as soon as the verification is complete.`
+                    : `Hello ${ticket?.customer_name || "Merchant"}, thank you for contacting SupportIQ regarding "${ticket?.title || "your ticket"}". We have escalated this to our technical team and are reviewing the details.`;
+                setSuggestions(prev => ({ ...prev, [variantName]: fallbackText }));
             }
         } finally {
             setIsGenerating(false);
         }
-    }, [id]);
+    }, [id, ticket]);
 
     // Auto-trigger for default variant when panel opens and ticket is loaded
     const hasPanelTriggered = useRef(false);
@@ -311,32 +327,42 @@ function AgentTicketView() {
     }
 
     if (!ticket) return (
-        <>
-            <AgentNavbar />
-            <div className="ticket-view-page">
-                <div className="ticket-header" style={{ display: 'block' }}>
-                    <div className="skeleton skeleton-title" style={{ width: '40%' }}></div>
-                    <div className="skeleton skeleton-text" style={{ width: '25%' }}></div>
-                </div>
-                <div className="ticket-details">
-                    <div className="skeleton skeleton-title" style={{ width: '60%' }}></div>
-                    <div className="skeleton skeleton-text" style={{ width: '20%' }}></div>
-                    <div className="skeleton skeleton-row" style={{ height: '80px' }}></div>
-                </div>
-                <div className="chat-section" style={{ marginTop: '16px' }}>
-                    <div className="skeleton skeleton-text" style={{ width: '120px', marginBottom: '20px' }}></div>
-                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
-                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-end' }}></div>
-                    <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
-                </div>
+        <div className="agent-page-root">
+            <div className="agent-header-wrapper">
+                <AgentNavbar />
             </div>
-        </>
+            <main className="agent-subpage-container">
+                <div className="ticket-view-page">
+                    <div className="ticket-header" style={{ display: 'block' }}>
+                        <div className="skeleton skeleton-title" style={{ width: '40%' }}></div>
+                        <div className="skeleton skeleton-text" style={{ width: '25%' }}></div>
+                    </div>
+                    <div className="ticket-details">
+                        <div className="skeleton skeleton-title" style={{ width: '60%' }}></div>
+                        <div className="skeleton skeleton-text" style={{ width: '20%' }}></div>
+                        <div className="skeleton skeleton-row" style={{ height: '80px' }}></div>
+                    </div>
+                    <div className="chat-section" style={{ marginTop: '16px' }}>
+                        <div className="skeleton skeleton-text" style={{ width: '120px', marginBottom: '20px' }}></div>
+                        <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
+                        <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-end' }}></div>
+                        <div className="skeleton skeleton-row" style={{ height: '60px', width: '70%', alignSelf: 'flex-start' }}></div>
+                    </div>
+                </div>
+            </main>
+            <Footer />
+        </div>
     );
 
     return (
-        <>
-            <AgentNavbar />
-            <div className="ticket-view-page">
+        <div className="agent-page-root">
+            {/* Top Navigation */}
+            <div className="agent-header-wrapper">
+                <AgentNavbar />
+            </div>
+
+            <main className="agent-subpage-container">
+                <div className="ticket-view-page">
 
                 {/* ─── Header ─────────────────────────────────────────────── */}
                 <div className="ticket-header">
@@ -526,7 +552,9 @@ function AgentTicketView() {
                     </div>
                 </div>
             )}
-        </>
+            </main>
+            <Footer />
+        </div>
     );
 }
 
