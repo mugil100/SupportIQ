@@ -11,7 +11,9 @@ function ManagerNavbar() {
     const managerName = localStorage.getItem("name") || "Manager";
 
     function isActive(path) {
-        return location.pathname.startsWith(path) ? "active-link" : "";
+        return location.pathname === path || (path !== "/manager/dashboard" && location.pathname.startsWith(path)) 
+            ? "mgr-nav-active" 
+            : "";
     }
 
     // Fetch escalation count for badge
@@ -36,38 +38,67 @@ function ManagerNavbar() {
     }
 
     return (
-        <div className="m-navbar">
+        <header className="mgr-navbar-header">
             <NotificationToast />
-            <div className="header">
-                <p className="logo" onClick={() => navigate("/manager/dashboard")}>SupportIQ</p>
-                <p className="m-portal-label">Manager Portal</p>
-            </div>
+            <div className="mgr-navbar-inner">
+                
+                {/* Brand / Logo */}
+                <div className="mgr-brand-wrap" onClick={() => navigate("/manager/dashboard")}>
+                    <div className="mgr-brand-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <span className="mgr-brand-name">SUPPORTIQ</span>
+                    <span className="mgr-brand-badge">MANAGER</span>
+                </div>
 
-            <div className="m-user-info">
-                <div className="m-user-avatar">{managerName.charAt(0).toUpperCase()}</div>
-                <p className="m-user-name">{managerName}</p>
-            </div>
+                {/* Nav Links */}
+                <nav className="mgr-nav-links">
+                    <button 
+                        className={`mgr-nav-link ${isActive("/manager/dashboard")}`}
+                        onClick={() => navigate("/manager/dashboard")}
+                    >
+                        Overview
+                    </button>
+                    <button 
+                        className={`mgr-nav-link ${isActive("/manager/agents")}`}
+                        onClick={() => navigate("/manager/agents")}
+                    >
+                        Agent Roster
+                    </button>
+                    <button 
+                        className={`mgr-nav-link ${isActive("/manager/escalations")}`}
+                        onClick={() => navigate("/manager/escalations")}
+                    >
+                        Escalations
+                        {escalationCount > 0 && (
+                            <span className="mgr-nav-esc-count">{escalationCount > 99 ? "99+" : escalationCount}</span>
+                        )}
+                    </button>
+                    <button 
+                        className={`mgr-nav-link ${isActive("/manager/tickets")}`}
+                        onClick={() => navigate("/manager/tickets")}
+                    >
+                        All Tickets
+                    </button>
+                </nav>
 
-            <div className="m-nav-items">
-                <p className={isActive("/manager/dashboard")} onClick={() => navigate("/manager/dashboard")}>
-                    <span className="m-nav-icon">📊</span> Dashboard
-                </p>
-                <p className={isActive("/manager/agents")} onClick={() => navigate("/manager/agents")}>
-                    <span className="m-nav-icon">👥</span> Agents
-                </p>
-                <p className={`m-nav-escalation ${isActive("/manager/escalations")}`} onClick={() => navigate("/manager/escalations")}>
-                    <span className="m-nav-icon">🚨</span> Escalations
-                    {escalationCount > 0 && <span className="m-esc-badge">{escalationCount > 99 ? "99+" : escalationCount}</span>}
-                </p>
-                <p className={isActive("/manager/tickets")} onClick={() => navigate("/manager/tickets")}>
-                    <span className="m-nav-icon">🎫</span> All Tickets
-                </p>
-            </div>
+                {/* Right: User & Lime CTA */}
+                <div className="mgr-nav-actions">
+                    <div className="mgr-user-pill">
+                        <div className="mgr-user-avatar">{managerName.charAt(0).toUpperCase()}</div>
+                        <span className="mgr-user-name">{managerName}</span>
+                    </div>
 
-            <div className="m-logout">
-                <button onClick={logout}>Logout</button>
+                    <button className="mgr-lime-cta-btn" onClick={logout}>
+                        Sign Out
+                        <span className="mgr-cta-arrow">→</span>
+                    </button>
+                </div>
+
             </div>
-        </div>
+        </header>
     );
 }
 

@@ -31,6 +31,22 @@
   --agent-border:        #E2E8F0;
   --agent-border-subtle: rgba(226, 232, 240, 0.8);
 
+  /* Manager Electric Lime & Obsidian Theme Tokens (Reference UI) */
+  --mgr-canvas:          #F8FAFC;
+  --mgr-surface:         #FFFFFF;
+  --mgr-obsidian:        #101622;
+  --mgr-obsidian-card:   #162130;
+  --mgr-obsidian-sub:    #1E2B3E;
+  --mgr-lime:            #C6F24D;
+  --mgr-lime-hover:      #B5E338;
+  --mgr-lime-light:      rgba(198, 242, 77, 0.15);
+  --mgr-lime-text:       #111827;
+  --mgr-text-main:       #0F172A;
+  --mgr-text-sub:        #475569;
+  --mgr-text-muted:      #94A3B8;
+  --mgr-border:          #E2E8F0;
+  --mgr-border-subtle:   rgba(226, 232, 240, 0.8);
+
   /* Brand */
   --accent:         #8E9CA8;
   --accent-hover:   #7A8996;
