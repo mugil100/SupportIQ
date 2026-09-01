@@ -1,7 +1,7 @@
-import {io} from "socket.io-client";
+import { io } from "socket.io-client";
+import { API_BASE_URL } from "./api/axios";
 
-const socketUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const socket = io(socketUrl, {
+const socket = io(API_BASE_URL, {
     autoConnect: false
 });
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import axios from "../../api/axios";
+import axios, { API_BASE_URL } from "../../api/axios";
 import AgentNavbar from "./AgentNavbar";
 import Footer from "../../components/Footer";
 import "../../styles/AgentTicketView.css";
@@ -33,8 +33,7 @@ function AgentTicketView() {
     
     // ── Lightbox state ────────────────────────────────────────────
     const [modalImage, setModalImage] = useState(null);
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    const cleanApiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    const cleanApiUrl = API_BASE_URL;
 
     // ── AI Panel state ───────────────────────────────────────────────────────
     const [showAiPanel, setShowAiPanel] = useState(true);
@@ -164,9 +163,8 @@ function AgentTicketView() {
 
         try {
             const token = localStorage.getItem("token");
-            const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
             const res = await fetch(
-                `${apiBase}/agent/ai-suggest`,
+                `${API_BASE_URL}/agent/ai-suggest`,
                 {
                     method: "POST",
                     headers: {

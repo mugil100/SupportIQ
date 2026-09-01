@@ -54,7 +54,7 @@ Priority rules:
           content: prompt,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "llama-3.1-8b-instant",
       response_format: { type: "json_object" },
     });
 
@@ -236,7 +236,7 @@ Generate the response now.`,
 
     // 5. Stream responses from Groq
     const stream = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "llama-3.1-8b-instant",
       messages: promptMessages,
       temperature: 0.7,
       max_tokens: 1024,

@@ -34,6 +34,7 @@ function App() {
         <Routes>
             <Route path="/" element={<LS_cust />} />
             <Route path="/agent" element={<LS_Reps />} />
+            <Route path="/loginreps" element={<LS_Reps />} />
             <Route path="/forgot-pwd" element={<ForgotPwd />} />
             <Route path="/chome" element={
                 <PrivateRoute role='customer'>

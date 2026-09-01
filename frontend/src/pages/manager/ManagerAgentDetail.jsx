@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ManagerNavbar from "./ManagerNavbar";
 import Footer from "../../components/Footer";
 import axios from "../../api/axios";
@@ -77,217 +77,216 @@ function ManagerAgentDetail() {
         return matchesSearch && matchesStatus;
     });
 
-    if (loading) {
-        return (
-            <div className="manager-layout">
-                <ManagerNavbar />
-                <div className="mad-container">
-                    <div className="mad-loading">
-                        <div className="spinner"></div>
-                        <p>Loading agent details...</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (!agent) {
-        return (
-            <div className="manager-layout">
-                <ManagerNavbar />
-                <div className="mad-container">
-                    <div className="mad-empty">
-                        <h2>Agent Not Found</h2>
-                        <p>The requested agent profile does not exist.</p>
-                        <button className="mad-btn-back" onClick={() => navigate("/manager/agents")}>
-                            ← Back to Agent Roster
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="manager-layout">
-            <ManagerNavbar />
-            <div className="mad-container">
+        <div className="mgr-page-root">
+            {/* Top Navigation */}
+            <div className="mgr-header-wrapper">
+                <ManagerNavbar />
+            </div>
+
+            <main className="mgr-subpage-container">
                 
-                {/* Back navigation */}
+                {/* Back Nav */}
                 <div className="mad-top-nav">
                     <button className="mad-btn-back" onClick={() => navigate("/manager/agents")}>
-                        ← Back to Agents
+                        ← Back to Agent Roster
                     </button>
                 </div>
 
-                {/* Profile Header Card */}
-                <div className="mad-profile-card">
-                    <div className="mad-profile-main">
-                        <div className="mad-avatar">
-                            {(agent.name || agent.username || "A").charAt(0).toUpperCase()}
+                {loading ? (
+                    <div className="mad-loading-card">
+                        <div className="mad-spinner"></div>
+                        <p>Loading agent telemetry &amp; performance data...</p>
+                    </div>
+                ) : !agent ? (
+                    <div className="mad-empty-card">
+                        <h2>Agent Profile Not Found</h2>
+                        <p>The requested support representative profile does not exist or has been removed.</p>
+                        <button className="mad-btn-back" onClick={() => navigate("/manager/agents")}>
+                            ← Return to Agent Roster
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Profile Header Card */}
+                        <div className="mad-profile-card">
+                            <div className="mad-profile-main">
+                                <div className="mad-avatar">
+                                    {(agent.name || agent.username || "A").charAt(0).toUpperCase()}
+                                </div>
+                                <div className="mad-profile-info">
+                                    <div className="mad-name-row">
+                                        <h1 className="mad-agent-name">{agent.name || "Representative"}</h1>
+                                        <span className={`mad-status-badge ${agent.is_active ? 'active' : 'inactive'}`}>
+                                            <span className="mad-status-dot"></span>
+                                            {agent.is_active ? "Active" : "Deactivated"}
+                                        </span>
+                                    </div>
+                                    <p className="mad-username">@{agent.username}</p>
+                                    <div className="mad-meta-list">
+                                        <span className="mad-meta-item">📧 {agent.email}</span>
+                                        <span className="mad-meta-item">📅 Member Since: {new Date(agent.created_at).toLocaleDateString()}</span>
+                                        {agent.last_seen && (
+                                            <span className="mad-meta-item">🕒 Last Active: {new Date(agent.last_seen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mad-profile-actions">
+                                <button
+                                    className={`mad-btn-toggle ${agent.is_active ? 'deactivate' : 'activate'}`}
+                                    onClick={handleToggleStatus}
+                                    disabled={actionLoading}
+                                >
+                                    {actionLoading ? "Updating..." : agent.is_active ? "Deactivate Account" : "Activate Account"}
+                                </button>
+                            </div>
                         </div>
-                        <div className="mad-profile-info">
-                            <div className="mad-name-row">
-                                <h1>{agent.name || "Representative"}</h1>
-                                <span className={`mad-status-badge ${agent.is_active ? 'active' : 'inactive'}`}>
-                                    <span className="mad-status-dot"></span>
-                                    {agent.is_active ? "Active" : "Inactive"}
+
+                        {/* Performance Stats Grid */}
+                        <div className="mad-stats-grid">
+                            <div className="mad-stat-card">
+                                <span className="mad-stat-label">Total Assigned</span>
+                                <span className="mad-stat-val">{stats?.total_assigned || 0}</span>
+                                <span className="mad-stat-sub">Lifetime tickets assigned</span>
+                            </div>
+
+                            <div className="mad-stat-card">
+                                <span className="mad-stat-label">Active Workload</span>
+                                <span className="mad-stat-val">
+                                    {(stats?.open_count || 0) + (stats?.in_progress_count || 0)}
+                                </span>
+                                <span className="mad-stat-sub">
+                                    {stats?.open_count || 0} Open • {stats?.in_progress_count || 0} In Progress
                                 </span>
                             </div>
-                            <p className="mad-username">@{agent.username}</p>
-                            <div className="mad-meta-list">
-                                <span>📧 {agent.email}</span>
-                                <span>📅 Joined: {new Date(agent.created_at).toLocaleDateString()}</span>
-                                {agent.last_seen && (
-                                    <span>🕒 Last Seen: {new Date(agent.last_seen).toLocaleString()}</span>
+
+                            <div className="mad-stat-card">
+                                <span className="mad-stat-label">Resolved &amp; Closed</span>
+                                <span className="mad-stat-val">
+                                    {(stats?.resolved_count || 0) + (stats?.closed_count || 0)}
+                                </span>
+                                <span className="mad-stat-sub">
+                                    {stats?.resolved_count || 0} Resolved • {stats?.closed_count || 0} Closed
+                                </span>
+                            </div>
+
+                            <div className="mad-stat-card">
+                                <span className="mad-stat-label">Avg Response Time</span>
+                                <span className="mad-stat-val">
+                                    {stats?.avg_response_hours ? `${stats.avg_response_hours}h` : "N/A"}
+                                </span>
+                                <span className="mad-stat-sub">First turnaround speed</span>
+                            </div>
+
+                            <div className="mad-stat-card">
+                                <span className="mad-stat-label">Customer Satisfaction</span>
+                                <span className="mad-stat-val">
+                                    {stats?.avg_rating ? `⭐ ${stats.avg_rating}` : "N/A"}
+                                </span>
+                                <span className="mad-stat-sub">
+                                    {stats?.feedback_count ? `Based on ${stats.feedback_count} reviews` : "No ratings yet"}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Assigned Tickets Section */}
+                        <div className="mad-tickets-section">
+                            <div className="mad-section-header">
+                                <div>
+                                    <span className="mad-section-tag">04 CASE AUDIT</span>
+                                    <h2 className="mad-section-title">Assigned Tickets ({tickets.length})</h2>
+                                </div>
+                                <div className="mad-ticket-filters">
+                                    <div className="mad-search-wrap">
+                                        <svg className="mad-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            placeholder="Search agent tickets..."
+                                            value={ticketSearch}
+                                            onChange={(e) => setTicketSearch(e.target.value)}
+                                            className="mad-filter-input"
+                                        />
+                                    </div>
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                        className="mad-filter-select"
+                                    >
+                                        <option value="">All Statuses</option>
+                                        <option value="Open">Open</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                        <option value="Closed">Closed</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="mad-table-wrapper">
+                                {filteredTickets.length === 0 ? (
+                                    <div className="mad-table-empty">
+                                        <p>No tickets match your filter criteria.</p>
+                                    </div>
+                                ) : (
+                                    <table className="mad-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Ticket ID</th>
+                                                <th>Customer</th>
+                                                <th>Subject</th>
+                                                <th>Category</th>
+                                                <th>Priority</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredTickets.map(ticket => (
+                                                <tr
+                                                    key={ticket.ticket_id}
+                                                    onClick={() => navigate(`/manager/tickets/${ticket.ticket_id}`)}
+                                                    className="mad-ticket-row"
+                                                >
+                                                    <td>
+                                                        <span className="mad-id-pill">#{ticket.ticket_id}</span>
+                                                    </td>
+                                                    <td className="mad-cust">{ticket.customer_name || "Unknown"}</td>
+                                                    <td className="mad-title">
+                                                        <div className="mad-title-text">{ticket.title}</div>
+                                                        {ticket.escalated && !ticket.escalation_resolved && (
+                                                            <span className="mad-escalated-badge">🚨 Escalated</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="mad-cat-cell">{ticket.category || "General"}</td>
+                                                    <td>
+                                                        <span className={`mad-priority-pill priority-${(ticket.priority || 'medium').toLowerCase()}`}>
+                                                            {ticket.priority || "Medium"}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`mad-status-pill status-${(ticket.status || 'open').toLowerCase().replace(/\s+/g, '-')}`}>
+                                                            {ticket.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="mad-date">
+                                                        {new Date(ticket.created_at).toLocaleDateString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </>
+                )}
 
-                    <div className="mad-profile-actions">
-                        <button
-                            className={`mad-btn-toggle ${agent.is_active ? 'deactivate' : 'activate'}`}
-                            onClick={handleToggleStatus}
-                            disabled={actionLoading}
-                        >
-                            {actionLoading ? "Updating..." : agent.is_active ? "Deactivate Account" : "Activate Account"}
-                        </button>
-                    </div>
-                </div>
+            </main>
 
-                {/* Performance Stats Grid */}
-                <div className="mad-stats-grid">
-                    <div className="mad-stat-card">
-                        <span className="mad-stat-label">Total Assigned</span>
-                        <span className="mad-stat-val">{stats?.total_assigned || 0}</span>
-                        <span className="mad-stat-sub">Lifetime tickets</span>
-                    </div>
-
-                    <div className="mad-stat-card">
-                        <span className="mad-stat-label">Active Workload</span>
-                        <span className="mad-stat-val mad-val-warning">
-                            {(stats?.open_count || 0) + (stats?.in_progress_count || 0)}
-                        </span>
-                        <span className="mad-stat-sub">
-                            {stats?.open_count || 0} Open • {stats?.in_progress_count || 0} In Progress
-                        </span>
-                    </div>
-
-                    <div className="mad-stat-card">
-                        <span className="mad-stat-label">Resolved & Closed</span>
-                        <span className="mad-stat-val mad-val-success">
-                            {(stats?.resolved_count || 0) + (stats?.closed_count || 0)}
-                        </span>
-                        <span className="mad-stat-sub">
-                            {stats?.resolved_count || 0} Resolved • {stats?.closed_count || 0} Closed
-                        </span>
-                    </div>
-
-                    <div className="mad-stat-card">
-                        <span className="mad-stat-label">Avg Response Time</span>
-                        <span className="mad-stat-val">
-                            {stats?.avg_response_hours ? `${stats.avg_response_hours}h` : "N/A"}
-                        </span>
-                        <span className="mad-stat-sub">First response turnaround</span>
-                    </div>
-
-                    <div className="mad-stat-card">
-                        <span className="mad-stat-label">Customer Satisfaction</span>
-                        <span className="mad-stat-val mad-val-rating">
-                            {stats?.avg_rating ? `⭐ ${stats.avg_rating}` : "N/A"}
-                        </span>
-                        <span className="mad-stat-sub">
-                            {stats?.feedback_count ? `Based on ${stats.feedback_count} reviews` : "No ratings yet"}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Assigned Tickets Section */}
-                <div className="mad-tickets-section">
-                    <div className="mad-section-header">
-                        <div>
-                            <h2>Assigned Tickets ({tickets.length})</h2>
-                            <p>All support requests currently or previously handled by {agent.name}.</p>
-                        </div>
-                        <div className="mad-ticket-filters">
-                            <input
-                                type="text"
-                                placeholder="Filter tickets..."
-                                value={ticketSearch}
-                                onChange={(e) => setTicketSearch(e.target.value)}
-                                className="mad-filter-input"
-                            />
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="mad-filter-select"
-                            >
-                                <option value="">All Statuses</option>
-                                <option value="Open">Open</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Resolved">Resolved</option>
-                                <option value="Closed">Closed</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mad-table-wrapper">
-                        {filteredTickets.length === 0 ? (
-                            <div className="mad-table-empty">
-                                <p>No tickets match your filter criteria.</p>
-                            </div>
-                        ) : (
-                            <table className="mad-table">
-                                <thead>
-                                    <tr>
-                                        <th>Ticket ID</th>
-                                        <th>Customer</th>
-                                        <th>Subject</th>
-                                        <th>Category</th>
-                                        <th>Priority</th>
-                                        <th>Status</th>
-                                        <th>Created</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredTickets.map(ticket => (
-                                        <tr
-                                            key={ticket.ticket_id}
-                                            onClick={() => navigate(`/manager/tickets/${ticket.ticket_id}`)}
-                                            className="mad-ticket-row"
-                                        >
-                                            <td className="mad-tid">#{ticket.ticket_id}</td>
-                                            <td className="mad-cust">{ticket.customer_name || "Unknown"}</td>
-                                            <td className="mad-title">
-                                                <div className="mad-title-text">{ticket.title}</div>
-                                                {ticket.escalated && !ticket.escalation_resolved && (
-                                                    <span className="mad-escalated-badge">Escalated</span>
-                                                )}
-                                            </td>
-                                            <td>{ticket.category}</td>
-                                            <td>
-                                                <span className={`badge ${ticket.priority}`}>
-                                                    {ticket.priority}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span className={`status-badge status-${ticket.status}`}>
-                                                    {ticket.status}
-                                                </span>
-                                            </td>
-                                            <td className="mad-date">
-                                                {new Date(ticket.created_at).toLocaleDateString()}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div>
-
-            </div>
             <Footer />
         </div>
     );

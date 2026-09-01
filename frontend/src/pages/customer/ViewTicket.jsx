@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "../../api/axios";
+import axios, { API_BASE_URL } from "../../api/axios";
 import { useParams } from "react-router-dom";
 import "../../styles/ViewTicket.css";
 import { useState, useEffect, useRef } from "react";
@@ -8,8 +8,7 @@ import TicketNavbar from "../../components/TicketNavbar";
 import Footer from "../../components/Footer";
 import { useSocket } from "../../context/SocketContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const cleanApiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+const cleanApiUrl = API_BASE_URL;
 
 function ViewTicket() {
     const { id } = useParams();

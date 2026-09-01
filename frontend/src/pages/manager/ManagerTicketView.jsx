@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ManagerNavbar from "./ManagerNavbar";
+import Footer from "../../components/Footer";
 import ReassignModal from "../../components/ReassignModal";
-import axios from "../../api/axios";
+import axios, { API_BASE_URL } from "../../api/axios";
 import toast from "react-hot-toast";
 import "../../styles/ManagerTicketView.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const cleanApiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+const cleanApiUrl = API_BASE_URL;
 
 function ManagerTicketView() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [ticket, setTicket] = useState(null);
     const [messages, setMessages] = useState([]);
     const [notes, setNotes] = useState([]);
@@ -26,8 +27,8 @@ function ManagerTicketView() {
         try {
             const res = await axios.get(`/manager/tickets/${id}`);
             setTicket(res.data.ticket);
-            setMessages(res.data.messages);
-            setNotes(res.data.notes);
+            setMessages(res.data.messages || []);
+            setNotes(res.data.notes || []);
         } catch (_err) {
             toast.error("Failed to load ticket details");
         } finally {
@@ -56,7 +57,6 @@ function ManagerTicketView() {
             const res = await axios.post(`/manager/tickets/${id}/notes`, {
                 content: newNote
             });
-            // The API returns the raw inserted note; we need to append the author name locally for immediate display
             const noteWithAuthor = {
                 ...res.data,
                 author_name: localStorage.getItem("name") || "Manager"
@@ -83,85 +83,145 @@ function ManagerTicketView() {
 
     if (loading) {
         return (
-            <div className="manager-layout">
-                <ManagerNavbar />
-                <div className="mtv-container">
-                    <div className="mtv-loading">Loading ticket details...</div>
+            <div className="mgr-page-root">
+                <div className="mgr-header-wrapper">
+                    <ManagerNavbar />
                 </div>
+                <main className="mgr-subpage-container">
+                    <div className="mtv-loading-card">
+                        <div className="mtv-spinner"></div>
+                        <p>Loading ticket workspace &amp; conversation logs...</p>
+                    </div>
+                </main>
+                <Footer />
             </div>
         );
     }
 
-    if (!ticket) return null;
+    if (!ticket) {
+        return (
+            <div className="mgr-page-root">
+                <div className="mgr-header-wrapper">
+                    <ManagerNavbar />
+                </div>
+                <main className="mgr-subpage-container">
+                    <div className="mtv-empty-card">
+                        <h2>Ticket Not Found</h2>
+                        <p>The requested ticket could not be located.</p>
+                        <button className="mtv-btn-back" onClick={() => navigate("/manager/tickets")}>
+                            ← Return to All Tickets
+                        </button>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
-        <div className="manager-layout">
-            <ManagerNavbar />
-            <div className="mtv-container">
+        <div className="mgr-page-root">
+            {/* Top Navigation */}
+            <div className="mgr-header-wrapper">
+                <ManagerNavbar />
+            </div>
+
+            <main className="mgr-subpage-container">
                 
-                {/* Header & Meta */}
-                <div className="mtv-header">
-                    <div className="mtv-header-left">
-                        <h1>Ticket #{ticket.ticket_id}</h1>
-                        <span className={`status-badge status-${ticket.status}`}>{ticket.status}</span>
-                        {ticket.priority && <span className={`badge ${ticket.priority}`}>{ticket.priority}</span>}
-                        {ticket.escalated && !ticket.escalation_resolved && (
-                            <span className="mtv-badge-escalated">Escalated</span>
-                        )}
+                {/* Back Nav */}
+                <div className="mtv-top-nav">
+                    <button className="mtv-btn-back" onClick={() => navigate(-1)}>
+                        ← Back
+                    </button>
+                </div>
+
+                {/* Header & Actions */}
+                <div className="mtv-page-header">
+                    <div>
+                        <div className="mtv-header-badges">
+                            <span className="mtv-id-pill">#{ticket.ticket_id}</span>
+                            <span className={`mtv-status-pill status-${(ticket.status || 'open').toLowerCase().replace(/\s+/g, '-')}`}>
+                                {ticket.status}
+                            </span>
+                            {ticket.priority && (
+                                <span className={`mtv-priority-pill priority-${ticket.priority.toLowerCase()}`}>
+                                    {ticket.priority}
+                                </span>
+                            )}
+                            {ticket.escalated && !ticket.escalation_resolved && (
+                                <span className="mtv-badge-escalated">🚨 Escalated Incident</span>
+                            )}
+                        </div>
+                        <h1 className="mtv-page-title">{ticket.title}</h1>
                     </div>
-                    <div className="mtv-header-right">
+
+                    <div className="mtv-header-actions">
                         {ticket.escalated && !ticket.escalation_resolved && (
                             <button className="mtv-btn-resolve" onClick={handleResolveEscalation}>
                                 Resolve Escalation
                             </button>
                         )}
                         <button className="mtv-btn-reassign" onClick={() => setShowReassign(true)}>
-                            Reassign Ticket
+                            Reassign Specialist ➔
                         </button>
                     </div>
                 </div>
 
+                {/* 2-Column Workstation Grid */}
                 <div className="mtv-grid">
-                    {/* Left Column: Details & Chat */}
+                    
+                    {/* Left Column: Details & Live Chat */}
                     <div className="mtv-left-col">
+                        
+                        {/* Details Meta Card */}
                         <div className="mtv-card mtv-details-card">
                             <div className="mtv-meta-grid">
                                 <div className="mtv-meta-item">
-                                    <label>Customer</label>
-                                    <div>{ticket.customer_name}</div>
+                                    <span className="mtv-meta-label">Customer</span>
+                                    <div className="mtv-meta-val">{ticket.customer_name || "Unknown"}</div>
                                 </div>
                                 <div className="mtv-meta-item">
-                                    <label>Assigned Agent</label>
-                                    <div>{ticket.agent_name || "Unassigned"}</div>
+                                    <span className="mtv-meta-label">Assigned Agent</span>
+                                    <div className="mtv-meta-val">{ticket.agent_name || "Unassigned"}</div>
                                 </div>
                                 <div className="mtv-meta-item">
-                                    <label>Category</label>
-                                    <div>{ticket.category}</div>
+                                    <span className="mtv-meta-label">Category</span>
+                                    <div className="mtv-meta-val">{ticket.category || "General"}</div>
                                 </div>
                                 <div className="mtv-meta-item">
-                                    <label>Created At</label>
-                                    <div>{new Date(ticket.created_at).toLocaleString()}</div>
+                                    <span className="mtv-meta-label">Created At</span>
+                                    <div className="mtv-meta-val">{new Date(ticket.created_at).toLocaleString()}</div>
                                 </div>
                             </div>
-                            <div className="mtv-description">
-                                <h3>{ticket.title}</h3>
-                                <p>{ticket.description}</p>
+                            
+                            <div className="mtv-description-box">
+                                <span className="mtv-desc-label">Initial Request Description</span>
+                                <p className="mtv-desc-text">{ticket.description}</p>
                                 {ticket.image_url && (
-                                    <img 
-                                        src={`${cleanApiUrl}/uploads/${ticket.image_url}?token=${localStorage.getItem("token")}`} 
-                                        alt="Ticket Attachment" 
-                                        className="mtv-attachment" 
-                                        onClick={() => setModalImage(`${cleanApiUrl}/uploads/${ticket.image_url}?token=${localStorage.getItem("token")}`)}
-                                    />
+                                    <div className="mtv-attachment-wrap">
+                                        <img 
+                                            src={`${cleanApiUrl}/uploads/${ticket.image_url}?token=${localStorage.getItem("token")}`} 
+                                            alt="Ticket Attachment" 
+                                            className="mtv-attachment" 
+                                            onClick={() => setModalImage(`${cleanApiUrl}/uploads/${ticket.image_url}?token=${localStorage.getItem("token")}`)}
+                                        />
+                                        <span className="mtv-attachment-hint">Click image to expand</span>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
+                        {/* Chat History Card */}
                         <div className="mtv-card mtv-chat-card">
-                            <h3>Conversation History</h3>
+                            <div className="mtv-chat-header">
+                                <h3 className="mtv-card-title">Live Message Stream</h3>
+                                <span className="mtv-chat-count">{messages.length} messages</span>
+                            </div>
+
                             <div className="mtv-chatbox">
                                 {messages.length === 0 ? (
-                                    <p className="mtv-empty-msg">No messages yet.</p>
+                                    <div className="mtv-empty-chat">
+                                        <p>No messages exchanged in this ticket yet.</p>
+                                    </div>
                                 ) : (
                                     messages.map(m => {
                                         if (m.sender_type === "System") {
@@ -177,9 +237,11 @@ function ManagerTicketView() {
                                         const isCustomer = m.sender_type === "Customer";
                                         return (
                                             <div key={m.message_id} className={`mtv-msg-wrapper ${isCustomer ? 'customer' : 'agent'}`}>
-                                                <div className="mtv-msg-sender">{isCustomer ? ticket.customer_name : (ticket.agent_name || 'Agent')}</div>
+                                                <div className="mtv-msg-sender">
+                                                    {isCustomer ? (ticket.customer_name || 'Customer') : (ticket.agent_name || 'Agent')}
+                                                </div>
                                                 <div className="mtv-msg-bubble">
-                                                    {m.message}
+                                                    <p>{m.message}</p>
                                                     <div className="mtv-msg-time">
                                                         {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
@@ -191,65 +253,84 @@ function ManagerTicketView() {
                                 <div ref={chatEndRef} />
                             </div>
                         </div>
+
                     </div>
 
                     {/* Right Column: Internal Notes */}
                     <div className="mtv-right-col">
                         <div className="mtv-card mtv-notes-card">
-                            <h3>Internal Notes</h3>
-                            <p className="mtv-notes-desc">Visible only to managers and agents.</p>
-                            
+                            <div className="mtv-notes-header">
+                                <div>
+                                    <h3 className="mtv-card-title">Internal Notes</h3>
+                                    <p className="mtv-notes-desc">Confidential audit trail visible to managers &amp; assigned agents only.</p>
+                                </div>
+                            </div>
+
                             <div className="mtv-notes-list">
                                 {notes.length === 0 ? (
-                                    <p className="mtv-empty-msg">No internal notes yet.</p>
+                                    <div className="mtv-empty-notes">
+                                        <p>No internal notes recorded for this ticket.</p>
+                                    </div>
                                 ) : (
                                     notes.map(note => (
-                                        <div key={note.note_id} className="mtv-note">
-                                            <div className="mtv-note-header">
-                                                <span className="mtv-note-author">{note.author_name}</span>
-                                                <span className="mtv-note-time">{new Date(note.created_at).toLocaleString()}</span>
+                                        <div key={note.note_id} className="mtv-note-item">
+                                            <div className="mtv-note-meta">
+                                                <span className="mtv-note-author">{note.author_name || "Manager"}</span>
+                                                <span className="mtv-note-time">
+                                                    {new Date(note.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
                                             </div>
-                                            <div className="mtv-note-body">{note.content}</div>
+                                            <p className="mtv-note-content">{note.content}</p>
                                         </div>
                                     ))
                                 )}
                                 <div ref={notesEndRef} />
                             </div>
 
-                            <form onSubmit={handleAddNote} className="mtv-notes-form">
+                            <form onSubmit={handleAddNote} className="mtv-note-form">
                                 <textarea
-                                    placeholder="Add an internal note..."
                                     value={newNote}
-                                    onChange={(e) => setNewNote(e.target.value)}
+                                    onChange={e => setNewNote(e.target.value)}
+                                    placeholder="Add an internal managerial note..."
                                     rows="3"
-                                ></textarea>
-                                <button type="submit" disabled={!newNote.trim() || submittingNote}>
-                                    {submittingNote ? "Saving..." : "Add Note"}
+                                    className="mtv-note-input"
+                                />
+                                <button type="submit" className="mtv-btn-add-note" disabled={submittingNote || !newNote.trim()}>
+                                    {submittingNote ? "Posting..." : "Post Internal Note →"}
                                 </button>
                             </form>
                         </div>
                     </div>
+
                 </div>
 
-            </div>
+            </main>
 
+            {/* Reassign Specialist Modal */}
             {showReassign && (
                 <ReassignModal
                     ticketId={ticket.ticket_id}
                     currentAgentId={ticket.assigned_agent_id}
                     onClose={() => setShowReassign(false)}
-                    onReassign={fetchTicketData}
+                    onSuccess={(newAgentName) => {
+                        setTicket(prev => ({ ...prev, agent_name: newAgentName }));
+                        setShowReassign(false);
+                        fetchTicketData();
+                    }}
                 />
             )}
 
+            {/* Attachment Modal */}
             {modalImage && (
-                <div className="image-modal-overlay" onClick={() => setModalImage(null)}>
-                    <div className="image-modal-content" onClick={e => e.stopPropagation()}>
-                        <button className="modal-close-btn image-modal-close" onClick={() => setModalImage(null)}>✕</button>
-                        <img src={modalImage} alt="Fullscreen Attachment" />
+                <div className="mtv-modal-overlay" onClick={() => setModalImage(null)}>
+                    <div className="mtv-modal-content" onClick={e => e.stopPropagation()}>
+                        <img src={modalImage} alt="Expanded Attachment" className="mtv-modal-img" />
+                        <button className="mtv-modal-close" onClick={() => setModalImage(null)}>✕</button>
                     </div>
                 </div>
             )}
+
+            <Footer />
         </div>
     );
 }
