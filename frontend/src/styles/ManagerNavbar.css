@@ -51,28 +51,34 @@
 .mgr-brand-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   user-select: none;
 }
 
 .mgr-brand-icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #C6F24D, #9BD626);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #111827;
-  box-shadow: 0 2px 10px rgba(198, 242, 77, 0.35);
+  color: #C6F24D;
+  transition: all 0.2s ease;
+}
+
+.mgr-brand-wrap:hover .mgr-brand-icon {
+  background: rgba(198, 242, 77, 0.15);
+  border-color: rgba(198, 242, 77, 0.4);
 }
 
 .mgr-brand-name {
   font-family: var(--mgr-font-heading);
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: -0.3px;
   color: #FFFFFF;
 }
 
@@ -81,30 +87,30 @@
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.8px;
-  background: rgba(198, 242, 77, 0.2);
+  background: rgba(198, 242, 77, 0.15);
   color: #C6F24D;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 9999px;
-  border: 1px solid rgba(198, 242, 77, 0.35);
+  border: 1px solid rgba(198, 242, 77, 0.3);
 }
 
 /* ─── Navigation Links ─── */
 .mgr-nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 5px 8px;
+  padding: 5px 6px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .mgr-nav-link {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.8);
   font-family: var(--mgr-font-body);
   font-size: 13px;
   font-weight: 600;
@@ -114,20 +120,13 @@
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
-}
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  font-family: inherit;
 }
 
 .mgr-nav-link:hover {
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .mgr-nav-link.mgr-nav-active {
@@ -138,13 +137,14 @@
 }
 
 .mgr-nav-esc-count {
-  background: #EF4444;
-  color: #FFFFFF;
-  font-size: 9.5px;
+  background: rgba(225, 29, 72, 0.2);
+  color: #FDA4AF;
+  border: 1px solid rgba(225, 29, 72, 0.45);
+  font-size: 10px;
   font-weight: 800;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: 9999px;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 /* ─── Right: User & CTA ─── */
@@ -158,19 +158,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 12px 4px 4px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 14px 4px 4px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .mgr-user-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #C6F24D;
-  color: #111827;
-  font-size: 11.5px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  font-size: 11px;
   font-weight: 800;
   display: flex;
   align-items: center;
