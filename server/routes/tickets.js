@@ -247,8 +247,31 @@ async (req, res) => {
         });
 
     } catch (err) {
+        // Fallback in case metadata column is still missing (migration didn't run)
+        if (err.code === '42703') {
+            try {
+                const fallbackResult = await pool.query(
+                    `INSERT INTO tickets
+                    (customer_id, title, category, priority, description, image_url,
+                     affected_area, ai_confidence, last_customer_reply_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                    RETURNING ticket_id, created_at`,
+                    [customer_id, cleanTitle, persistedCategory, persistedPriority, cleanDesc, image,
+                     safeArea, persistedConfidence, new Date()]
+                );
+                return res.status(201).json({
+                    message: "Ticket raised successfully (using fallback schema)",
+                    ticket_id: fallbackResult.rows[0].ticket_id,
+                    created_at: fallbackResult.rows[0].created_at
+                });
+            } catch (fallbackErr) {
+                console.error("Fallback error:", fallbackErr);
+                return res.status(500).json({ error: "Database error (fallback): " + fallbackErr.message });
+            }
+        }
+        
         console.error("Error raising ticket:", err);
-        res.status(500).json({ error: "Failed to create ticket. Please try again." });
+        res.status(500).json({ error: "Internal server error: " + err.message });
     }
 });
 
