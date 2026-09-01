@@ -1,198 +1,230 @@
-/* ─── AgentRoster.css ─── */
+/* ─── AgentRoster — Electric Lime & Obsidian Theme (Reference UI) ─── */
 
-.ar-container {
-  margin-left: 250px;
-  padding: 32px;
-  min-height: 100vh;
-  background-color: #f8fafc;
-  flex: 1;
-  width: calc(100% - 250px);
-  box-sizing: border-box;
-}
-
-/* ─── Header ─── */
-.ar-header {
+.ar-page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  align-items: flex-end;
+  margin-bottom: 32px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
-.ar-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #0f172a;
+.ar-page-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #65A30D;
+  margin-bottom: 6px;
+}
+
+.ar-tag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #65A30D;
+}
+
+.ar-page-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0F172A;
   margin: 0 0 6px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.8px;
 }
 
-.ar-header p {
-  color: #64748b;
-  font-size: 14px;
+.ar-page-desc {
+  font-size: 14.5px;
+  color: #64748B;
   margin: 0;
 }
 
+/* Electric Lime Invite Button */
 .ar-btn-invite {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  color: white;
+  background: #C6F24D;
+  color: #111827;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 9999px;
+  padding: 12px 24px;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(198, 242, 77, 0.35);
+  font-family: inherit;
 }
 
 .ar-btn-invite:hover {
-  background: linear-gradient(135deg, #4338ca, #4f46e5);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+  background: #D4F65B;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(198, 242, 77, 0.45);
 }
 
 .ar-btn-icon {
-  font-size: 16px;
-  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  background: #111827;
+  color: #C6F24D;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
 }
 
-/* ─── Stats Grid ─── */
+/* ─── Stats Summary Cards ─── */
 .ar-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
 }
 
 .ar-stat-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 18px 20px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  gap: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ar-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .ar-stat-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #64748b;
-  margin-bottom: 6px;
+  color: #64748B;
 }
 
 .ar-stat-value {
-  font-size: 26px;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.1;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -1px;
+  line-height: 1;
 }
 
 .ar-stat-active {
-  color: #10b981;
+  color: #059669;
 }
 
 .ar-stat-resolved {
-  color: #6366f1;
+  color: #0F172A;
 }
 
-/* ─── Controls & Search ─── */
-.ar-controls-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+/* ─── Main Card Frame ─── */
+.ar-card-frame {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.03);
+}
+
+/* Search Controls */
+.ar-controls-row {
+  margin-bottom: 24px;
 }
 
 .ar-search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 8px 14px;
-  transition: border-color 0.2s;
-}
-
-.ar-search-wrapper:focus-within {
-  border-color: #6366f1;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  position: relative;
+  width: 100%;
 }
 
 .ar-search-icon {
-  color: #94a3b8;
-  flex-shrink: 0;
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  pointer-events: none;
 }
 
 .ar-search-input {
-  border: none;
-  background: transparent;
   width: 100%;
-  font-size: 14px;
-  color: #0f172a;
+  padding: 12px 18px 12px 44px;
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  background: #F8FAFC;
+  font-size: 13.5px;
+  color: #0F172A;
   outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
-.ar-search-input::placeholder {
-  color: #94a3b8;
+.ar-search-input:focus {
+  background: #FFFFFF;
+  border-color: #65A30D;
+  box-shadow: 0 0 0 3px rgba(198, 242, 77, 0.35);
 }
 
-/* ─── Table ─── */
+/* ─── Roster Table ─── */
 .ar-table-container {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
   overflow-x: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
 }
 
 .ar-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  background: #FFFFFF;
 }
 
 .ar-table th {
-  background: #f8fafc;
+  background: #F8FAFC;
   color: #475569;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   padding: 14px 18px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #E2E8F0;
+  text-align: left;
 }
 
 .ar-row {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #F1F5F9;
   transition: background 0.15s ease;
 }
 
 .ar-row:hover {
-  background: #f8fafc;
+  background: #F8FAFC;
 }
 
 .ar-row-inactive {
-  opacity: 0.65;
-  background: #fcfcfd;
+  opacity: 0.6;
+  background: #FAFAFA;
 }
 
 .ar-row td {
   padding: 14px 18px;
   font-size: 13.5px;
   vertical-align: middle;
-  color: #1e293b;
+  color: #475569;
+}
+
+.ar-row:last-child td {
+  border-bottom: none;
 }
 
 /* Agent cell */
@@ -200,24 +232,26 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
 }
 
 .ar-avatar {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #818cf8);
-  color: white;
+  background: #C6F24D;
+  color: #111827;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
 .ar-row-inactive .ar-avatar {
-  background: #94a3b8;
+  background: #E2E8F0;
+  color: #64748B;
 }
 
 .ar-agent-info {
@@ -226,17 +260,18 @@
 }
 
 .ar-agent-name {
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  color: #0F172A;
 }
 
 .ar-agent-username {
-  font-size: 12px;
-  color: #64748b;
+  font-size: 11.5px;
+  color: #94A3B8;
 }
 
 .ar-email {
   color: #475569;
+  font-size: 13px;
 }
 
 /* Status Badges */
@@ -244,150 +279,143 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.ar-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 700;
 }
 
 .ar-status-badge.active {
-  background: rgba(16, 185, 129, 0.12);
+  background: #D1FAE5;
   color: #059669;
 }
 
-.ar-status-badge.active .ar-status-dot {
-  background: #10b981;
-}
-
 .ar-status-badge.inactive {
-  background: rgba(100, 116, 139, 0.12);
-  color: #64748b;
+  background: #F1F5F9;
+  color: #64748B;
 }
 
-.ar-status-badge.inactive .ar-status-dot {
-  background: #94a3b8;
+.ar-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-/* Workload pills */
+/* Workload Pills */
 .ar-workload-pills {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .ar-pill {
-  padding: 3px 8px;
-  border-radius: 6px;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
 }
 
 .ar-pill-open {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: #FFE4E6;
+  color: #E11D48;
 }
 
 .ar-pill-progress {
-  background: #fef3c7;
-  color: #b45309;
+  background: #FEF3C7;
+  color: #D97706;
 }
 
 .ar-resolved-count {
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  color: #0F172A;
 }
 
 .ar-resp-time {
-  color: #475569;
-}
-
-.ar-date {
-  color: #64748b;
   font-size: 13px;
+  color: #64748B;
 }
 
-/* Action buttons */
-.ar-actions-cell {
+.ar-joined-date {
+  font-size: 12.5px;
+  color: #94A3B8;
+}
+
+/* Actions */
+.ar-action-btns {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
 .ar-btn-view {
-  padding: 5px 12px;
-  background: white;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  border-radius: 6px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  padding: 6px 14px;
+  border-radius: 9999px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  font-family: inherit;
 }
 
 .ar-btn-view:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
 }
 
 .ar-btn-toggle {
-  padding: 5px 12px;
-  border-radius: 6px;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 9999px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  font-family: inherit;
 }
 
 .ar-btn-toggle.deactivate {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: #FFE4E6;
+  color: #E11D48;
 }
 
-.ar-btn-toggle.deactivate:hover:not(:disabled) {
-  background: #ef4444;
-  color: white;
+.ar-btn-toggle.deactivate:hover {
+  background: #FECDD3;
 }
 
 .ar-btn-toggle.activate {
-  background: rgba(16, 185, 129, 0.1);
+  background: #D1FAE5;
   color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.ar-btn-toggle.activate:hover:not(:disabled) {
-  background: #10b981;
-  color: white;
+.ar-btn-toggle.activate:hover {
+  background: #A7F3D0;
 }
 
-.ar-btn-toggle:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ─── Empty & Loading ─── */
+/* Loading & Empty */
 .ar-loading, .ar-empty {
-  padding: 50px 20px;
+  padding: 60px 20px;
   text-align: center;
-  color: #64748b;
+  color: #64748B;
 }
 
-.ar-empty-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
+.ar-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #C6F24D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
 }
 
-.ar-empty h3 {
-  font-size: 16px;
-  color: #0f172a;
-  margin: 0 0 6px;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ─── Invite Modal ─── */
@@ -395,7 +423,8 @@
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -404,133 +433,154 @@
 }
 
 .ar-modal-card {
-  background: white;
-  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
   max-width: 480px;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  animation: arModalIn 0.2s ease-out;
+  width: 100%;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes arModalIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .ar-modal-header {
+  padding: 24px 28px;
+  background: #101622;
+  color: #FFFFFF;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
 }
 
-.ar-modal-header h2 {
+.ar-modal-tag {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #C6F24D;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.ar-modal-header h3 {
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0;
+  color: #FFFFFF;
 }
 
 .ar-modal-close {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  font-size: 18px;
-  color: #94a3b8;
+  color: #FFFFFF;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   cursor: pointer;
-  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.15s ease;
 }
 
 .ar-modal-close:hover {
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ar-modal-form {
+  padding: 28px;
 }
 
 .ar-modal-desc {
   font-size: 13.5px;
-  color: #64748b;
+  color: #64748B;
   line-height: 1.5;
   margin: 0 0 20px;
 }
 
-.ar-modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.ar-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .ar-form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
 }
 
 .ar-form-group input {
-  padding: 10px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  background: #F8FAFC;
   font-size: 14px;
+  color: #0F172A;
   outline: none;
-  transition: all 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: all 0.2s ease;
 }
 
 .ar-form-group input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  background: #FFFFFF;
+  border-color: #65A30D;
+  box-shadow: 0 0 0 3px rgba(198, 242, 77, 0.35);
 }
 
 .ar-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  margin-top: 24px;
 }
 
 .ar-btn-cancel {
-  background: white;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.ar-btn-cancel:hover:not(:disabled) {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-}
-
-.ar-btn-submit {
-  background: #4f46e5;
-  color: white;
+  background: #F1F5F9;
   border: none;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-size: 13.5px;
+  color: #475569;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  font-family: inherit;
 }
 
-.ar-btn-submit:hover:not(:disabled) {
-  background: #4338ca;
+.ar-btn-send-invite {
+  background: #C6F24D;
+  color: #111827;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(198, 242, 77, 0.3);
+  transition: all 0.2s ease;
+  font-family: inherit;
 }
 
-.ar-btn-submit:disabled,
-.ar-btn-cancel:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.ar-btn-send-invite:hover {
+  background: #D4F65B;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+  .ar-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .ar-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .ar-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

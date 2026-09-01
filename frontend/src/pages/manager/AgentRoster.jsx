@@ -105,18 +105,28 @@ function AgentRoster() {
         : 0;
 
     return (
-        <div className="manager-layout">
-            <ManagerNavbar />
-            <div className="ar-container">
+        <div className="mgr-page-root">
+            {/* Top Navigation Bar */}
+            <div className="mgr-header-wrapper">
+                <ManagerNavbar />
+            </div>
+
+            <main className="mgr-subpage-container">
                 
                 {/* Header */}
-                <div className="ar-header">
+                <div className="ar-page-header">
                     <div>
-                        <h1>Agent Roster & Provisioning</h1>
-                        <p>Manage support representatives, monitor workloads, and invite new team members.</p>
+                        <div className="ar-page-tag">
+                            <span className="ar-tag-dot"></span>
+                            <span>01 TEAM PROVISIONING</span>
+                        </div>
+                        <h1 className="ar-page-title">Agent Roster &amp; Provisioning</h1>
+                        <p className="ar-page-desc">Manage support specialists, monitor live workloads, and invite new team members.</p>
                     </div>
+
                     <button className="ar-btn-invite" onClick={() => setShowInviteModal(true)}>
-                        <span className="ar-btn-icon">+</span> Invite Agent
+                        <span className="ar-btn-icon">+</span>
+                        Invite Agent
                     </button>
                 </div>
 
@@ -140,162 +150,151 @@ function AgentRoster() {
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="ar-controls-card">
-                    <div className="ar-search-wrapper">
-                        <svg className="ar-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search agents by name, username, or email..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="ar-search-input"
-                        />
+                {/* Main Card Frame */}
+                <div className="ar-card-frame">
+                    
+                    {/* Search Bar */}
+                    <div className="ar-controls-row">
+                        <div className="ar-search-wrapper">
+                            <svg className="ar-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search agents by name, username, or email..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="ar-search-input"
+                            />
+                        </div>
                     </div>
-                </div>
 
-                {/* Roster Table */}
-                <div className="ar-table-container">
-                    {loading ? (
-                        <div className="ar-loading">
-                            <div className="spinner"></div>
-                            <p>Loading agent roster...</p>
-                        </div>
-                    ) : filteredAgents.length === 0 ? (
-                        <div className="ar-empty">
-                            <div className="ar-empty-icon">👥</div>
-                            <h3>No Agents Found</h3>
-                            <p>{search ? "No agents match your search criteria." : "No support agents have been added yet."}</p>
-                        </div>
-                    ) : (
-                        <table className="ar-table">
-                            <thead>
-                                <tr>
-                                    <th>Agent</th>
-                                    <th>Email</th>
-                                    <th>Status</th>
-                                    <th>Workload</th>
-                                    <th>Resolved</th>
-                                    <th>Avg Response</th>
-                                    <th>Joined</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAgents.map(agent => (
-                                    <tr key={agent.agent_id} className={`ar-row ${!agent.is_active ? 'ar-row-inactive' : ''}`}>
-                                        <td className="ar-agent-cell" onClick={() => navigate(`/manager/agents/${agent.agent_id}`)} style={{ cursor: "pointer" }}>
-                                            <div className="ar-avatar">
-                                                {(agent.agent_name || agent.username || "A").charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="ar-agent-info">
-                                                <span className="ar-agent-name">{agent.agent_name || "Unnamed"}</span>
-                                                <span className="ar-agent-username">@{agent.username}</span>
-                                            </div>
-                                        </td>
-                                        <td className="ar-email">{agent.email}</td>
-                                        <td>
-                                            <span className={`ar-status-badge ${agent.is_active ? 'active' : 'inactive'}`}>
-                                                <span className="ar-status-dot"></span>
-                                                {agent.is_active ? "Active" : "Inactive"}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="ar-workload-pills">
-                                                <span className="ar-pill ar-pill-open" title="Open tickets">
-                                                    {agent.open_count} Open
-                                                </span>
-                                                <span className="ar-pill ar-pill-progress" title="In Progress tickets">
-                                                    {agent.in_progress_count} In Prog
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="ar-resolved-count">
-                                            {agent.resolved_count}
-                                        </td>
-                                        <td className="ar-resp-time">
-                                            {agent.avg_response_hours > 0 ? `${agent.avg_response_hours} hrs` : "N/A"}
-                                        </td>
-                                        <td className="ar-date">
-                                            {agent.created_at ? new Date(agent.created_at).toLocaleDateString() : "N/A"}
-                                        </td>
-                                        <td>
-                                            <div className="ar-actions-cell">
-                                                <button
-                                                    className="ar-btn-view"
-                                                    onClick={() => navigate(`/manager/agents/${agent.agent_id}`)}
-                                                >
-                                                    View
-                                                </button>
-                                                <button
-                                                    className={`ar-btn-toggle ${agent.is_active ? 'deactivate' : 'activate'}`}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleToggleStatus(agent);
-                                                    }}
-                                                    disabled={actionLoadingId === agent.agent_id}
-                                                >
-                                                    {actionLoadingId === agent.agent_id ? (
-                                                        "Updating..."
-                                                    ) : agent.is_active ? (
-                                                        "Deactivate"
-                                                    ) : (
-                                                        "Activate"
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </td>
+                    {/* Roster Table */}
+                    <div className="ar-table-container">
+                        {loading ? (
+                            <div className="ar-loading">
+                                <div className="ar-spinner"></div>
+                                <p>Loading agent roster...</p>
+                            </div>
+                        ) : filteredAgents.length === 0 ? (
+                            <div className="ar-empty">
+                                <div className="ar-empty-icon">👥</div>
+                                <h3>No Agents Found</h3>
+                                <p>{search ? "No agents match your search criteria." : "No support agents have been added yet."}</p>
+                            </div>
+                        ) : (
+                            <table className="ar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Agent</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Workload</th>
+                                        <th>Resolved</th>
+                                        <th>Avg Response</th>
+                                        <th>Joined</th>
+                                        <th style={{ textAlign: "right" }}>Action</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                                </thead>
+                                <tbody>
+                                    {filteredAgents.map(agent => (
+                                        <tr key={agent.agent_id} className={`ar-row ${!agent.is_active ? 'ar-row-inactive' : ''}`}>
+                                            <td className="ar-agent-cell" onClick={() => navigate(`/manager/agents/${agent.agent_id}`)}>
+                                                <div className="ar-avatar">
+                                                    {(agent.agent_name || agent.username || "A").charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="ar-agent-info">
+                                                    <span className="ar-agent-name">{agent.agent_name || "Unnamed"}</span>
+                                                    <span className="ar-agent-username">@{agent.username}</span>
+                                                </div>
+                                            </td>
+                                            <td className="ar-email">{agent.email}</td>
+                                            <td>
+                                                <span className={`ar-status-badge ${agent.is_active ? 'active' : 'inactive'}`}>
+                                                    <span className="ar-status-dot"></span>
+                                                    {agent.is_active ? "Active" : "Inactive"}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="ar-workload-pills">
+                                                    <span className="ar-pill ar-pill-open" title="Open tickets">
+                                                        {agent.open_count} Open
+                                                    </span>
+                                                    <span className="ar-pill ar-pill-progress" title="In Progress tickets">
+                                                        {agent.in_progress_count} In Prog
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="ar-resolved-count">
+                                                {agent.resolved_count}
+                                            </td>
+                                            <td className="ar-resp-time">
+                                                {agent.avg_response_hours > 0 ? `${agent.avg_response_hours} hrs` : "N/A"}
+                                            </td>
+                                            <td className="ar-joined-date">
+                                                {new Date(agent.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="ar-actions-cell" style={{ textAlign: "right" }}>
+                                                <div className="ar-action-btns">
+                                                    <button 
+                                                        className="ar-btn-view"
+                                                        onClick={() => navigate(`/manager/agents/${agent.agent_id}`)}
+                                                    >
+                                                        View Profile
+                                                    </button>
+                                                    <button 
+                                                        className={`ar-btn-toggle ${agent.is_active ? 'deactivate' : 'activate'}`}
+                                                        onClick={() => handleToggleStatus(agent)}
+                                                        disabled={actionLoadingId === agent.agent_id}
+                                                    >
+                                                        {actionLoadingId === agent.agent_id ? "..." : (agent.is_active ? "Deactivate" : "Activate")}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+
                 </div>
 
-            </div>
+            </main>
 
             {/* Invite Modal */}
             {showInviteModal && (
                 <div className="ar-modal-overlay" onClick={() => setShowInviteModal(false)}>
-                    <div className="ar-modal-card" onClick={(e) => e.stopPropagation()}>
+                    <div className="ar-modal-card" onClick={e => e.stopPropagation()}>
                         <div className="ar-modal-header">
-                            <h2>Invite New Support Agent</h2>
+                            <div>
+                                <span className="ar-modal-tag">TEAM EXPANSION</span>
+                                <h3>Invite Support Agent</h3>
+                            </div>
                             <button className="ar-modal-close" onClick={() => setShowInviteModal(false)}>✕</button>
                         </div>
-                        <p className="ar-modal-desc">
-                            Enter the email address of the new agent. We'll send them a secure link with an invite token valid for 48 hours to complete their account setup.
-                        </p>
                         <form onSubmit={handleInvite} className="ar-modal-form">
+                            <p className="ar-modal-desc">
+                                Enter the agent's email address. We’ll send an invitation link allowing them to complete account setup.
+                            </p>
                             <div className="ar-form-group">
-                                <label htmlFor="invite-email">Agent Email Address</label>
+                                <label>Agent Email Address</label>
                                 <input
-                                    id="invite-email"
                                     type="email"
                                     placeholder="agent@company.com"
                                     value={inviteEmail}
-                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    onChange={e => setInviteEmail(e.target.value)}
                                     required
                                     autoFocus
                                 />
                             </div>
                             <div className="ar-modal-actions">
-                                <button
-                                    type="button"
-                                    className="ar-btn-cancel"
-                                    onClick={() => setShowInviteModal(false)}
-                                    disabled={inviting}
-                                >
+                                <button type="button" className="ar-btn-cancel" onClick={() => setShowInviteModal(false)}>
                                     Cancel
                                 </button>
-                                <button
-                                    type="submit"
-                                    className="ar-btn-submit"
-                                    disabled={inviting || !inviteEmail.trim()}
-                                >
-                                    {inviting ? "Sending Invite..." : "Send Invitation"}
+                                <button type="submit" className="ar-btn-send-invite" disabled={inviting}>
+                                    {inviting ? "Sending Invitation..." : "Send Invitation →"}
                                 </button>
                             </div>
                         </form>

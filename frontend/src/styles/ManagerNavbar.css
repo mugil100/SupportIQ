@@ -1,5 +1,33 @@
 /* ─── ManagerNavbar — Electric Lime & Obsidian Theme (Reference UI) ─── */
 
+/* Top Header Wrapper for Subpages */
+.mgr-header-wrapper {
+  position: relative;
+  background: 
+    radial-gradient(ellipse at 85% 15%, rgba(198, 242, 77, 0.15) 0%, rgba(16, 22, 34, 0) 65%),
+    linear-gradient(145deg, #0B1017 0%, #101622 100%);
+  height: 90px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+}
+
+.mgr-header-wrapper .mgr-navbar-header {
+  position: relative;
+  padding: 0 44px;
+  width: 100%;
+}
+
+.mgr-subpage-container {
+  max-width: 1240px;
+  width: 100%;
+  margin: 36px auto 60px;
+  padding: 0 24px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
 .mgr-navbar-header {
   position: absolute;
   top: 0;
