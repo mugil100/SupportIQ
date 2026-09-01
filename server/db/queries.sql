@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS tickets (
     escalation_resolved BOOLEAN DEFAULT FALSE,
     ai_summary TEXT,
     ai_summary_updated_at TIMESTAMP,
-    last_summarized_message_id INT
+    last_summarized_message_id INT,
+    metadata JSONB
 );
 
 -- Ensure all columns exist on tickets if table already existed
@@ -58,6 +59,7 @@ ALTER TABLE tickets ADD COLUMN IF NOT EXISTS last_agent_reply_at TIMESTAMP;
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP;
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS closed_at TIMESTAMP;
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS affected_area VARCHAR(30);
+ALTER TABLE tickets ADD COLUMN IF NOT EXISTS metadata JSONB;
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS ai_confidence NUMERIC(3,2);
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS source VARCHAR(20) DEFAULT 'web';
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS escalated BOOLEAN DEFAULT FALSE;
