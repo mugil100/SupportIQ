@@ -13,6 +13,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  font-family: var(--mgr-font-heading);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -29,7 +30,8 @@
 }
 
 .ar-page-title {
-  font-size: 2.2rem;
+  font-family: var(--mgr-font-heading);
+  font-size: 2.3rem;
   font-weight: 800;
   color: #0F172A;
   margin: 0 0 6px;
@@ -49,6 +51,7 @@
   border: none;
   border-radius: 9999px;
   padding: 12px 24px;
+  font-family: var(--mgr-font-body);
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
@@ -57,7 +60,6 @@
   gap: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 16px rgba(198, 242, 77, 0.35);
-  font-family: inherit;
 }
 
 .ar-btn-invite:hover {
@@ -106,6 +108,7 @@
 }
 
 .ar-stat-label {
+  font-family: var(--mgr-font-heading);
   font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
@@ -114,7 +117,8 @@
 }
 
 .ar-stat-value {
-  font-size: 2.2rem;
+  font-family: var(--mgr-font-heading);
+  font-size: 2.3rem;
   font-weight: 800;
   color: #0F172A;
   letter-spacing: -1px;

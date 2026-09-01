@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ManagerNavbar from "./ManagerNavbar";
+import Footer from "../../components/Footer";
 import axios from "../../api/axios";
 import "../../styles/ManagerAllTickets.css";
+
+const STATUS_OPTIONS = ["All", "Open", "In Progress", "Resolved", "Closed"];
 
 function ManagerAllTickets() {
     const navigate = useNavigate();
@@ -22,13 +25,13 @@ function ManagerAllTickets() {
         try {
             const params = { page, limit: 15 };
             if (search) params.search = search;
-            if (status) params.status = status;
+            if (status && status !== "All") params.status = status;
             if (category) params.category = category;
 
             const res = await axios.get("/manager/tickets", { params });
-            setTickets(res.data.tickets);
-            setTotalPages(res.data.totalPages);
-            setTotal(res.data.total);
+            setTickets(res.data.tickets || []);
+            setTotalPages(res.data.totalPages || 1);
+            setTotal(res.data.total || 0);
         } catch (err) {
             console.error("Failed to fetch tickets:", err);
         } finally {
@@ -49,67 +52,116 @@ function ManagerAllTickets() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        setPage(1); // Reset to page 1 on search
+        setPage(1);
         fetchTickets();
     };
 
+    const handleStatusFilter = (st) => {
+        setStatus(st === "All" ? "" : st);
+        setPage(1);
+    };
+
     return (
-        <div className="manager-layout">
-            <ManagerNavbar />
-            <div className="mat-container">
-                <div className="mat-header">
+        <div className="mgr-page-root">
+            {/* Top Navigation */}
+            <div className="mgr-header-wrapper">
+                <ManagerNavbar />
+            </div>
+
+            <main className="mgr-subpage-container">
+                
+                {/* Header */}
+                <div className="mat-page-header">
                     <div>
-                        <h1>All Tickets</h1>
-                        <p>Browse and filter all customer tickets across the platform</p>
+                        <div className="mat-page-tag">
+                            <span className="mat-tag-dot"></span>
+                            <span>03 GLOBAL TRIAGE</span>
+                        </div>
+                        <h1 className="mat-page-title">All Support Tickets</h1>
+                        <p className="mat-page-desc">Monitor, filter, and inspect enterprise support tickets across all merchant accounts.</p>
                     </div>
+
                     <div className="mat-total-badge">
-                        {total} Tickets Found
+                        <span className="mat-total-num">{total}</span>
+                        <span className="mat-total-lbl">Total Records</span>
                     </div>
                 </div>
 
-                <div className="mat-filters-card">
-                    <form onSubmit={handleSearchSubmit} className="mat-search-form">
-                        <input
-                            type="text"
-                            placeholder="Search ticket title or description..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="mat-search-input"
-                        />
-                        <button type="submit" className="mat-search-btn">Search</button>
-                    </form>
+                {/* Main Card Frame */}
+                <div className="mat-card-frame">
+                    
+                    {/* Controls Toolbar */}
+                    <div className="mat-toolbar">
+                        
+                        {/* Status Pills */}
+                        <div className="mat-status-pills">
+                            {STATUS_OPTIONS.map(st => {
+                                const isCurrent = (!status && st === "All") || status === st;
+                                return (
+                                    <button
+                                        key={st}
+                                        className={`mat-pill-btn ${isCurrent ? 'active' : ''}`}
+                                        onClick={() => handleStatusFilter(st)}
+                                    >
+                                        {st}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                    <div className="mat-filter-group">
-                        <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
-                            <option value="">All Statuses</option>
-                            <option value="Open">Open</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Resolved">Resolved</option>
-                            <option value="Closed">Closed</option>
-                        </select>
+                        {/* Search & Category Filter */}
+                        <div className="mat-filter-right">
+                            <form onSubmit={handleSearchSubmit} className="mat-search-form">
+                                <svg className="mat-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search tickets by keyword..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="mat-search-input"
+                                />
+                                <button type="submit" className="mat-search-btn">Search</button>
+                            </form>
 
-                        <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
-                            <option value="">All Categories</option>
-                            <option value="Billing & Invoicing">Billing & Invoicing</option>
-                            <option value="API & Integration">API & Integration</option>
-                            <option value="Onboarding & KYC">Onboarding & KYC</option>
-                            <option value="Transaction Disputes">Transaction Disputes</option>
-                            <option value="Account & Compliance">Account & Compliance</option>
-                        </select>
+                            <select 
+                                value={category} 
+                                onChange={(e) => { setCategory(e.target.value); setPage(1); }}
+                                className="mat-category-select"
+                            >
+                                <option value="">All Categories</option>
+                                <option value="Billing & Invoicing">Billing &amp; Invoicing</option>
+                                <option value="API & Integration">API &amp; Integration</option>
+                                <option value="Onboarding & KYC">Onboarding &amp; KYC</option>
+                                <option value="Transaction Disputes">Transaction Disputes</option>
+                                <option value="Account & Compliance">Account &amp; Compliance</option>
+                            </select>
+                        </div>
+
                     </div>
-                </div>
 
-                <div className="mat-table-container">
-                    {loading ? (
-                        <div className="mat-loading">Loading tickets...</div>
-                    ) : (
-                        <>
-                            <table className="mat-table">
+                    {/* Tickets Table */}
+                    <div className="mat-table-wrap">
+                        {loading ? (
+                            <div className="mat-loading-box">
+                                <div className="mat-spinner"></div>
+                                <p>Loading ticket records...</p>
+                            </div>
+                        ) : tickets.length === 0 ? (
+                            <div className="mat-empty-box">
+                                <div className="mat-empty-icon">📂</div>
+                                <h3>No Tickets Found</h3>
+                                <p>No support tickets match the selected filter criteria.</p>
+                            </div>
+                        ) : (
+                            <table className="mat-data-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Ticket ID</th>
+                                        <th>Title &amp; Subject</th>
                                         <th>Customer</th>
-                                        <th>Title</th>
                                         <th>Status</th>
                                         <th>Priority</th>
                                         <th>Assigned Agent</th>
@@ -118,64 +170,75 @@ function ManagerAllTickets() {
                                 </thead>
                                 <tbody>
                                     {tickets.map(ticket => (
-                                        <tr key={ticket.ticket_id} onClick={() => navigate(`/manager/tickets/${ticket.ticket_id}`)}>
-                                            <td className="mat-id">#{ticket.ticket_id}</td>
-                                            <td className="mat-customer">{ticket.customer_name}</td>
-                                            <td className="mat-title">
+                                        <tr key={ticket.ticket_id} onClick={() => navigate(`/manager/tickets/${ticket.ticket_id}`)} className="mat-table-row">
+                                            <td>
+                                                <span className="mat-id-pill">#{ticket.ticket_id}</span>
+                                            </td>
+                                            <td className="mat-title-cell">
                                                 <div className="mat-title-text">{ticket.title}</div>
                                                 {ticket.escalated && !ticket.escalation_resolved && (
-                                                    <span className="mat-badge-escalated">Escalated</span>
+                                                    <span className="mat-badge-escalated">🚨 Escalated</span>
                                                 )}
                                             </td>
+                                            <td className="mat-customer-cell">{ticket.customer_name || "Unknown"}</td>
                                             <td>
-                                                <span className={`status-badge status-${ticket.status}`}>
+                                                <span className={`mat-status-pill status-${(ticket.status || 'open').toLowerCase().replace(/\s+/g, '-')}`}>
                                                     {ticket.status}
                                                 </span>
                                             </td>
                                             <td>
-                                                {ticket.priority && (
-                                                    <span className={`badge ${ticket.priority}`}>
-                                                        {ticket.priority}
-                                                    </span>
+                                                <span className={`mat-priority-pill priority-${(ticket.priority || 'medium').toLowerCase()}`}>
+                                                    {ticket.priority || "Medium"}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {ticket.agent_name ? (
+                                                    <div className="mat-agent-pill">
+                                                        <div className="mat-agent-avatar">
+                                                            {ticket.agent_name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <span>{ticket.agent_name}</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="mat-unassigned-pill">Unassigned</span>
                                                 )}
                                             </td>
-                                            <td className="mat-agent">
-                                                {ticket.agent_name || <span className="mat-unassigned">Unassigned</span>}
-                                            </td>
-                                            <td className="mat-date">
+                                            <td className="mat-date-cell">
                                                 {new Date(ticket.created_at).toLocaleDateString()}
                                             </td>
                                         </tr>
                                     ))}
-                                    {tickets.length === 0 && (
-                                        <tr>
-                                            <td colSpan="7" className="mat-empty">No tickets found matching your criteria.</td>
-                                        </tr>
-                                    )}
                                 </tbody>
                             </table>
+                        )}
+                    </div>
 
-                            {totalPages > 1 && (
-                                <div className="mat-pagination">
-                                    <button
-                                        disabled={page === 1}
-                                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                                    >
-                                        Previous
-                                    </button>
-                                    <span className="mat-page-info">Page {page} of {totalPages}</span>
-                                    <button
-                                        disabled={page === totalPages}
-                                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                    >
-                                        Next
-                                    </button>
-                                </div>
-                            )}
-                        </>
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="mat-pagination">
+                            <button
+                                className="mat-page-btn"
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                            >
+                                ← Previous
+                            </button>
+                            <span className="mat-page-info">Page {page} of {totalPages}</span>
+                            <button
+                                className="mat-page-btn"
+                                disabled={page === totalPages}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            >
+                                Next →
+                            </button>
+                        </div>
                     )}
+
                 </div>
-            </div>
+
+            </main>
+
+            <Footer />
         </div>
     );
 }

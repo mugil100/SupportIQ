@@ -69,13 +69,15 @@
 }
 
 .mgr-brand-name {
-  font-size: 15px;
+  font-family: var(--mgr-font-heading);
+  font-size: 15.5px;
   font-weight: 800;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.5px;
   color: #FFFFFF;
 }
 
 .mgr-brand-badge {
+  font-family: var(--mgr-font-heading);
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.8px;
@@ -103,11 +105,18 @@
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.75);
+  font-family: var(--mgr-font-body);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   padding: 8px 18px;
   border-radius: 9999px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;

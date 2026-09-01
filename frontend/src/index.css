@@ -46,6 +46,10 @@
   --mgr-text-muted:      #94A3B8;
   --mgr-border:          #E2E8F0;
   --mgr-border-subtle:   rgba(226, 232, 240, 0.8);
+  --mgr-font-heading:    'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --mgr-font-accent:     'Instrument Serif', 'Playfair Display', Georgia, serif;
+  --mgr-font-body:       'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mgr-font-mono:       'JetBrains Mono', monospace;
 
   /* Brand */
   --accent:         #8E9CA8;
