@@ -1,6 +1,14 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const pool = require("./config/database");
+const { Pool } = require("pg");
+
+// Use a dedicated pool with SSL support for connecting to Render externally
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes("render.com")
+    ? { rejectUnauthorized: false }
+    : false,
+});
 
 const STAFF = [
   {
@@ -23,6 +31,7 @@ async function seedStaff() {
   console.log("=".repeat(50));
   console.log("SupportIQ Staff Seeder");
   console.log("=".repeat(50));
+  console.log("Connecting to:", process.env.DATABASE_URL?.split("@")[1] || "local DB");
 
   for (const user of STAFF) {
     try {
@@ -59,6 +68,7 @@ async function seedStaff() {
   console.log("\n" + "=".repeat(50));
   console.log("Done!");
   console.log("=".repeat(50));
+  await pool.end();
   process.exit(0);
 }
 
