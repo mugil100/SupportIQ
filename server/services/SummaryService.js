@@ -136,7 +136,7 @@ async function generateAndCacheSummary(ticket_id, pool) {
     let summary;
     try {
         const completion = await groq.chat.completions.create({
-            model: "llama3-8b-8192",
+            model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.3,
             max_tokens: 150,
