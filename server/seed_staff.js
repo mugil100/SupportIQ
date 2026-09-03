@@ -19,6 +19,13 @@ const STAFF = [
     role: "manager",
   },
   {
+    username: "alex_manager",
+    email: "alex.manager@supportiq.com",
+    name: "Alex Vance (Ops Lead)",
+    password: "Manager@2026!",
+    role: "manager",
+  },
+  {
     username: "supportiq_agent",
     email: "agent@supportiq.com",
     name: "SupportIQ Agent",

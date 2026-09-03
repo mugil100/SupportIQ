@@ -388,8 +388,64 @@ app.use("/agent", notiRoutes);
 app.use("/agent", aiRoutes);
 app.use("/ai", aiRoutes);
 
+// Auto-migration helper to ensure all columns and tables exist across environments
+async function initDb() {
+    try {
+        await pool.query(`
+            -- 1. User Table Enhancements
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP;
+
+            -- 2. Ticket Escalation & AI Summary Columns
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS escalated BOOLEAN DEFAULT false;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS escalation_resolved BOOLEAN DEFAULT false;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMP;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS escalated_by INT REFERENCES users(id);
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS escalation_reason TEXT;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS ai_summary TEXT;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS ai_summary_updated_at TIMESTAMP;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS last_summarized_message_id INT;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS last_customer_reply_at TIMESTAMP;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS last_agent_reply_at TIMESTAMP;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS closed_at TIMESTAMP;
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS affected_area VARCHAR(30);
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+            ALTER TABLE tickets ADD COLUMN IF NOT EXISTS source VARCHAR(20) DEFAULT 'web';
+
+            -- 3. Internal Notes Table
+            CREATE TABLE IF NOT EXISTS internal_notes (
+                note_id    SERIAL PRIMARY KEY,
+                ticket_id  INT NOT NULL REFERENCES tickets(ticket_id) ON DELETE CASCADE,
+                author_id  INT NOT NULL REFERENCES users(id),
+                content    TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- 4. Agent Invites Table
+            CREATE TABLE IF NOT EXISTS agent_invites (
+                invite_id   SERIAL PRIMARY KEY,
+                email       VARCHAR(255) NOT NULL,
+                token       TEXT UNIQUE NOT NULL,
+                invited_by  INT NOT NULL REFERENCES users(id),
+                expires_at  TIMESTAMP NOT NULL,
+                accepted    BOOLEAN DEFAULT false,
+                created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            -- 5. Chat System sender_id support
+            ALTER TABLE ticket_messages ALTER COLUMN sender_id DROP NOT NULL;
+        `);
+        console.log("[DB] Schema auto-migration verified successfully.");
+    } catch (err) {
+        console.error("[DB] Schema auto-migration error:", err.message);
+    }
+}
+
 const port = process.env.PORT || 5000;
 
-server.listen(port, () => {
+server.listen(port, async () => {
     console.log(`Server running on port http://localhost:${port}`);
+    await initDb();
 });

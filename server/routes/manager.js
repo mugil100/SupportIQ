@@ -233,14 +233,14 @@ router.get("/escalations", verifyToken, requireManager, async (req, res) => {
         const result = await pool.query(`
             SELECT 
                 t.ticket_id, t.title, t.status, t.priority, t.category,
-                t.escalated_at, t.created_at,
+                COALESCE(t.escalated_at, t.created_at) AS escalated_at, t.created_at,
                 c.name AS customer_name,
                 a.name AS agent_name, a.id AS agent_id
             FROM tickets t
             LEFT JOIN users c ON t.customer_id = c.id
             LEFT JOIN users a ON t.assigned_agent_id = a.id
             WHERE t.escalated = true AND t.escalation_resolved = false
-            ORDER BY t.escalated_at DESC
+            ORDER BY COALESCE(t.escalated_at, t.created_at) DESC
             LIMIT $1 OFFSET $2
         `, [limit, offset]);
 
