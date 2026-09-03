@@ -163,7 +163,7 @@ function AgentTicketView() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(
+            let res = await fetch(
                 `${API_BASE_URL}/agent/ai-suggest`,
                 {
                     method: "POST",
@@ -171,10 +171,37 @@ function AgentTicketView() {
                         "Content-Type": "application/json",
                         ...(token ? { Authorization: `Bearer ${token}` } : {})
                     },
+                    credentials: "include",
                     body: JSON.stringify({ ticket_id: id, variant: variantName }),
                     signal: controller.signal
                 }
             );
+
+            // Auto-refresh token on 401/403 and retry once
+            if ((res.status === 401 || res.status === 403) && !controller.signal.aborted) {
+                try {
+                    const refreshRes = await axios.post("/refresh");
+                    if (refreshRes.data?.token) {
+                        const newToken = refreshRes.data.token;
+                        localStorage.setItem("token", newToken);
+                        res = await fetch(
+                            `${API_BASE_URL}/agent/ai-suggest`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${newToken}`
+                                },
+                                credentials: "include",
+                                body: JSON.stringify({ ticket_id: id, variant: variantName }),
+                                signal: controller.signal
+                            }
+                        );
+                    }
+                } catch (refreshErr) {
+                    console.error("Token refresh failed during AI suggestion:", refreshErr);
+                }
+            }
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
