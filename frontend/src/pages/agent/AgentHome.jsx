@@ -32,6 +32,8 @@ function timeAgo(dateStr) {
 function AgentHome() {
     const navigate = useNavigate();
     const aname = localStorage.getItem("name") || "Agent";
+    const userId = localStorage.getItem("user_id") || "1";
+    const agentIdFormatted = `AGT-${String(userId).padStart(4, '0')}`;
 
     const [stats, setStats] = useState({
         assigned: 0,
@@ -80,7 +82,7 @@ function AgentHome() {
                     <div className="agent-hero-text-block">
                         <div className="agent-hero-tag">
                             <span className="hero-tag-dot"></span>
-                            <span>AGENT WORKSPACE • WELCOME BACK, {aname.toUpperCase()}</span>
+                            <span>AGENT WORKSPACE • {aname.toUpperCase()} ({agentIdFormatted})</span>
                         </div>
 
                         <h1 className="agent-hero-title">

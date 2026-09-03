@@ -79,7 +79,12 @@ function ReassignModal({ ticketId, currentAgentId, onClose, onReassign }) {
                                             {agent.agent_name.charAt(0).toUpperCase()}
                                         </div>
                                         <div className="rm-agent-info">
-                                            <span className="rm-agent-name">{agent.agent_name}</span>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                                <span className="rm-agent-name">{agent.agent_name}</span>
+                                                <span style={{ fontSize: "9px", fontWeight: "700", background: "#EFF6FF", color: "#2563EB", padding: "1px 5px", borderRadius: "9999px" }}>
+                                                    AGT-{String(agent.agent_id).padStart(4, '0')}
+                                                </span>
+                                            </div>
                                             <div className="rm-agent-stats">
                                                 <span className={`rm-stat-pill ${agent.open_count > 5 ? 'high' : ''}`}>
                                                     {agent.open_count} open

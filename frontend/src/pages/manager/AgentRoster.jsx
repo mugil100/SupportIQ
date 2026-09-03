@@ -205,7 +205,12 @@ function AgentRoster() {
                                                     {(agent.agent_name || agent.username || "A").charAt(0).toUpperCase()}
                                                 </div>
                                                 <div className="ar-agent-info">
-                                                    <span className="ar-agent-name">{agent.agent_name || "Unnamed"}</span>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                                        <span className="ar-agent-name">{agent.agent_name || "Unnamed"}</span>
+                                                        <span style={{ fontSize: "10px", fontWeight: "700", background: "rgba(59, 130, 246, 0.1)", color: "#2563EB", padding: "1px 6px", borderRadius: "9999px", letterSpacing: "0.5px" }}>
+                                                            AGT-{String(agent.agent_id).padStart(4, '0')}
+                                                        </span>
+                                                    </div>
                                                     <span className="ar-agent-username">@{agent.username}</span>
                                                 </div>
                                             </td>

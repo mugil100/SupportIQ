@@ -45,6 +45,10 @@ function AgentNavbar() {
         }
     }
 
+    const name = localStorage.getItem("name") || "Agent";
+    const userId = localStorage.getItem("user_id") || "1";
+    const agentIdFormatted = `AGT-${String(userId).padStart(4, '0')}`;
+
     return (
         <header className="agent-top-navbar">
             <NotificationToast onUnreadChange={setUnread} />
@@ -94,8 +98,15 @@ function AgentNavbar() {
                 </button>
             </nav>
 
-            {/* Right: Crisp White Pill CTA */}
+            {/* Right: Agent ID Badge + Sign Out */}
             <div className="agent-nav-right">
+                <div className="agent-nav-user-badge" title={`Logged in as ${name} (${agentIdFormatted})`}>
+                    <span className="agent-badge-avatar">{name.charAt(0).toUpperCase()}</span>
+                    <div className="agent-badge-details">
+                        <span className="agent-badge-name">{name}</span>
+                        <span className="agent-badge-id">{agentIdFormatted}</span>
+                    </div>
+                </div>
                 <button className="agent-nav-btn-white" onClick={logout}>
                     Sign Out
                     <span className="nav-btn-icon">↗</span>

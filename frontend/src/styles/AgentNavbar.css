@@ -106,10 +106,56 @@
   line-height: 1.2;
 }
 
-/* ─── Right: Crisp White Pill CTA ─── */
+/* ─── Right: Crisp White Pill CTA + User Profile ─── */
 .agent-nav-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.agent-nav-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 4px 12px 4px 5px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+.agent-badge-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-badge-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.agent-badge-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.agent-badge-id {
+  font-size: 9px;
+  font-weight: 700;
+  color: #93C5FD;
+  letter-spacing: 0.5px;
 }
 
 .agent-nav-btn-white {

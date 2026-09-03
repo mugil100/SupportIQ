@@ -117,6 +117,9 @@ function ManagerAgentDetail() {
                                 <div className="mad-profile-info">
                                     <div className="mad-name-row">
                                         <h1 className="mad-agent-name">{agent.name || "Representative"}</h1>
+                                        <span style={{ fontSize: "11px", fontWeight: "700", background: "rgba(59, 130, 246, 0.12)", color: "#2563EB", padding: "2px 8px", borderRadius: "9999px", letterSpacing: "0.5px" }}>
+                                            AGT-{String(agent.id || agent.agent_id || id).padStart(4, '0')}
+                                        </span>
                                         <span className={`mad-status-badge ${agent.is_active ? 'active' : 'inactive'}`}>
                                             <span className="mad-status-dot"></span>
                                             {agent.is_active ? "Active" : "Deactivated"}

@@ -181,7 +181,18 @@ function ManagerTicketView() {
                                 </div>
                                 <div className="mtv-meta-item">
                                     <span className="mtv-meta-label">Assigned Agent</span>
-                                    <div className="mtv-meta-val">{ticket.agent_name || "Unassigned"}</div>
+                                    <div className="mtv-meta-val">
+                                        {ticket.agent_name ? (
+                                            <span>
+                                                {ticket.agent_name}{" "}
+                                                <span style={{ fontSize: "10px", fontWeight: "700", background: "#EFF6FF", color: "#2563EB", padding: "1px 6px", borderRadius: "9999px" }}>
+                                                    AGT-{String(ticket.assigned_agent_id).padStart(4, '0')}
+                                                </span>
+                                            </span>
+                                        ) : (
+                                            "Unassigned"
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="mtv-meta-item">
                                     <span className="mtv-meta-label">Category</span>
