@@ -141,11 +141,13 @@ router.post(["/ai-suggest", "/ai-suggest/:id"], verifyToken, aiLimiter,
   }
 
   try {
-    // 1. Fetch ticket details
+    // 1. Fetch ticket and customer details
     const ticketResult = await pool.query(
-      `SELECT ticket_id, title, category, priority, description, status 
-       FROM tickets 
-       WHERE ticket_id = $1`,
+      `SELECT t.ticket_id, t.title, t.category, t.priority, t.description, t.status,
+              u.name AS customer_name, u.email AS customer_email
+       FROM tickets t
+       LEFT JOIN users u ON t.customer_id = u.id
+       WHERE t.ticket_id = $1`,
       [ticketId]
     );
 
@@ -154,6 +156,15 @@ router.post(["/ai-suggest", "/ai-suggest/:id"], verifyToken, aiLimiter,
     }
 
     const ticket = ticketResult.rows[0];
+
+    // 1b. Fetch current agent details
+    const agentResult = await pool.query(
+      `SELECT id, name, username, email FROM users WHERE id = $1`,
+      [req.customer_id]
+    );
+    const agent = agentResult.rows[0];
+    const agentName = agent?.name || "SupportIQ Agent";
+    const agentIdFormatted = `AGT-${String(req.customer_id || 1).padStart(4, '0')}`;
 
     // 2. Fetch last N messages in chronological order
     const messagesResult = await pool.query(
@@ -181,24 +192,35 @@ router.post(["/ai-suggest", "/ai-suggest/:id"], verifyToken, aiLimiter,
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
-    // 4. Construct prompt for Groq LLM based on variant request
+    // 4. Construct anti-hallucination instructions & prompt for Groq LLM
+    const antiHallucinationRules = `
+CRITICAL INSTRUCTIONS TO PREVENT HALLUCINATIONS:
+1. Agent Identity: You are assisting as "${agentName}" (Agent ID: ${agentIdFormatted}). If the user asks for the agent's name, ID, or company, ONLY use this real identity or refer to yourself as the "SupportIQ Support Team". NEVER invent or hallucinate fictional personal names or fake employee IDs.
+2. Factuality: Rely STRICTLY on the ticket details and conversation history provided below.
+3. No False Action Claims: NEVER claim you have issued refunds, processed payments, generated invoices, or performed account changes unless explicitly confirmed in the messages. If an action is requested, state that you are actively reviewing, investigating, or taking steps to resolve it.
+4. Accuracy over Creativity: If certain details (e.g., specific transaction IDs, dollar/rupee amounts, HR forms) are not in the context, ask the customer for the necessary details politely rather than making them up.`;
+
     let systemInstruction = "";
     if (requestedVariant) {
-      systemInstruction = `You are an expert customer support AI assistant for SupportIQ, a B2B SaaS payments platform.
+      systemInstruction = `You are an expert customer support AI copilot for SupportIQ, a B2B SaaS payments platform.
 Your task is to write a single, high-quality response to the customer ticket in a strictly **${requestedVariant.toUpperCase()}** tone.
 - Professional: Formal, structured, precise, polite.
 - Empathetic: Warm, understanding, reassuring, acknowledging frustration.
-- Brief: Concise, direct, 1-2 sentences or quick bullet points.
+- Concise: Brief, direct, 1-2 sentences or quick actionable steps.
+
+${antiHallucinationRules}
 
 Provide ONLY the reply text itself. Do not include markdown headers, quotes, pleasantries outside the message, or conversational meta-text.`;
     } else {
-      systemInstruction = `You are an expert customer support AI assistant for SupportIQ, a B2B SaaS payments platform.
+      systemInstruction = `You are an expert customer support AI copilot for SupportIQ, a B2B SaaS payments platform.
 Your job is to generate 3 high-quality reply options for a support agent responding to a customer ticket.
+
+${antiHallucinationRules}
 
 You MUST provide responses in 3 distinct tones:
 1. **Professional**: Formal, structured, precise, and polite.
 2. **Empathetic**: Warm, understanding, reassuring, acknowledging customer concern.
-3. **Brief**: Concise, direct, 1-2 key sentences or quick actionable steps.
+3. **Concise**: Direct, 1-2 key sentences or quick actionable steps.
 
 Format your response strictly using markdown headers like this:
 
@@ -208,8 +230,8 @@ Format your response strictly using markdown headers like this:
 ### Empathetic
 [Empathetic reply here]
 
-### Brief
-[Brief reply here]
+### Concise
+[Concise reply here]
 
 Do not include any conversational meta-text or commentary outside of these 3 sections.`;
     }
@@ -222,10 +244,13 @@ Do not include any conversational meta-text or commentary outside of these 3 sec
       {
         role: "user",
         content: `Ticket #${ticket.ticket_id} Context:
+- Customer Name: ${ticket.customer_name || "Merchant Partner"}
 - Title: ${ticket.title}
 - Category: ${ticket.category || "General"}
 - Priority: ${ticket.priority || "Medium"}
 - Initial Description: ${ticket.description}
+- Support Agent Name: ${agentName}
+- Support Agent ID: ${agentIdFormatted}
 
 Recent Messages (Chronological):
 ${conversationHistory}
@@ -234,11 +259,11 @@ Generate the response now.`,
       },
     ];
 
-    // 5. Stream responses from Groq
+    // 5. Stream responses from Groq with low temperature for factual grounding
     const stream = await groq.chat.completions.create({
       model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
       messages: promptMessages,
-      temperature: 0.7,
+      temperature: 0.2,
       max_tokens: 1024,
       stream: true,
     });
