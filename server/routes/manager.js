@@ -538,25 +538,36 @@ router.post("/agents/invite", verifyToken, requireManager,
     validate,
     async (req, res) => {
         const { email } = req.body;
+        const client = await pool.connect();
 
         try {
+            await client.query("BEGIN");
+
             // Check if user already exists
-            const existingUser = await pool.query(
+            const existingUser = await client.query(
                 `SELECT id FROM users WHERE email = $1`, [email]
             );
             if (existingUser.rows.length > 0) {
+                await client.query("ROLLBACK");
                 return res.status(400).json({ error: "A user with this email already exists" });
             }
 
-            // Check for existing unexpired invite
-            const existingInvite = await pool.query(
+            // Check for existing unexpired, unaccepted invite
+            const existingInvite = await client.query(
                 `SELECT invite_id FROM agent_invites 
                  WHERE email = $1 AND accepted = false AND expires_at > NOW()`,
                 [email]
             );
             if (existingInvite.rows.length > 0) {
-                return res.status(400).json({ error: "An active invite already exists for this email" });
+                await client.query("ROLLBACK");
+                return res.status(400).json({ error: "An active invite already exists for this email. Please wait for it to expire (48h) or ask the invitee to check their inbox." });
             }
+
+            // Delete any old expired/failed invites for this email so we can re-invite cleanly
+            await client.query(
+                `DELETE FROM agent_invites WHERE email = $1 AND (accepted = true OR expires_at <= NOW())`,
+                [email]
+            );
 
             // Generate invite token (48h expiry)
             const inviteToken = jwt.sign(
@@ -567,20 +578,34 @@ router.post("/agents/invite", verifyToken, requireManager,
 
             const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-            await pool.query(
+            await client.query(
                 `INSERT INTO agent_invites (email, token, invited_by, expires_at)
                  VALUES ($1, $2, $3, $4)`,
                 [email, inviteToken, req.customer_id, expiresAt]
             );
 
-            // Send invite email
-            const inviteLink = `${process.env.FRONTEND_URL}/agent/accept-invite/${inviteToken}`;
+            // Build invite link
+            const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+            const inviteLink = `${frontendUrl}/agent/accept-invite/${inviteToken}`;
+
+            // Send invite email — if this throws, the transaction rolls back
+            // so the invite row is NOT left in the DB, allowing clean retries
             await SendEmail(email, inviteLink, "agent_invite");
 
-            res.status(201).json({ message: "Invite sent successfully", email });
+            await client.query("COMMIT");
+            res.status(201).json({ message: "Invite sent successfully", email, invite_link: inviteLink });
         } catch (err) {
+            await client.query("ROLLBACK");
             console.error("Error sending agent invite:", err);
-            res.status(500).json({ error: "Failed to send invite" });
+            const isEmailError = err.message?.toLowerCase().includes("resend") ||
+                                 err.message?.toLowerCase().includes("email") ||
+                                 err.statusCode || err.name === "ResendError";
+            const userMessage = isEmailError
+                ? "Failed to send invite email. Check that RESEND_API_KEY is set and the sender domain is verified in Resend dashboard."
+                : "Failed to send invite";
+            res.status(500).json({ error: userMessage });
+        } finally {
+            client.release();
         }
     }
 );

@@ -33,12 +33,23 @@ async function SendEmail(email, link, type = "reset") {
             </p>
         `;
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
         from: "onboarding@resend.dev",
         to: email,
         subject,
         html
     });
+
+    // Resend SDK returns { data, error } — throw if there was an API-level error
+    if (result.error) {
+        console.error("[emailService] Resend API error:", result.error);
+        const err = new Error(result.error.message || "Resend email send failed");
+        err.name = "ResendError";
+        err.statusCode = result.error.statusCode;
+        throw err;
+    }
+
+    console.log(`[emailService] Email sent to ${email} (id: ${result.data?.id})`);
 }
 
 module.exports = { SendEmail };
