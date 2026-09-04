@@ -290,7 +290,7 @@ router.post("/accept-invite",
     [
         body("token").notEmpty().withMessage("Invite token is required"),
         body("name").trim().notEmpty().withMessage("Name is required").isLength({ max: 100 }),
-        body("username").trim().notEmpty().withMessage("Username is required").isLength({ min: 3, max: 30 }).isAlphanumeric(),
+        body("username").trim().notEmpty().withMessage("Username is required").isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_\.]+$/).withMessage("Username may only contain letters, numbers, underscores, and dots"),
         body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters")
     ],
     validate,
